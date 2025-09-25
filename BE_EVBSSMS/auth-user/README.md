@@ -1,0 +1,1 @@
+Đăng ký tài khoản, đăng nhập, quản lý tài khoản, liên kết VIN, loại pin

@@ -1,0 +1,1 @@
+Quản lý trạm, số lượng pin (đầy, sạc, bảo dưỡng), phân loại, tình trạng

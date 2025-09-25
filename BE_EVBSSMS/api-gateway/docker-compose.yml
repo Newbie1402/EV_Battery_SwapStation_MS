@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+    command: ["java", "-jar", "/app/app.jar"]
+    ports:
+      - "9000:8080"
+    env_file:
+      - .env
+    depends_on:
+      - eureka-server
+    networks:
+      - evnet
+
+  eureka-server:
+    image: eurekaserver:latest
+    ports:
+      - "8761:8761"
+    networks:
+      - evnet
+
+networks:
+  evnet:
+    driver: bridge
+

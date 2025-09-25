@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  support-feedback:
+    build:
+      context: ./support-feedback
+    command: ["java", "-jar", "/app/app.jar"]
+    ports:
+      - "9006:8080"
+    env_file:
+      - .env
+    depends_on:
+      - support-feedback-db
+      - eureka-server
+    networks:
+      - evnet
+
+  support-feedback-db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=supportdb
+      - POSTGRES_USER=ev
+      - POSTGRES_PASSWORD=evpass
+    ports:
+      - "5438:5432"
+    networks:
+      - evnet
+
+  eureka-server:
+    image: eurekaserver:latest
+    ports:
+      - "8761:8761"
+    networks:
+      - evnet
+
+networks:
+  evnet:
+    driver: bridge

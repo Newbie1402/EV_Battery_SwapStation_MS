@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  analytics:
+    build:
+      context: ./analytics
+    command: ["java", "-jar", "/app/app.jar"]
+    ports:
+      - "9007:8080"
+    env_file:
+      - .env
+    depends_on:
+      - analytics-db
+      - eureka-server
+    networks:
+      - evnet
+
+  analytics-db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=analyticsdb
+      - POSTGRES_USER=ev
+      - POSTGRES_PASSWORD=evpass
+    ports:
+      - "5439:5432"
+    networks:
+      - evnet
+
+  eureka-server:
+    image: eurekaserver:latest
+    ports:
+      - "8761:8761"
+    networks:
+      - evnet
+
+networks:
+  evnet:
+    driver: bridge

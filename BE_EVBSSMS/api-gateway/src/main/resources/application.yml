@@ -5,6 +5,9 @@ spring:
   application:
     name: api-gateway
   cloud:
+
+    compatibility-verifier:
+      enabled: false
     gateway:
       discovery:
         locator:

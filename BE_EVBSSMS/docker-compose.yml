@@ -1,7 +1,4 @@
-version: "3.9"
-
 services:
-  # ==== Hạ tầng ====
   eureka-server:
     build:
       context: ./eureka-server
@@ -9,6 +6,11 @@ services:
     ports:
       - "8761:8761"
     networks: [evnet]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   kafka:
     image: bitnami/kafka:3.7
@@ -39,50 +41,28 @@ services:
     networks: [evnet]
 
   # ==== API Gateway ====
-  api-gateway:
+  gateway:
+    container_name: gateway
     build:
       context: .
       dockerfile: ./api-gateway/Dockerfile
     command: ["java", "-jar", "/app/app.jar"]
     ports:
       - "9000:8080"
-    env_file:
-      - .env
-    depends_on:
-      - eureka-server
-    networks: [evnet]
-
-  # ==== Các service domain ====
-  admin:
-    build:
-      context: .
-      dockerfile: ./admin/Dockerfile
-    command: ["java", "-jar", "/app/app.jar"]
-    ports:
-      - "9005:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://${ADMIN_DB_HOST}:${ADMIN_DB_PORT}/${ADMIN_DB_NAME}
-      - SPRING_DATASOURCE_USERNAME=${ADMIN_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${ADMIN_DB_PASSWORD}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
     env_file:
       - .env
     depends_on:
-      - admin-db
       - eureka-server
     networks: [evnet]
 
-  admin-db:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_DB=admindb
-      - POSTGRES_USER=ev
-      - POSTGRES_PASSWORD=evpass
-    ports:
-      - "5437:5432"
-    networks: [evnet]
+  # ==== 5 Service chính ====
 
+  # 1. AUTH-USER SERVICE
+  # Chức năng: Đăng ký/đăng nhập, quản lý profile, phương tiện, phân quyền, quản lý nhân viên, xử lý khiếu nại
   auth-user:
+    container_name: auth-user-service
     build:
       context: .
       dockerfile: ./auth-user/Dockerfile
@@ -103,15 +83,21 @@ services:
 
   auth-user-db:
     image: postgres:16-alpine
+    container_name: auth-user-db
     environment:
       - POSTGRES_DB=authdb
       - POSTGRES_USER=ev
       - POSTGRES_PASSWORD=evpass
     ports:
       - "5433:5432"
+    volumes:
+      - auth-user-data:/var/lib/postgresql/data
     networks: [evnet]
 
-  station-inventory:
+  # 2. STATION SERVICE
+  # Chức năng: Quản lý trạm, slot, pin, model, SoH, tìm kiếm trạm gần nhất, geo, routing
+  station:
+    container_name: station-service
     build:
       context: .
       dockerfile: ./station-inventory/Dockerfile
@@ -119,28 +105,34 @@ services:
     ports:
       - "9002:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://${STATION_INVENTORY_DB_HOST}:${STATION_INVENTORY_DB_PORT}/${STATION_INVENTORY_DB_NAME}
-      - SPRING_DATASOURCE_USERNAME=${STATION_INVENTORY_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${STATION_INVENTORY_DB_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${STATION_DB_HOST}:${STATION_DB_PORT}/${STATION_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${STATION_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${STATION_DB_PASSWORD}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
     env_file:
       - .env
     depends_on:
-      - station-inventory-db
+      - station-db
       - eureka-server
     networks: [evnet]
 
-  station-inventory-db:
+  station-db:
     image: postgres:16-alpine
+    container_name: station-db
     environment:
       - POSTGRES_DB=stationdb
       - POSTGRES_USER=ev
       - POSTGRES_PASSWORD=evpass
     ports:
       - "5434:5432"
+    volumes:
+      - station-data:/var/lib/postgresql/data
     networks: [evnet]
 
-  booking-swap:
+  # 3. BOOKING SERVICE (gộp booking-swap + support-feedback + notification)
+  # Chức năng: Đặt lịch, giữ pin, đổi pin, xử lý giao dịch, support ticket, rating, gửi notification
+  booking:
+    container_name: booking-service
     build:
       context: .
       dockerfile: ./booking-swap/Dockerfile
@@ -148,28 +140,41 @@ services:
     ports:
       - "9003:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://${BOOKING_SWAP_DB_HOST}:${BOOKING_SWAP_DB_PORT}/${BOOKING_SWAP_DB_NAME}
-      - SPRING_DATASOURCE_USERNAME=${BOOKING_SWAP_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${BOOKING_SWAP_DB_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${BOOKING_DB_HOST}:${BOOKING_DB_PORT}/${BOOKING_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${BOOKING_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${BOOKING_DB_PASSWORD}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
+      - SPRING_MAIL_HOST=${MAIL_HOST}
+      - SPRING_MAIL_PORT=${MAIL_PORT}
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     env_file:
       - .env
     depends_on:
-      - booking-swap-db
+      - booking-db
       - eureka-server
+      - kafka
+      - mailhog
     networks: [evnet]
 
-  booking-swap-db:
+  booking-db:
     image: postgres:16-alpine
+    container_name: booking-db
     environment:
       - POSTGRES_DB=bookingdb
       - POSTGRES_USER=ev
       - POSTGRES_PASSWORD=evpass
     ports:
       - "5435:5432"
+    volumes:
+      - booking-data:/var/lib/postgresql/data
     networks: [evnet]
 
-  billing-payment:
+  # 4. BILLING SERVICE (gộp billing-payment + analytics)
+  # Chức năng: Quản lý thanh toán, hóa đơn, gói thuê, báo cáo, thống kê, AI forecast
+  billing:
+    container_name: billing-service
     build:
       context: .
       dockerfile: ./billing-payment/Dockerfile
@@ -177,120 +182,38 @@ services:
     ports:
       - "9004:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://${BILLING_PAYMENT_DB_HOST}:${BILLING_PAYMENT_DB_PORT}/${BILLING_PAYMENT_DB_NAME}
-      - SPRING_DATASOURCE_USERNAME=${BILLING_PAYMENT_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${BILLING_PAYMENT_DB_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${BILLING_DB_HOST}:${BILLING_DB_PORT}/${BILLING_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${BILLING_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${BILLING_DB_PASSWORD}
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     env_file:
       - .env
     depends_on:
-      - billing-payment-db
+      - billing-db
       - eureka-server
+      - kafka
     networks: [evnet]
 
-  billing-payment-db:
+  billing-db:
     image: postgres:16-alpine
+    container_name: billing-db
     environment:
       - POSTGRES_DB=billingdb
       - POSTGRES_USER=ev
       - POSTGRES_PASSWORD=evpass
     ports:
       - "5436:5432"
-    networks: [evnet]
-
-  support-feedback:
-    build:
-      context: .
-      dockerfile: ./support-feedback/Dockerfile
-    command: ["java", "-jar", "/app/app.jar"]
-    ports:
-      - "9006:8080"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://${SUPPORT_FEEDBACK_DB_HOST}:${SUPPORT_FEEDBACK_DB_PORT}/${SUPPORT_FEEDBACK_DB_NAME}
-      - SPRING_DATASOURCE_USERNAME=${SUPPORT_FEEDBACK_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${SUPPORT_FEEDBACK_DB_PASSWORD}
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
-    env_file:
-      - .env
-    depends_on:
-      - support-feedback-db
-      - eureka-server
-    networks: [evnet]
-
-  support-feedback-db:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_DB=supportdb
-      - POSTGRES_USER=ev
-      - POSTGRES_PASSWORD=evpass
-    ports:
-      - "5438:5432"
-    networks: [evnet]
-
-  analytics:
-    build:
-      context: .
-      dockerfile: ./analytics/Dockerfile
-    command: ["java", "-jar", "/app/app.jar"]
-    ports:
-      - "9007:8080"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
-      - SPRING_DATASOURCE_USERNAME=${ANALYTICS_DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${ANALYTICS_DB_PASSWORD}
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
-    env_file:
-      - .env
-    depends_on:
-      - analytics-db
-      - eureka-server
-    networks: [evnet]
-
-  analytics-db:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_DB=analyticsdb
-      - POSTGRES_USER=ev
-      - POSTGRES_PASSWORD=evpass
-    ports:
-      - "5439:5432"
-    networks: [evnet]
-
-  notification:
-    build:
-      context: .
-      dockerfile: ./notification/Dockerfile
-    command: ["java", "-jar", "/app/app.jar"]
-    ports:
-      - "9008:8080"
-    environment:
-      - SPRING_MAIL_HOST=${MAIL_HOST}
-      - SPRING_MAIL_PORT=${MAIL_PORT}
-      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
-      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
-    env_file:
-      - .env
-    depends_on:
-      - eureka-server
-      - mailhog
-    networks: [evnet]
-
-  geo-routing:
-    build:
-      context: .
-      dockerfile: ./geo-routing/Dockerfile
-    command: ["java", "-jar", "/app/app.jar"]
-    ports:
-      - "9009:8080"
-    environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_SERVER}
-    env_file:
-      - .env
-    depends_on:
-      - eureka-server
+    volumes:
+      - billing-data:/var/lib/postgresql/data
     networks: [evnet]
 
 networks:
   evnet:
     driver: bridge
+
+volumes:
+  auth-user-data:
+  station-data:
+  booking-data:
+  billing-data:

@@ -1,0 +1,162 @@
+# File này chứa các service infrastructure chung cho development
+# Mỗi developer có thể:
+#   1. Chạy file này: docker-compose -f docker-compose.base.yml up -d
+#   2. Chạy service của mình trong IDEA
+#   3. Service sẽ kết nối với infrastructure này
+#
+# Các service được include:
+#   - Eureka Server (Service Discovery)
+#   - 4 PostgreSQL databases (cho 4 services chính)
+#   - Kafka + Zookeeper (Message Broker)
+#   - MailHog (SMTP Server cho testing)
+# ============================================
+
+services:
+  # ==== Service Discovery ====
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: base-eureka-server
+    ports:
+      - "8761:8761"
+    networks: [evnet]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # ==== Message Broker ====
+  zookeeper:
+    image: bitnami/zookeeper:3.9
+    container_name: base-zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+    networks: [evnet]
+    restart: unless-stopped
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: base-kafka
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=base-zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    networks: [evnet]
+    restart: unless-stopped
+
+  # ==== Mail Server (Development) ====
+  mailhog:
+    image: mailhog/mailhog
+    container_name: base-mailhog
+    ports:
+      - "8025:8025"    # UI web
+      - "1025:1025"    # SMTP server
+    networks: [evnet]
+    restart: unless-stopped
+
+  # ==== Databases ====
+
+  # 1. Auth-User Database
+  auth-user-db:
+    image: postgres:16-alpine
+    container_name: base-auth-user-db
+    environment:
+      - POSTGRES_DB=authdb
+      - POSTGRES_USER=ev
+      - POSTGRES_PASSWORD=evpass
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth-user-data:/var/lib/postgresql/data
+    networks: [evnet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ev -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Station Database
+  station-db:
+    image: postgres:16-alpine
+    container_name: base-station-db
+    environment:
+      - POSTGRES_DB=stationdb
+      - POSTGRES_USER=ev
+      - POSTGRES_PASSWORD=evpass
+    ports:
+      - "5434:5432"
+    volumes:
+      - station-data:/var/lib/postgresql/data
+    networks: [evnet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ev -d stationdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Booking Database
+  booking-db:
+    image: postgres:16-alpine
+    container_name: base-booking-db
+    environment:
+      - POSTGRES_DB=bookingdb
+      - POSTGRES_USER=ev
+      - POSTGRES_PASSWORD=evpass
+    ports:
+      - "5435:5432"
+    volumes:
+      - booking-data:/var/lib/postgresql/data
+    networks: [evnet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ev -d bookingdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 4. Billing Database
+  billing-db:
+    image: postgres:16-alpine
+    container_name: base-billing-db
+    environment:
+      - POSTGRES_DB=billingdb
+      - POSTGRES_USER=ev
+      - POSTGRES_PASSWORD=evpass
+    ports:
+      - "5436:5432"
+    volumes:
+      - billing-data:/var/lib/postgresql/data
+    networks: [evnet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ev -d billingdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  evnet:
+    driver: bridge
+    name: evnet
+
+volumes:
+  auth-user-data:
+    name: auth-user-data
+  station-data:
+    name: station-data
+  booking-data:
+    name: booking-data
+  billing-data:
+    name: billing-data

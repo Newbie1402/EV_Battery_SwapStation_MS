@@ -1,105 +1,27 @@
-server:
-  port: 8080
-
 spring:
-  application:
-    name: api-gateway
   cloud:
-
-    compatibility-verifier:
-      enabled: false
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
       routes:
-        - id: admin
-          uri: lb://admin
+        # Auth-User routes
+        - id: auth-user-service
+          uri: lb://auth-user-service
           predicates:
-            - Path=/api/admin/**
-          filters:
-            - StripPrefix=2
+            - Path=/api/auth/**,/api/users/**,/api/admin/**,/api/staff/**
 
-        - id: auth-user
-          uri: lb://auth-user
+        # Station routes
+        - id: station-service
+          uri: lb://station-service
           predicates:
-            - Path=/api/auth/**
-          filters:
-            - StripPrefix=2
+            - Path=/api/stations/**,/api/batteries/**,/api/geo/**
 
-        - id: station-inventory
-          uri: lb://station-inventory
+        # Booking routes
+        - id: booking-service
+          uri: lb://booking-service
           predicates:
-            - Path=/api/stations/**
-          filters:
-            - StripPrefix=2
+            - Path=/api/bookings/**,/api/swaps/**,/api/support/**,/api/notifications/**
 
-        - id: booking-swap
-          uri: lb://booking-swap
+        # Billing routes
+        - id: billing-service
+          uri: lb://billing-service
           predicates:
-            - Path=/api/bookings/**
-          filters:
-            - StripPrefix=2
-
-        - id: billing-payment
-          uri: lb://billing-payment
-          predicates:
-            - Path=/api/billing/**
-          filters:
-            - StripPrefix=2
-
-        - id: support-feedback
-          uri: lb://support-feedback
-          predicates:
-            - Path=/api/support/**
-          filters:
-            - StripPrefix=2
-
-        - id: analytics
-          uri: lb://analytics
-          predicates:
-            - Path=/api/analytics/**
-          filters:
-            - StripPrefix=2
-
-        - id: notification
-          uri: lb://notification
-          predicates:
-            - Path=/api/notifications/**
-          filters:
-            - StripPrefix=2
-
-        - id: geo-routing
-          uri: lb://geo-routing
-          predicates:
-            - Path=/api/geo/**
-          filters:
-            - StripPrefix=2
-
-  docker:
-    compose:
-      enabled: false
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL:http://eureka-server:8761/eureka/}
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    prefer-ip-address: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty.http: DEBUG
+            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**

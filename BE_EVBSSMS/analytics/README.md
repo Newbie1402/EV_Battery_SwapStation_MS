@@ -1,1 +1,0 @@
-Báo cáo doanh thu, số lượt đổi pin, tần suất, dự báo nhu cầu, nâng cấp hạ tầng

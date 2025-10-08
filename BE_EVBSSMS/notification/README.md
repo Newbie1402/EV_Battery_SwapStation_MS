@@ -1,1 +1,0 @@
-Gửi thông báo đặt lịch, hóa đơn, cảnh báo (gửi tới tài xế, nhân viên)

@@ -73,21 +73,6 @@
 				<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 			</dependency>
 
-			<!-- Test -->
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-test</artifactId>
-				<scope>test</scope>
-			</dependency>
-			<!-- Testcontainers (tùy chọn) -->
-			<!--
-            <dependency>
-              <groupId>org.testcontainers</groupId>
-              <artifactId>postgresql</artifactId>
-              <scope>test</scope>
-            </dependency>
-            -->
-
 			<!-- Configuration metadata (IDE hints) -->
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
@@ -120,6 +105,7 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -143,11 +129,16 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.11.0</version>
 				<configuration>
+					<source>21</source>
+					<target>21</target>
+					<release>21</release>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>1.18.42</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>

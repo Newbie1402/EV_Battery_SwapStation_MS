@@ -2,6 +2,38 @@ spring:
   application:
     name: auth-user-service
   datasource:
-    url: jdbc:postgresql://${AUTH_USER_DB_HOST}:${AUTH_USER_DB_PORT}/${AUTH_USER_DB_NAME}
-    username: ${AUTH_USER_DB_USER}
-    password: ${AUTH_USER_DB_PASSWORD}
+    url: jdbc:postgresql://${AUTH_USER_DB_HOST:localhost}:${AUTH_USER_DB_PORT:5433}/${AUTH_USER_DB_NAME:authdb}
+    username: ${AUTH_USER_DB_USER:ev}
+    password: ${AUTH_USER_DB_PASSWORD:evpass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  docker:
+    compose:
+      enabled: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+server:
+  port: 8081
+
+logging:
+  level:
+    org.springframework: INFO
+    com.boilerplate.code: DEBUG

@@ -1,8 +1,8 @@
 spring:
   application:
-    name: station-inventory
+    name: station-service
   datasource:
-    url: jdbc:postgresql://${STATION_INVENTORY_DB_HOST:localhost}:${STATION_INVENTORY_DB_PORT:5432}/${STATION_INVENTORY_DB_NAME:stationdb}
+    url: jdbc:postgresql://${STATION_INVENTORY_DB_HOST:localhost}:${STATION_INVENTORY_DB_PORT:5434}/${STATION_INVENTORY_DB_NAME:stationdb}
     username: ${STATION_INVENTORY_DB_USER:ev}
     password: ${STATION_INVENTORY_DB_PASSWORD:evpass}
     driver-class-name: org.postgresql.Driver
@@ -32,7 +32,7 @@ eureka:
     prefer-ip-address: true
 
 server:
-  port: 8080
+  port: 8082
 
 logging:
   level:

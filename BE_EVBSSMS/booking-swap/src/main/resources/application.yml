@@ -1,10 +1,46 @@
 spring:
   application:
     name: booking-service
+  datasource:
+    url: jdbc:postgresql://${BOOKING_DB_HOST:localhost}:${BOOKING_DB_PORT:5435}/${BOOKING_DB_NAME:bookingdb}
+    username: ${BOOKING_DB_USER:ev}
+    password: ${BOOKING_DB_PASSWORD:evpass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
   mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       group-id: booking-group
+  docker:
+    compose:
+      enabled: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+server:
+  port: 8083
+
+logging:
+  level:
+    org.springframework: INFO
+    com.boilerplate.code: DEBUG

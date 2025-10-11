@@ -1,28 +1,29 @@
 package com.boilerplate.auth.enums;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
+/**
+ * Enum định nghĩa các mã trạng thái HTTP và thông điệp tương ứng
+ */
 @Getter
-@NoArgsConstructor(force = true)
 public enum StatusApplication {
-    // Success messages
-    SUCCESS(200, "Success"),
-    VALID_TOKEN(202, "Valid token"),
+    // Success codes (2xx)
+    SUCCESS(200, "Thao tác thành công"),
+    CREATED(201, "Tạo mới thành công"),
+    NO_CONTENT(204, "Không có nội dung"),
 
-    // Error messages
-    BAD_REQUEST(400, "Bad Request"),
-    UNAUTHORIZED(401, "Unauthorized"),
-    FORBIDDEN(403, "Forbidden"),
-    NOT_FOUND(404, "Not Found"),
-    ERROR(500, "Error"),
-    INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
-    CONFLICT(409, "Conflict"),
+    // Client error codes (4xx)
+    BAD_REQUEST(400, "Yêu cầu không hợp lệ"),
+    UNAUTHORIZED(401, "Chưa xác thực"),
+    FORBIDDEN(403, "Không có quyền truy cập"),
+    NOT_FOUND(404, "Không tìm thấy tài nguyên"),
+    CONFLICT(409, "Dữ liệu đã tồn tại"),
+    VALIDATION_FAILED(422, "Dữ liệu không hợp lệ"),
+    UNPROCESSABLE_ENTITY(422, "Dữ liệu không thể xử lý"),
 
-    SCHEDULE_CONFLICT(409, "Schedule Conflict"),
-
-    // Validation errors
-    VALIDATION_FAILED(422, "Validation Failed");
+    // Server error codes (5xx)
+    INTERNAL_SERVER_ERROR(500, "Lỗi máy chủ nội bộ"),
+    SERVICE_UNAVAILABLE(503, "Dịch vụ không khả dụng");
 
     private final int code;
     private final String message;

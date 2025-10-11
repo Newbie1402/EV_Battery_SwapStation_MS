@@ -73,4 +73,47 @@ public class HandlerGlobalException {
         );
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ResponseData<String>> handleResourceNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ResponseData<>(
+                        StatusApplication.NOT_FOUND.getCode(),
+                        StatusApplication.NOT_FOUND.getMessage(),
+                        ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ResponseData<String>> handleDuplicateResource(DuplicateResourceException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ResponseData<>(
+                        StatusApplication.CONFLICT.getCode(),
+                        StatusApplication.CONFLICT.getMessage(),
+                        ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ResponseData<String>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new ResponseData<>(
+                        StatusApplication.UNAUTHORIZED.getCode(),
+                        StatusApplication.UNAUTHORIZED.getMessage(),
+                        ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<ResponseData<String>> handleInvalidOtp(InvalidOtpException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ResponseData<>(
+                        StatusApplication.BAD_REQUEST.getCode(),
+                        StatusApplication.BAD_REQUEST.getMessage(),
+                        ex.getMessage()
+                )
+        );
+    }
 }

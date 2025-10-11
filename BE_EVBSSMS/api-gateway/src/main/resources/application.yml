@@ -6,9 +6,9 @@ spring:
       routes:
         # Auth-User routes
         - id: auth-user-service
-          uri: lb://auth-user-service
+          uri: lb://auth-user
           predicates:
-            - Path=/api/auth/**,/api/users/**,/api/admin/**,/api/staff/**
+            - Path=/api/auth/**,/api/users/**,/api/admin/**,/api/staff/**,/oauth2/**
 
         # Station routes
         - id: station-service

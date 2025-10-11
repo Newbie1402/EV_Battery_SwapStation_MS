@@ -1,0 +1,101 @@
+spring:
+  # Datasource cho môi trường local (dev)
+  datasource:
+    url: jdbc:postgresql://localhost:5433/authdb
+    username: ev
+    password: evpass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: false
+
+  # Kafka Configuration (local)
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
+    consumer:
+      group-id: auth-user-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
+      auto-offset-reset: earliest
+
+  # Mail Configuration (local - MailHog)
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  # OAuth2 Configuration (local)
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          google:
+#            client-id: ${GOOGLE_CLIENT_ID:465257132532-3682eblu41vfngghmedttlii21i64lu3.apps.googleusercontent.com}
+#            client-secret: ${GOOGLE_CLIENT_SECRET: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}
+#            scope:
+#              - email
+#              - profile
+#              - openid
+#            redirect-uri: http://localhost:8080/oauth2/callback
+#        provider:
+#          google:
+#            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+#            token-uri: https://oauth2.googleapis.com/token
+#            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+#            user-name-attribute: sub
+
+# Eureka Configuration (local)
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+# Logging (verbose cho dev)
+logging:
+  level:
+    org.springframework: INFO
+    com.boilerplate.auth: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.mail: DEBUG
+    org.flywaydb: DEBUG
+
+# Springdoc OpenAPI (Swagger) Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+  show-actuator: true

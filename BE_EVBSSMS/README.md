@@ -5,7 +5,7 @@
   ./build-all.bat
   docker-compose up --build -d
 ```
-
+http://localhost:8081/swagger-ui/index.html#/Admin/approveRegistration
 
 | Service       | Chức năng chính                       | Loại giao tiếp chính   |
 | ------------- | ------------------------------------- |------------------------|

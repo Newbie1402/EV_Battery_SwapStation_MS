@@ -4,7 +4,6 @@ import com.boilerplate.auth.enums.OtpType;
 import com.boilerplate.auth.exception.InvalidOtpException;
 import com.boilerplate.auth.model.entity.OtpToken;
 import com.boilerplate.auth.model.entity.User;
-import com.boilerplate.auth.model.event.EmailEvent;
 import com.boilerplate.auth.repository.OtpTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ import java.util.Random;
 public class OtpService {
 
     private final OtpTokenRepository otpTokenRepository;
-    private final KafkaProducerService kafkaProducerService;
     private final EmailService emailService;
 
     @Value("${otp.expiration-minutes:5}")
@@ -55,20 +53,15 @@ public class OtpService {
 
         otpTokenRepository.save(otpToken);
 
-        // Gửi OTP qua email (sử dụng Kafka)
-        String subject = otpType == OtpType.REGISTRATION
-                ? "Mã OTP xác thực tài khoản"
-                : "Mã OTP đặt lại mật khẩu";
-        String body = emailService.buildOtpEmailBody(user.getFullName(), otpCode, otpType);
+        // Gửi OTP qua email
+        try {
+            emailService.sendOtpEmail(user.getEmail(), user.getFullName(), otpCode, otpType);
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi OTP email đến: {}", user.getEmail(), e);
+            // Không throw exception, OTP đã được lưu vào DB, user có thể resend
+        }
 
-        EmailEvent emailEvent = EmailEvent.builder()
-                .to(user.getEmail())
-                .subject(subject)
-                .body(body)
-                .build();
-
-        kafkaProducerService.sendEmailEvent(emailEvent);
-        log.info("Đã tạo và gửi OTP cho user: {}", user.getEmail());
+        log.info("Đã tạo và gửi OTP cho user: {} ({})", user.getEmail(), otpType);
     }
 
     /**

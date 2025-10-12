@@ -241,7 +241,12 @@ public class AuthService {
         userRepository.save(user);
 
         // Gửi email chào mừng
-        sendWelcomeEmail(user);
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getFullName(), user.getRole().name());
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi welcome email đến: {}", user.getEmail(), e);
+            // Không throw exception, email chỉ là thông báo phụ
+        }
 
         // Tạo token
         String accessToken = tokenProvider.generateAccessToken(user.getEmail(), "ROLE_" + user.getRole().name());

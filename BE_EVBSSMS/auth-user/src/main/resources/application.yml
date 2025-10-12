@@ -41,42 +41,41 @@ spring:
 
   # Mail Configuration
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:your_email@gmail.com}
+    password: ${MAIL_PASSWORD:your_app_password}
     properties:
       mail:
         smtp:
-          auth: ${MAIL_SMTP_AUTH:false}
+          auth: ${MAIL_SMTP_AUTH:true}
           starttls:
-            enable: ${MAIL_SMTP_STARTTLS:false}
-            required: ${MAIL_SMTP_STARTTLS:false}
+            enable: ${MAIL_SMTP_STARTTLS:true}
+            required: ${MAIL_SMTP_STARTTLS:true}
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+    default-encoding: UTF-8
 
   # OAuth2 Configuration
-  # Nếu muốn enable Spring Security OAuth2, uncomment phần dưới
-  # security:
-  #   oauth2:
-  #     client:
-  #       registration:
-  #         google:
-  #           client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
-  #           client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
-  #           scope:
-  #             - email
-  #             - profile
-  #             - openid
-  #           redirect-uri: http://localhost:8080/oauth2/callback
-  #       provider:
-  #         google:
-  #           authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-  #           token-uri: https://oauth2.googleapis.com/token
-  #           user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-  #           user-name-attribute: sub
-
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:465257132532-fake-client-id.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET:GOCSPX-fake-secret-key}
+            scope:
+              - email
+              - profile
+              - openid
+            redirect-uri: http://localhost:8080/oauth2/callback
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
 eureka:
   client:
     serviceUrl:
@@ -87,7 +86,7 @@ eureka:
     prefer-ip-address: true
 
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}  # Local: 8081, Docker: 8080 (override qua env)
 
 # JWT Configuration
 jwt:

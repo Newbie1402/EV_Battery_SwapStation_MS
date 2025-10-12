@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #ff9800 0%, #ff6f00 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header .emoji {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .status-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ff9800;
+            border-radius: 4px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .status-box h2 {
+            color: #856404;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        .status-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        .timeline {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .timeline h3 {
+            color: #ff9800;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        .timeline-step {
+            display: flex;
+            align-items: start;
+            margin: 15px 0;
+            padding: 10px;
+        }
+        .timeline-step .number {
+            background-color: #ff9800;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .timeline-step.active .number {
+            background-color: #4CAF50;
+        }
+        .timeline-step .text {
+            flex: 1;
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .info-box li {
+            margin: 8px 0;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 30px 20px;
+            color: #6c757d;
+            font-size: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .footer a {
+            color: #ff9800;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="emoji">⏳</div>
+            <h1>Đơn Đăng Ký Đang Được Xử Lý</h1>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Xin chào <strong th:text="${fullName}">Người dùng</strong>,</p>
+
+            <p>Cảm ơn bạn đã đăng ký tài khoản <strong th:text="${roleText}">Tài xế</strong> tại <strong>EV Battery Swap Station Management System</strong>.</p>
+
+            <div class="status-box">
+                <div class="status-icon">📋</div>
+                <h2>Đơn đăng ký của bạn đang được xem xét</h2>
+                <p style="color: #856404; margin: 0;">Chúng tôi sẽ xem xét và phản hồi trong vòng <strong>24-48 giờ</strong></p>
+            </div>
+
+            <div class="timeline">
+                <h3>📍 Quy trình xử lý:</h3>
+
+                <div class="timeline-step active">
+                    <div class="number">✓</div>
+                    <div class="text">
+                        <strong>Đã nộp đơn</strong><br>
+                        <small style="color: #6c757d;">Bạn đã hoàn tất việc đăng ký tài khoản</small>
+                    </div>
+                </div>
+
+                <div class="timeline-step active">
+                    <div class="number">2</div>
+                    <div class="text">
+                        <strong>Đang xem xét</strong><br>
+                        <small style="color: #6c757d;">Admin đang kiểm tra thông tin của bạn</small>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="number">3</div>
+                    <div class="text">
+                        <strong>Phê duyệt</strong><br>
+                        <small style="color: #6c757d;">Bạn sẽ nhận được email thông báo kết quả</small>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="number">4</div>
+                    <div class="text">
+                        <strong>Kích hoạt tài khoản</strong><br>
+                        <small style="color: #6c757d;">Hoàn tất và bắt đầu sử dụng dịch vụ</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>📧 Bạn sẽ nhận được email thông báo khi:</strong>
+                <ul>
+                    <li>Đơn đăng ký được phê duyệt (bạn có thể bắt đầu sử dụng)</li>
+                    <li>Đơn đăng ký bị từ chối (sẽ có lý do cụ thể)</li>
+                    <li>Cần bổ sung thêm thông tin (nếu có)</li>
+                </ul>
+            </div>
+
+            <p style="color: #6c757d; margin-top: 30px;">Trong thời gian chờ đợi, nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi qua email hoặc hotline.</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>© <span th:text="${year}">2025</span> EV Battery Swap Station Management System</strong></p>
+            <p>Email: <a href="mailto:support@evbss.com">support@evbss.com</a> | Hotline: 1900-xxxx</p>
+            <p style="margin-top: 15px; color: #adb5bd;">🌍 Chung tay vì môi trường xanh - Tương lai bền vững</p>
+        </div>
+    </div>
+</body>
+</html>
+

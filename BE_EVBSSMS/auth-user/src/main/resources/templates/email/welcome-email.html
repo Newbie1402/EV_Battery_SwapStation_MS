@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header .emoji {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .welcome-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .welcome-box h2 {
+            color: #667eea;
+            margin: 0 0 10px 0;
+        }
+        .role-badge {
+            display: inline-block;
+            background-color: #667eea;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .features {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .features h3 {
+            color: #667eea;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        .features ul {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        .features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+            color: #495057;
+        }
+        .features li:last-child {
+            border-bottom: none;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 30px 20px;
+            color: #6c757d;
+            font-size: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="emoji">🎉</div>
+            <h1>Chào mừng đến với EV BSS!</h1>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Xin chào <strong th:text="${fullName}">Người dùng</strong>,</p>
+
+            <p>Chúc mừng! Tài khoản của bạn đã được kích hoạt thành công. Chúng tôi rất vui mừng được chào đón bạn gia nhập cộng đồng <strong>EV Battery Swap Station Management System</strong>.</p>
+
+            <div class="welcome-box">
+                <h2>Tài khoản của bạn</h2>
+                <p>Vai trò: <span class="role-badge" th:text="${roleText}">Tài xế</span></p>
+            </div>
+
+            <div class="features">
+                <h3>🚀 Các tính năng bạn có thể sử dụng:</h3>
+                <ul>
+                    <li th:each="feature : ${features}" th:text="${feature}">Tính năng</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 Mẹo:</strong> Hãy cập nhật đầy đủ thông tin cá nhân và phương tiện của bạn để trải nghiệm tốt nhất dịch vụ của chúng tôi.
+            </div>
+
+            <div style="text-align: center;">
+                <a href="http://localhost:3000/login" class="cta-button">Bắt đầu ngay →</a>
+            </div>
+
+            <p style="margin-top: 30px; color: #6c757d;">Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với đội ngũ hỗ trợ của chúng tôi. Chúng tôi luôn sẵn sàng giúp đỡ bạn!</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>© <span th:text="${year}">2025</span> EV Battery Swap Station Management System</strong></p>
+
+            <div class="social-links">
+                <a href="#">📘 Facebook</a>
+                <a href="#">🐦 Twitter</a>
+                <a href="#">📷 Instagram</a>
+            </div>
+
+            <p>Email: <a href="mailto:support@evbss.com">support@evbss.com</a> | Hotline: 1900-xxxx</p>
+            <p style="margin-top: 15px; color: #adb5bd;">🌍 Chung tay vì môi trường xanh - Tương lai bền vững</p>
+        </div>
+    </div>
+</body>
+</html>
+

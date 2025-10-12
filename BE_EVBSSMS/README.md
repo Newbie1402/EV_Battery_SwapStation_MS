@@ -5,6 +5,7 @@
   ./build-all.bat
   docker-compose up --build -d
 ```
+Nếu không dùng service trực tiếp ở docker muốn chạy được file env thì cần dùng thêm plugin Vd: EnvFile plugin
 http://localhost:8081/swagger-ui/index.html#/Admin/approveRegistration
 
 | Service       | Chức năng chính                       | Loại giao tiếp chính   |

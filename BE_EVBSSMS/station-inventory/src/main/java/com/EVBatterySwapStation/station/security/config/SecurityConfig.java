@@ -1,4 +1,4 @@
-package com.boilerplate.station.security.config;
+package com.EVBatterySwapStation.station.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

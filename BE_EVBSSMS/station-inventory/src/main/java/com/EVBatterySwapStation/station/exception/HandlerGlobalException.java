@@ -1,7 +1,7 @@
-package com.boilerplate.station.exception;
+package com.EVBatterySwapStation.station.exception;
 
-import com.boilerplate.station.enums.StatusApplication;
-import com.boilerplate.station.model.response.ResponseData;
+import com.EVBatterySwapStation.station.enums.StatusApplication;
+import com.EVBatterySwapStation.station.model.response.ResponseData;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;

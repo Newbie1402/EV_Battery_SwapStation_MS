@@ -1,4 +1,4 @@
-package com.boilerplate.station.enums;
+package com.EVBatterySwapStation.station.enums;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

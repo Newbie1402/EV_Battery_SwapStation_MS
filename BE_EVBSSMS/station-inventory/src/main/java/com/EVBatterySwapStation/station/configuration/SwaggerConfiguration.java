@@ -1,4 +1,4 @@
-package com.boilerplate.station.configuration;
+package com.EVBatterySwapStation.station.configuration;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;

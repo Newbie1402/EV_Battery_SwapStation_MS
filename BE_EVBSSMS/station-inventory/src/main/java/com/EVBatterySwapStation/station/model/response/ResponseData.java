@@ -1,4 +1,4 @@
-package com.boilerplate.station.model.response;
+package com.EVBatterySwapStation.station.model.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

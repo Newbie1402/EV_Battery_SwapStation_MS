@@ -17,15 +17,6 @@
         <option value="$PROJECT_DIR$/eureka-server/pom.xml" />
       </list>
     </option>
-    <option name="ignoredFiles">
-      <set>
-        <option value="$PROJECT_DIR$/admin/pom.xml" />
-        <option value="$PROJECT_DIR$/analytics/pom.xml" />
-        <option value="$PROJECT_DIR$/geo-routing/pom.xml" />
-        <option value="$PROJECT_DIR$/notification/pom.xml" />
-        <option value="$PROJECT_DIR$/support-feedback/pom.xml" />
-      </set>
-    </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="21" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />

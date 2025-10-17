@@ -3,6 +3,9 @@ package com.boilerplate.station.controller;
 import com.boilerplate.station.model.DTO.BatteryDTO;
 
 import com.boilerplate.station.model.createRequest.BatteryRequest;
+import com.boilerplate.station.model.event.Consumer.BatteryHoldEvent;
+import com.boilerplate.station.model.event.Consumer.BatterySwapEvent;
+import com.boilerplate.station.model.event.Consumer.BatterySwapStation;
 import com.boilerplate.station.model.response.ResponseData;
 import com.boilerplate.station.service.BatteryService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +21,7 @@ public class BatteryController {
 
     private final BatteryService batteryService;
 
-    @GetMapping
+    @GetMapping("/getall")
     public ResponseEntity<ResponseData<List<BatteryDTO>>> getAllBatteries() {
         return batteryService.getAllBatteries();
     }
@@ -28,7 +31,7 @@ public class BatteryController {
         return batteryService.getBatteryById(id);
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ResponseData<BatteryDTO>> createBattery(@RequestBody BatteryRequest request) {
         return batteryService.createBattery(request);
     }
@@ -44,4 +47,20 @@ public class BatteryController {
     public ResponseEntity<ResponseData<Void>> deleteBattery(@PathVariable Long id) {
         return batteryService.deleteBattery(id);
     }
+
+    @PostMapping("/event/swapverhice-to-station")
+    public ResponseEntity<ResponseData<Void>> handleBatterySwapEvent(@RequestBody BatterySwapEvent event) {
+        return batteryService.handleBatterySwap(event);
+    }
+
+    @PostMapping("/event/swapstation-to-station")
+    public ResponseEntity<ResponseData<Void>> handleBatterySwapStationEvent(@RequestBody BatterySwapStation event) {
+        return batteryService.handleBatterySwapStation(event);
+    }
+
+    @PostMapping("/event/hold")
+    public ResponseEntity<ResponseData<Void>> handleBatteryHoldEvent(@RequestBody BatteryHoldEvent event) {
+        return batteryService.holdBattery(event);
+    }
+
 }

@@ -32,5 +32,13 @@ public class Battery {
     private OwnerType ownerType; // "STATION" hoặc "VERHICE"
     private Long referenceId; // id của Station hoặc User tương ứng
 
+
+    @Column(nullable = true)
+    private boolean isHold = false; // pin đang được giữ để đổi
+
+    @ManyToOne
+    @JoinColumn(name = "station_id")
+    private Station station;
+
 }
 

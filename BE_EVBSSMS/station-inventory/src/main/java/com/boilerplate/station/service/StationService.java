@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class StationService {
 
     private final StationRepository stationRepository;
+    private final OpenStreetMapService openStreetMapService;
 
 
     //========================= Station CRUD Operations ========================
@@ -47,24 +48,34 @@ public class StationService {
     }
 
     public ResponseEntity<ResponseData<StationDTO>> createStation(StationRequest request) {
-        Station station = new Station();
-        station.setStationCode(request.getStationCode());
-        station.setStationName(request.getStationName());
-        station.setLatitude(request.getLatitude());
-        station.setLongitude(request.getLongitude());
-        station.setAddress(request.getAddress());
-        station.setPhoneNumber(request.getPhoneNumber());
-        station.setTotalSlots(request.getTotalSlots());
-        station.setAvailableSlots(request.getAvailableSlots());
-        station.setStatus(request.getStatus());
+        try {
+            var location = openStreetMapService.getCoordinatesFromAddress(request.getAddress());
 
-        Station saved = stationRepository.save(station);
-        StationDTO dto = StationDTO.fromEntity(saved);
+            Station station = new Station();
+            station.setStationCode(request.getStationCode());
+            station.setStationName(request.getStationName());
+            station.setAddress(request.getAddress());
+            station.setPhoneNumber(request.getPhoneNumber());
+            station.setTotalSlots(request.getTotalSlots());
+            station.setAvailableSlots(request.getAvailableSlots());
+            station.setStatus(request.getStatus());
+            station.setLatitude(location.latitude());
+            station.setLongitude(location.longitude());
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ResponseData<>(HttpStatus.CREATED.value(), "Station created successfully", dto));
+            Station saved = stationRepository.save(station);
+            StationDTO dto = StationDTO.fromEntity(saved);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ResponseData<>(HttpStatus.CREATED.value(), "Station created successfully", dto));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "Lỗi khi tạo trạm: " + e.getMessage(), null));
+        }
     }
 
+    // --- UPDATE STATION ---
     public ResponseEntity<ResponseData<StationDTO>> updateStation(Long id, StationRequest request) {
         Optional<Station> existing = stationRepository.findById(id);
         if (existing.isEmpty()) {
@@ -73,10 +84,18 @@ public class StationService {
         }
 
         Station station = existing.get();
+
+        // Gọi lại OpenStreetMap nếu địa chỉ thay đổi
+        if (request.getAddress() != null && !request.getAddress().equals(station.getAddress())) {
+            OpenStreetMapService.LocationDTO location = openStreetMapService.getCoordinatesFromAddress(request.getAddress());
+            if (location != null) {
+                station.setLatitude(location.latitude());
+                station.setLongitude(location.longitude());
+            }
+        }
+
         station.setStationCode(request.getStationCode());
         station.setStationName(request.getStationName());
-        station.setLatitude(request.getLatitude());
-        station.setLongitude(request.getLongitude());
         station.setAddress(request.getAddress());
         station.setPhoneNumber(request.getPhoneNumber());
         station.setTotalSlots(request.getTotalSlots());

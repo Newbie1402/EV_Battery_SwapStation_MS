@@ -19,9 +19,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     // ID tham chiếu tới Booking Service hoặc Billing logic khác
-    private String bookingId;
+    private Long bookingId;
     // ID của khách hàng (hoặc userId từ User Service)
-    private String customerId;
+    private Long customerId;
     // Tổng tiền cuối cùng sau khi tính giảm giá + thuế
     private Double totalAmount;
     // Giá gốc trước giảm giá và thuế

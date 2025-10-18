@@ -10,8 +10,6 @@ import lombok.*;
 public class StationRequest {
     private String stationCode;
     private String stationName;
-    private Double latitude;
-    private Double longitude;
     private String address;
     private String phoneNumber;
     private int totalSlots;

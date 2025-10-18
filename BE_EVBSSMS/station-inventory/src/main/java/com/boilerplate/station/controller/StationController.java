@@ -17,7 +17,7 @@ public class StationController {
 
     private final StationService stationService;
 
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<ResponseData<List<StationDTO>>> getAllStations() {
         return stationService.getAllStations();
     }
@@ -27,19 +27,19 @@ public class StationController {
         return stationService.getStationById(id);
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ResponseData<StationDTO>> createStation(@RequestBody StationRequest request) {
         return stationService.createStation(request);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ResponseData<StationDTO>> updateStation(
             @PathVariable Long id,
             @RequestBody StationRequest request) {
         return stationService.updateStation(id, request);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseData<Void>> deleteStation(@PathVariable Long id) {
         return stationService.deleteStation(id);
     }

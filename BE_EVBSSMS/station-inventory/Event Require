@@ -1,0 +1,18 @@
++ Đăng ký dịch vụ đổi pin.
+from booking service
+
++ Đăng ký dịch vụ đổi pin.
+http://localhost:8082/api/batteries/getall
+{
+  "oldBatteryId": 12,
+  "newBatteryId": 34,
+  "oldOwnerType": "VEHICLE",
+  "oldOwnerId": 101,     // user id (xe)
+  "newOwnerType": "STATION",
+  "newOwnerId": 3,       // station id (trạm)
+  "swapStationId": 3,
+  "swapTime": "2025-10-14T16:00:00"
+}
+
+
++ Đặt lịch trước để đảm bảo có pin đầy. X

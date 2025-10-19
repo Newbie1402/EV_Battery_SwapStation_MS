@@ -1,0 +1,5 @@
+Khách tới trạm -> staff tạo booking -> payment success -> task cho staff -> khách đổi pin -> staff sử dụng api đổi pin
+-> staff hoàn thành task
+
+
+thanh toan bang cash, vnpay, momo tai tram -> staff tạo booking -> payment success -> khach doi pin -> staff sử dụng api đổi pin

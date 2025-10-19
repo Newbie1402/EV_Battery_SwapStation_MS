@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>OpenStreetMap Route Demo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 100vh; width: 100%; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    // Khởi tạo bản đồ tại trung tâm TP.HCM
+    const map = L.map('map').setView([10.762561, 106.660185], 13);
+
+    // Nền bản đồ (OpenStreetMap tile)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Tọa độ điểm bắt đầu và kết thúc
+    const start = [10.762561, 106.660185];
+    const end = [21.028511, 105.804817];
+
+    // Vẽ marker
+    L.marker(start).addTo(map).bindPopup("Điểm bắt đầu").openPopup();
+    L.marker(end).addTo(map).bindPopup("Điểm đến");
+
+    // Gọi API OSRM
+    const url = 'https://router.project-osrm.org/route/v1/driving/106.660185,21.028511;105.804817,10.775027?overview=full&geometries=geojson';
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            const route = data.routes[0].geometry;
+
+            // Tạo polyline từ tọa độ trả về
+            const line = L.geoJSON(route, {
+                style: { color: 'blue', weight: 5, opacity: 0.8 }
+            }).addTo(map);
+
+            // Fit bản đồ theo đường đi
+            map.fitBounds(line.getBounds());
+        })
+        .catch(err => console.error(err));
+</script>
+</body>
+</html>

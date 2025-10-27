@@ -2,6 +2,7 @@ package com.boilerplate.station.service;
 
 import com.boilerplate.station.model.DTO.StationDTO;
 import com.boilerplate.station.model.createRequest.StationRequest;
+import com.boilerplate.station.model.entity.Battery;
 import com.boilerplate.station.model.entity.Station;
 
 import com.boilerplate.station.model.response.ResponseData;
@@ -20,7 +21,7 @@ public class StationService {
 
     private final StationRepository stationRepository;
     private final OpenStreetMapService openStreetMapService;
-
+    private static BatteryCodeGenerator batteryCodeGenerator;
 
     //========================= Station CRUD Operations ========================
     public ResponseEntity<ResponseData<List<StationDTO>>> getAllStations() {
@@ -50,9 +51,8 @@ public class StationService {
     public ResponseEntity<ResponseData<StationDTO>> createStation(StationRequest request) {
         try {
             var location = openStreetMapService.getCoordinatesFromAddress(request.getAddress());
-
             Station station = new Station();
-            station.setStationCode(request.getStationCode());
+            station.setStationCode(BatteryCodeGenerator.generateStationRandomCode());
             station.setStationName(request.getStationName());
             station.setAddress(request.getAddress());
             station.setPhoneNumber(request.getPhoneNumber());
@@ -71,7 +71,7 @@ public class StationService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "Lỗi khi tạo trạm: " + e.getMessage(), null));
+                            "Lỗi khi tạo trạm, không tìm thấy địa chỉ " + e.getMessage(), null));
         }
     }
 
@@ -94,7 +94,6 @@ public class StationService {
             }
         }
 
-        station.setStationCode(request.getStationCode());
         station.setStationName(request.getStationName());
         station.setAddress(request.getAddress());
         station.setPhoneNumber(request.getPhoneNumber());

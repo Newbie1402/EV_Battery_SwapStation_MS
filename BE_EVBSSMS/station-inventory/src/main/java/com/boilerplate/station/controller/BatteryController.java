@@ -2,6 +2,7 @@ package com.boilerplate.station.controller;
 
 import com.boilerplate.station.model.DTO.BatteryDTO;
 
+import com.boilerplate.station.model.DTO.BatterySwapLogDTO;
 import com.boilerplate.station.model.createRequest.BatteryRequest;
 import com.boilerplate.station.model.event.Consumer.BatteryHoldEvent;
 import com.boilerplate.station.model.event.Consumer.BatterySwapEvent;
@@ -26,7 +27,7 @@ public class BatteryController {
         return batteryService.getAllBatteries();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<ResponseData<BatteryDTO>> getBatteryById(@PathVariable Long id) {
         return batteryService.getBatteryById(id);
     }
@@ -36,14 +37,14 @@ public class BatteryController {
         return batteryService.createBattery(request);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ResponseData<BatteryDTO>> updateBattery(
             @PathVariable Long id,
             @RequestBody BatteryRequest request) {
         return batteryService.updateBattery(id, request);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseData<Void>> deleteBattery(@PathVariable Long id) {
         return batteryService.deleteBattery(id);
     }
@@ -62,5 +63,6 @@ public class BatteryController {
     public ResponseEntity<ResponseData<Void>> handleBatteryHoldEvent(@RequestBody BatteryHoldEvent event) {
         return batteryService.holdBattery(event);
     }
+
 
 }

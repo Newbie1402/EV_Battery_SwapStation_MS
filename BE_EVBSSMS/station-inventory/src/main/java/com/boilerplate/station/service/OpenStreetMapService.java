@@ -16,11 +16,18 @@ public class OpenStreetMapService {
 
     public record LocationDTO(double latitude, double longitude) {}
 
+    /**
+     * 🧭 Lấy tọa độ (latitude, longitude) từ địa chỉ bằng OpenStreetMap Nominatim API.
+     */
     public LocationDTO getCoordinatesFromAddress(String address) {
         try {
+            // Chuẩn hóa địa chỉ trước khi gửi
+            String normalizedAddress = normalizeAddress(address);
+
             // Encode địa chỉ để tránh lỗi ký tự đặc biệt
-            String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
-            String urlString = "https://nominatim.openstreetmap.org/search?q=" + encodedAddress + "&format=json&addressdetails=1&limit=1";
+            String encodedAddress = URLEncoder.encode(normalizedAddress, StandardCharsets.UTF_8);
+            String urlString = "https://nominatim.openstreetmap.org/search?q=" + encodedAddress
+                    + "&format=json&addressdetails=1&limit=1";
 
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -41,6 +48,7 @@ public class OpenStreetMapService {
                 JSONObject first = results.getJSONObject(0);
                 double lat = first.getDouble("lat");
                 double lon = first.getDouble("lon");
+                System.out.println(" Tọa độ tìm được cho \"" + normalizedAddress + "\": " + lat + ", " + lon);
                 return new LocationDTO(lat, lon);
             }
 
@@ -52,6 +60,9 @@ public class OpenStreetMapService {
         }
     }
 
+    /**
+     * 🚗 Tính khoảng cách giữa 2 điểm (km) bằng OSRM API (Open Source Routing Machine).
+     */
     public double getRouteDistance(double lat1, double lon1, double lat2, double lon2) {
         try {
             String urlString = String.format(
@@ -70,7 +81,7 @@ public class OpenStreetMapService {
 
             JSONObject json = new JSONObject(response.toString());
             if (!json.getString("code").equalsIgnoreCase("Ok")) {
-                System.err.println("OSRM không trả về route hợp lệ!");
+                System.err.println("⚠️ OSRM không trả về route hợp lệ!");
                 return -1;
             }
 
@@ -78,12 +89,33 @@ public class OpenStreetMapService {
             if (routes.isEmpty()) return -1;
 
             double distanceMeters = routes.getJSONObject(0).getDouble("distance");
-            return distanceMeters / 1000.0; // km
+            return distanceMeters / 1000.0; // đổi sang km
 
         } catch (Exception e) {
-            System.err.println("Lỗi khi gọi OSRM API: " + e.getMessage());
+            System.err.println(" Lỗi khi gọi OSRM API: " + e.getMessage());
             return -1;
         }
     }
 
+    /**
+     * Chuẩn hóa địa chỉ:
+     * - Bỏ số nhà hoặc chữ "Số" ở đầu.
+     * - Xóa khoảng trắng dư thừa.
+     * - Giữ nguyên các từ khóa quan trọng như "Hẻm", "Ngõ".
+     */
+    private String normalizeAddress(String address) {
+        if (address == null || address.isBlank()) return "";
+
+        String cleaned = address.trim();
+
+        // Nếu KHÔNG chứa các từ "Hẻm" hoặc "Ngõ", mới xóa số ở đầu
+        if (!cleaned.toLowerCase().contains("hẻm") && !cleaned.toLowerCase().contains("ngõ")) {
+            cleaned = cleaned.replaceAll("^(số|so)?\\s*\\d+[a-zA-Z/]*\\s*", "");
+        }
+
+        // Xóa dấu phẩy, dấu chấm đầu hoặc cuối
+        cleaned = cleaned.replaceAll("^[,\\.\\-\\s]+|[,\\.\\-\\s]+$", "");
+
+        return cleaned.trim();
+    }
 }

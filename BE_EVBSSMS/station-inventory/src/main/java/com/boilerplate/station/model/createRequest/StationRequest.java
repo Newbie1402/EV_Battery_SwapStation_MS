@@ -8,7 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class StationRequest {
-    private String stationCode;
     private String stationName;
     private String address;
     private String phoneNumber;

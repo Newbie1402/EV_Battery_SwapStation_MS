@@ -33,7 +33,7 @@ public class Battery {
     private Long referenceId; // id của Station hoặc User tương ứng
 
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private boolean isHold = false; // pin đang được giữ để đổi
 
     @ManyToOne

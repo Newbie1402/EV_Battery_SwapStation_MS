@@ -5,5 +5,6 @@ public enum BatteryStatus {
     CHARGING,
     MAINTENANCE,
     DEFECTIVE,
-    IN_USE
+    IN_USE,
+    IN_STOCK
 }

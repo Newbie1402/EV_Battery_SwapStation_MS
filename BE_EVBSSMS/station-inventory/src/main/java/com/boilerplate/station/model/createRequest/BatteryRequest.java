@@ -12,8 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BatteryRequest {
-
-    private String batteryCode;
     private String model;
     private Double capacity; // Wh
     private Double soh;      // State of Health (%)

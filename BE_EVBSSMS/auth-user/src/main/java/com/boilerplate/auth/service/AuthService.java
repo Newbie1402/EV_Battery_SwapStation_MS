@@ -46,6 +46,7 @@ public class AuthService {
     private final OAuth2Service oauth2Service;
     private final KafkaProducerService kafkaProducerService;
     private final EmailService emailService;
+    private final EmployeeIdService employeeIdService;
 
     /**
      * Đăng ký tài khoản mới qua Google OAuth2
@@ -93,6 +94,10 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
+
+        // Gán employeeId nếu role phù hợp
+        employeeIdService.assignIfEligible(user);
+
         log.info("Đã tạo tài khoản mới qua Google: email={}, role={}, status=PENDING_APPROVAL",
                 user.getEmail(), user.getRole());
 
@@ -255,7 +260,7 @@ public class AuthService {
         // Lưu refresh token
         saveRefreshToken(user, refreshToken);
 
-        log.info("✅ Xác thực OTP thành công và kích hoạt tài khoản cho user: {} (Role: {})", user.getEmail(), user.getRole());
+        log.info("Xác thực OTP thành công và kích hoạt tài khoản cho user: {} (Role: {})", user.getEmail(), user.getRole());
 
         return AuthResponse.builder()
                 .statusCode(200)
@@ -475,6 +480,7 @@ public class AuthService {
                 .identityCard(user.getIdentityCard())
                 .status(user.getStatus())
                 .vehicles(vehicles)
+                .employeeId(user.getEmployeeId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

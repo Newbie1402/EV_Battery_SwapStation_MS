@@ -1,43 +1,68 @@
-#spring:
-#  application:
-#    name: billing-service
-#  datasource:
-#    url: jdbc:postgresql://${BILLING_PAYMENT_DB_HOST:localhost}:${BILLING_PAYMENT_DB_PORT:5436}/${BILLING_PAYMENT_DB_NAME:billingdb}
-#    username: ${BILLING_PAYMENT_DB_USER:ev}
-#    password: ${BILLING_PAYMENT_DB_PASSWORD:evpass}
-#    driver-class-name: org.postgresql.Driver
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#    show-sql: true
-#    properties:
-#      hibernate:
-#        format_sql: true
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
-#  flyway:
-#    enabled: true
-#    baseline-on-migrate: true
-#    locations: classpath:db/migration/billing-payment
-#    url: jdbc:postgresql://${BILLING_PAYMENT_DB_HOST:localhost}:${BILLING_PAYMENT_DB_PORT:5436}/${BILLING_PAYMENT_DB_NAME:billingdb}
-#    user: ${BILLING_PAYMENT_DB_USER:ev}
-#    password: ${BILLING_PAYMENT_DB_PASSWORD:evpass}
-#  docker:
-#    compose:
-#      enabled: false
-#eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
-#    register-with-eureka: true
-#    fetch-registry: true
-#  instance:
-#    prefer-ip-address: true
-#
-#server:
-#  port: 8084
-#
-#logging:
-#  level:
-#    org.springframework: INFO
-#    com.boilerplate.code: DEBUG
-#    org.flywaydb: DEBUG
+spring:
+  application:
+    name: billing-service
+  datasource:
+    url: jdbc:postgresql://${BILLING_PAYMENT_DB_HOST:localhost}:${BILLING_PAYMENT_DB_PORT:5436}/${BILLING_PAYMENT_DB_NAME:billingdb}
+    username: ${BILLING_PAYMENT_DB_USER:ev}
+    password: ${BILLING_PAYMENT_DB_PASSWORD:evpass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration/billing-payment
+    url: jdbc:postgresql://${BILLING_PAYMENT_DB_HOST:localhost}:${BILLING_PAYMENT_DB_PORT:5436}/${BILLING_PAYMENT_DB_NAME:billingdb}
+    user: ${BILLING_PAYMENT_DB_USER:ev}
+    password: ${BILLING_PAYMENT_DB_PASSWORD:evpass}
+  docker:
+    compose:
+      enabled: false
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+server:
+  port: 8084
+  forward-headers-strategy: framework
+  tomcat:
+    remoteip:
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
+
+# Springdoc OpenAPI (Swagger) Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+    urls:
+      - name: "Billing Service (Direct)"
+        url: "/v3/api-docs"
+      - name: "Billing Service (Via Gateway)"
+        url: "http://localhost:8080/billing/v3/api-docs"
+  show-actuator: false
+
+logging:
+  level:
+    org.springframework: INFO
+    com.boilerplate.code: DEBUG
+    org.flywaydb: DEBUG

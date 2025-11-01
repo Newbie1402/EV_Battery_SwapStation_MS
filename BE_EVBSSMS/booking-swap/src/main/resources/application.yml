@@ -39,6 +39,31 @@ eureka:
 
 server:
   port: 8083
+  forward-headers-strategy: framework
+  tomcat:
+    remoteip:
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
+
+# Springdoc OpenAPI (Swagger) Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+    urls:
+      - name: "Booking Service (Direct)"
+        url: "/v3/api-docs"
+      - name: "Booking Service (Via Gateway)"
+        url: "http://localhost:8080/booking/v3/api-docs"
+  show-actuator: false
 
 logging:
   level:

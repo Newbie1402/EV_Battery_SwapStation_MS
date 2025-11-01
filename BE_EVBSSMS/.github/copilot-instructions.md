@@ -29,6 +29,10 @@ Xử lý khiếu nại/khiếu kiện
 
 Quản lý trạm, slot, pin, model, SoH
 
+Điều phối pin giữa các trạm.
+
+Theo dõi lịch sử sử dụng & trạng thái sức khỏe (SoH – State of Health).
+
 Tìm kiếm trạm gần nhất, geo, routing
 
 3. booking
@@ -44,6 +48,8 @@ Gửi notification (email, SMS, push)
 Quản lý thanh toán, hóa đơn, gói thuê
 
 Báo cáo, thống kê, AI forecast
+
+AI gợi ý dự báo nhu cầu sử dụng trạm đổi pin để nâng cấp hạ tầng."
 
 5. gateway
 
@@ -84,7 +90,14 @@ Route API, auth, monitoring
     - Viết Integration Test cho các API endpoint để kiểm tra luồng hoạt động hoàn chỉnh.
     - Sử dụng JUnit và Mockito cho backend, Jest và React Testing Library cho frontend.
     - Mục tiêu: Phấn đấu đạt độ bao phủ test (test coverage) cao cho các logic nghiệp vụ quan trọng để đảm bảo chất lượng và phát hiện lỗi sớm.
-
+7. Comment
+   - Viết comment rõ ràng, ngắn gọn, dễ hiểu.
+   - Giải thích mục đích và logic của đoạn code, đặc biệt là các phần
+   - Tranh viết comment thừa thãi hoặc không cần thiết.
+   - Không sử dụng các emoji trong comment code.
+   - Viết comment bằng ngôn ngữ nghiêm túc, tránh sử dụng ngôn ngữ tếu táo hoặc không trang trọng.
+   - Đảm bảo comment luôn đồng bộ với code, cập nhật comment khi code thay đổi.
+   - Chỉ comment giải thích vấn đề, không ghi kiểu là vừa thay đổi cái gì, khi nào, bởi ai.
 ---
 
 ## Kiến trúc Microservice

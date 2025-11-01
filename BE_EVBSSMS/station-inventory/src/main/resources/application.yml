@@ -1,40 +1,65 @@
-#spring:
-#  application:
-#    name: station-service
-#  datasource:
-#    url: jdbc:postgresql://${STATION_INVENTORY_DB_HOST:localhost}:${STATION_INVENTORY_DB_PORT:5434}/${STATION_INVENTORY_DB_NAME:stationdb}
-#    username: ${STATION_INVENTORY_DB_USER:ev}
-#    password: ${STATION_INVENTORY_DB_PASSWORD:evpass}
-#    driver-class-name: org.postgresql.Driver
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#    show-sql: true
-#    properties:
-#      hibernate:
-#        format_sql: true
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
-#  flyway:
-#    enabled: true
-#    baseline-on-migrate: true
-#
-#  docker:
-#    compose:
-#      enabled: false
-#
-#eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
-#    register-with-eureka: true
-#    fetch-registry: true
-#  instance:
-#    prefer-ip-address: true
-#
-#server:
-#  port: 8082
-#
-#logging:
-#  level:
-#    org.springframework: INFO
-#    com.boilerplate.code: DEBUG
+spring:
+  application:
+    name: station-service
+  datasource:
+    url: jdbc:postgresql://${STATION_INVENTORY_DB_HOST:localhost}:${STATION_INVENTORY_DB_PORT:5434}/${STATION_INVENTORY_DB_NAME:stationdb}
+    username: ${STATION_INVENTORY_DB_USER:ev}
+    password: ${STATION_INVENTORY_DB_PASSWORD:evpass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  docker:
+    compose:
+      enabled: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+server:
+  port: 8082
+  forward-headers-strategy: framework
+  tomcat:
+    remoteip:
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
+
+# Springdoc OpenAPI (Swagger) Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+    urls:
+      - name: "Station Service (Direct)"
+        url: "/v3/api-docs"
+      - name: "Station Service (Via Gateway)"
+        url: "http://localhost:8080/station/v3/api-docs"
+  show-actuator: false
+
+logging:
+  level:
+    org.springframework: INFO
+    com.boilerplate.code: DEBUG

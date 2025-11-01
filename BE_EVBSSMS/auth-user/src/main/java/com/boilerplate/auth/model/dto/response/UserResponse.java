@@ -35,6 +35,7 @@ public class UserResponse {
     private Boolean isActive;
     private UserStatus status;
     private Long assignedStationId;
+    private String employeeId;
     private List<VehicleResponse> vehicles;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -198,6 +198,7 @@ public class UserService {
                 .identityCard(user.getIdentityCard())
                 .status(user.getStatus())
                 .vehicles(vehicles)
+                .employeeId(user.getEmployeeId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
@@ -219,4 +220,3 @@ public class UserService {
                 .build();
     }
 }
-

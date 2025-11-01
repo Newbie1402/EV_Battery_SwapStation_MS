@@ -14,3 +14,14 @@ http://localhost:8081/swagger-ui/index.html#/Admin/approveRegistration
 | **station**   | Quản lý trạm, pin, slot, vị trí       | ✅ REST + 🔄 Kafka event|
 | **booking**   | Đặt lịch, đổi pin, xử lý giao dịch    | ✅ REST + 🔄 Kafka event|
 | **billing**   | Thanh toán, gói thuê, hóa đơn         | ✅ REST + 🔄 Kafka event|
+
+
+Auth-User Service: http://localhost:8080/auth-user/swagger-ui.html
+Station Service: http://localhost:8080/station/swagger-ui.html
+Booking Service: http://localhost:8080/booking/swagger-ui.html
+Billing Service: http://localhost:8080/billing/swagger-ui.html
+Hoặc trực tiếp các service:
+http://localhost:8081/swagger-ui.html (Auth-User)
+http://localhost:8082/swagger-ui.html (Station)
+http://localhost:8083/swagger-ui.html (Booking)
+http://localhost:8084/swagger-ui.html (Billing)

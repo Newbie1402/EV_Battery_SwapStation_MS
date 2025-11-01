@@ -22,7 +22,8 @@ import java.util.List;
     @Index(name = "idx_google_id", columnList = "google_id"),
     @Index(name = "idx_phone", columnList = "phone"),
     @Index(name = "idx_status", columnList = "status"),
-    @Index(name = "idx_oauth", columnList = "oauth_id, oauth_provider")
+    @Index(name = "idx_oauth", columnList = "oauth_id, oauth_provider"),
+    @Index(name = "idx_employee_id", columnList = "employee_id")
 })
 @Getter
 @Setter
@@ -135,6 +136,13 @@ public class User {
      */
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
+
+    /**
+     * Mã nhân viên tự động sinh (EVD hoặc EVS + 6 chữ số, 4 chữ số cuối là ddMM)
+     * Ví dụ: EVD120612 (prefix + 2random + ddMM)
+     */
+    @Column(name = "employee_id", unique = true, length = 20)
+    private String employeeId;
 
     /**
      * Danh sách phương tiện của tài xế (chỉ áp dụng cho role DRIVER)

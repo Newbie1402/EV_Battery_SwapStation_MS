@@ -45,6 +45,7 @@ public class OAuth2Service {
     private final JwtTokenProvider tokenProvider;
     private final KafkaProducerService kafkaProducerService;
     private final EmailService emailService;
+    private final EmployeeIdService employeeIdService;
 
     @Value("${GOOGLE_CLIENT_ID:}")
     private String googleClientId;
@@ -143,11 +144,13 @@ public class OAuth2Service {
         if (user.getRole() == Role.ADMIN && user.getStatus() != UserStatus.ACTIVE) {
             user.setStatus(UserStatus.ACTIVE);
             needUpdate = true;
-            log.info("🔄 Đã set status = ACTIVE cho admin: {}", user.getEmail());
+            log.info("Đã set status = ACTIVE cho admin: {}", user.getEmail());
         }
         if (needUpdate) {
-            userRepository.save(user);
-            log.info("✅ Đã cập nhật thông tin OAuth2 cho user: {}", user.getEmail());
+            user = userRepository.save(user);
+            // nếu cần, gán employeeId cho user (trường hợp admin được tạo trước nhưng bây giờ có role DRIVER/STAFF)
+            employeeIdService.assignIfEligible(user);
+            log.info("Đã cập nhật thông tin OAuth2 cho user: {}", user.getEmail());
         }
 
         String accessToken = tokenProvider.generateAccessTokenWithUserInfo(
@@ -161,7 +164,7 @@ public class OAuth2Service {
         // Lưu refresh token
         saveRefreshToken(user, refreshToken);
 
-        log.info("✅ User đăng nhập thành công qua Google: {} (Role: {})", user.getEmail(), user.getRole());
+        log.info("User đăng nhập thành công qua Google: {} (Role: {})", user.getEmail(), user.getRole());
 
         return AuthResponse.builder()
                 .statusCode(200)
@@ -217,6 +220,8 @@ public class OAuth2Service {
                 .build();
 
         user = userRepository.save(user);
+        // Gán employeeId nếu role phù hợp
+        employeeIdService.assignIfEligible(user);
         log.info("Đã tạo tài khoản mới qua Google cho user: {}", user.getEmail());
 
         // Bước 6: Nếu là Driver, thêm phương tiện
@@ -306,6 +311,7 @@ public class OAuth2Service {
                 .isVerified(user.getIsVerified())
                 .isActive(user.getIsActive())
                 .assignedStationId(user.getAssignedStationId())
+                .employeeId(user.getEmployeeId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

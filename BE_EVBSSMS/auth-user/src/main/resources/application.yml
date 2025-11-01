@@ -69,13 +69,14 @@ spring:
               - email
               - profile
               - openid
-            redirect-uri: http://localhost:8080/oauth2/callback
+            redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:8081/oauth2/callback}
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
+
 eureka:
   client:
     serviceUrl:
@@ -86,7 +87,14 @@ eureka:
     prefer-ip-address: true
 
 server:
-  port: ${SERVER_PORT:8081}  # Local: 8081, Docker: 8080 (override qua env)
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: /
+  forward-headers-strategy: framework
+  tomcat:
+    remoteip:
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
 
 # JWT Configuration
 jwt:
@@ -109,12 +117,19 @@ springdoc:
   api-docs:
     path: /v3/api-docs
     enabled: true
+    groups:
+      enabled: true
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
     operations-sorter: method
     tags-sorter: alpha
     doc-expansion: none
+    urls:
+      - name: "Auth-User Service (Direct)"
+        url: "/v3/api-docs"
+      - name: "Auth-User Service (Via Gateway)"
+        url: "http://localhost:9000/auth-user/v3/api-docs"
   show-actuator: false
 
 logging:
@@ -123,3 +138,4 @@ logging:
     com.boilerplate.auth: DEBUG
     org.springframework.kafka: INFO
     org.springframework.mail: DEBUG
+

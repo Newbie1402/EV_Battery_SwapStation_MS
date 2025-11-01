@@ -63,6 +63,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByIdentityCard(String identityCard);
 
     /**
+     * Kiểm tra employeeId đã tồn tại chưa (helper)
+     */
+    boolean existsByEmployeeId(String employeeId);
+
+    /**
+     * Tìm user theo employeeId
+     */
+    Optional<User> findByEmployeeId(String employeeId);
+
+    /**
      * Tìm tất cả người dùng theo vai trò
      */
     List<User> findByRole(Role role);

@@ -13,6 +13,10 @@ public enum AppException {
     FORBIDDEN("ERR_003", "Không có quyền truy cập", HttpStatus.FORBIDDEN),
     NOT_FOUND("ERR_004", "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
     VALIDATION_FAILED("ERR_005", "Dữ liệu không hợp lệ", HttpStatus.BAD_REQUEST),
+    DUPLICATE_RESOURCE("ERR_006", "Tài nguyên đã tồn tại", HttpStatus.CONFLICT),
+    DATABASE_ERROR("ERR_007", "Lỗi cơ sở dữ liệu", HttpStatus.INTERNAL_SERVER_ERROR),
+    EXTERNAL_SERVICE_ERROR("ERR_008", "Lỗi khi kết nối dịch vụ bên ngoài", HttpStatus.BAD_GATEWAY),
+    TIMEOUT_ERROR("ERR_009", "Hệ thống phản hồi quá chậm", HttpStatus.REQUEST_TIMEOUT),
 
     // ================== USER / AUTH ==================
     USER_NOT_FOUND("USR_001", "Không tìm thấy người dùng", HttpStatus.NOT_FOUND),
@@ -27,6 +31,7 @@ public enum AppException {
     STATION_INACTIVE("STN_002", "Trạm đổi pin đang tạm ngưng hoạt động", HttpStatus.BAD_REQUEST),
     STATION_FULL("STN_003", "Trạm đã đầy, không thể nhận thêm pin", HttpStatus.BAD_REQUEST),
     STATION_EMPTY("STN_004", "Trạm không còn pin đầy để đổi", HttpStatus.BAD_REQUEST),
+    STATION_ALREADY_EXISTS("STN_005", "Trạm đã tồn tại trong hệ thống", HttpStatus.CONFLICT),
 
     // ================== BATTERY ==================
     BATTERY_NOT_FOUND("BAT_001", "Không tìm thấy pin", HttpStatus.NOT_FOUND),
@@ -35,6 +40,20 @@ public enum AppException {
     BATTERY_MAINTENANCE("BAT_004", "Pin đang trong quá trình bảo dưỡng", HttpStatus.BAD_REQUEST),
     BATTERY_NOT_AVAILABLE("BAT_005", "Không có pin đầy khả dụng tại trạm", HttpStatus.BAD_REQUEST),
     BATTERY_HELD("BAT_006", "Pin đã được giữ cho một yêu cầu đổi khác", HttpStatus.BAD_REQUEST),
+    BATTERY_ALREADY_EXISTS("BAT_007", "Pin đã tồn tại trong hệ thống", HttpStatus.CONFLICT),
+
+    // ================== BATTERY SLOT ==================
+    SLOT_NOT_FOUND("SLOT_001", "Không tìm thấy vị trí pin", HttpStatus.NOT_FOUND),
+    SLOT_OCCUPIED("SLOT_002", "Vị trí pin đang được sử dụng", HttpStatus.BAD_REQUEST),
+    SLOT_EMPTY("SLOT_003", "Vị trí pin đang trống", HttpStatus.BAD_REQUEST),
+    SLOT_OUT_OF_SERVICE("SLOT_004", "Vị trí pin đang bảo trì", HttpStatus.BAD_REQUEST),
+    SLOT_ALREADY_EXISTS("SLOT_005", "Mã vị trí pin đã tồn tại", HttpStatus.CONFLICT),
+
+    // ================== STAFF / OPERATOR ==================
+    STAFF_NOT_FOUND("STF_001", "Không tìm thấy nhân viên trạm", HttpStatus.NOT_FOUND),
+    STAFF_UNAVAILABLE("STF_002", "Nhân viên hiện không khả dụng", HttpStatus.BAD_REQUEST),
+    STAFF_ALREADY_EXISTS("STF_003", "Nhân viên đã tồn tại", HttpStatus.CONFLICT),
+
     // ================== SWAP / TRANSACTION ==================
     SWAP_NOT_FOUND("SWP_001", "Không tìm thấy lịch sử đổi pin", HttpStatus.NOT_FOUND),
     SWAP_FAILED("SWP_002", "Giao dịch đổi pin thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
@@ -56,6 +75,12 @@ public enum AppException {
     // ================== SUPPORT / FEEDBACK ==================
     SUPPORT_REQUEST_NOT_FOUND("SUP_001", "Không tìm thấy yêu cầu hỗ trợ", HttpStatus.NOT_FOUND),
     FEEDBACK_NOT_FOUND("FDB_001", "Không tìm thấy phản hồi", HttpStatus.NOT_FOUND),
+
+    // ================== FILE / STORAGE ==================
+    FILE_UPLOAD_FAILED("FIL_001", "Tải tệp lên thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_NOT_FOUND("FIL_002", "Không tìm thấy tệp", HttpStatus.NOT_FOUND),
+    FILE_TOO_LARGE("FIL_003", "Kích thước tệp vượt quá giới hạn cho phép", HttpStatus.BAD_REQUEST),
+    FILE_FORMAT_INVALID("FIL_004", "Định dạng tệp không hợp lệ", HttpStatus.BAD_REQUEST),
 
     // ================== SUCCESS ==================
     SUCCESS("SUC_200", "Thành công", HttpStatus.OK),

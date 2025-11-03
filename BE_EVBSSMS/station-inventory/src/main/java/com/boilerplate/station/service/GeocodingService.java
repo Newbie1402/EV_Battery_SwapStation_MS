@@ -1,5 +1,7 @@
 package com.boilerplate.station.service;
 
+import com.boilerplate.station.model.entity.Station;
+import com.boilerplate.station.repository.StationRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -7,7 +9,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -44,4 +48,6 @@ public class GeocodingService {
             throw new RuntimeException("Lỗi khi gọi Geocoding API", e);
         }
     }
+
+
 }

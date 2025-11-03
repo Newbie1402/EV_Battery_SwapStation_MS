@@ -12,7 +12,6 @@ import com.boilerplate.station.model.createRequest.BatterySwapLogRequest;
 import com.boilerplate.station.model.createRequest.BatterySwapStationLogRequest;
 import com.boilerplate.station.model.entity.Battery;
 
-import com.boilerplate.station.model.entity.BatteryReturnLog;
 import com.boilerplate.station.model.entity.BatterySwapLog;
 import com.boilerplate.station.model.entity.BatterySwapStationLog;
 import com.boilerplate.station.model.event.Consumer.BatteryHoldEvent;
@@ -135,6 +134,7 @@ public class BatteryService {
         // Pin Xe -> Trạm - Pin A
         Battery oldBattery = batteryRepository.findById(event.getOldBatteryId())
                 .orElseThrow(() -> new RuntimeException("Old battery not found"));
+        oldBattery.setSoc(event.getSoC());
         oldBattery.setOwnerType(OwnerType.STATION);
         oldBattery.setReferenceId(event.getStationId());
         oldBattery.setStatus(BatteryStatus.IN_STOCK);

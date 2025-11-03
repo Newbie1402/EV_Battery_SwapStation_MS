@@ -1,10 +1,14 @@
 package com.boilerplate.station.controller;
 
+import com.boilerplate.station.model.DTO.NearestStationDTO;
 import com.boilerplate.station.model.DTO.StationDTO;
+import com.boilerplate.station.model.createRequest.NearestStationRequest;
 import com.boilerplate.station.model.createRequest.StationRequest;
 import com.boilerplate.station.model.response.ResponseData;
+import com.boilerplate.station.service.OpenStreetMapService;
 import com.boilerplate.station.service.StationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +20,9 @@ import java.util.List;
 public class StationController {
 
     private final StationService stationService;
+
+    @Autowired
+    private OpenStreetMapService openStreetMapService;
 
     @GetMapping("/getAll")
     public ResponseEntity<ResponseData<List<StationDTO>>> getAllStations() {
@@ -42,5 +49,11 @@ public class StationController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseData<Void>> deleteStation(@PathVariable Long id) {
         return stationService.deleteStation(id);
+    }
+
+    @PostMapping("/nearest")
+    public ResponseEntity<ResponseData<List<NearestStationDTO>>> getNearestStations(
+            @RequestBody NearestStationRequest request) {
+        return openStreetMapService.findNearestStations(request.getLatitude(), request.getLongitude());
     }
 }

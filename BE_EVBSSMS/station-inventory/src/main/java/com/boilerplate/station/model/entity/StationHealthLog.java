@@ -24,7 +24,7 @@ public class StationHealthLog {
     private Station station;
 
     private Double avgSoH;
-    private Double temperature;
+
     private Double humidity;
     private LocalDateTime recordedAt;
 }

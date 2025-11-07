@@ -1,7 +1,14 @@
 import { motion } from "framer-motion";
-import { Battery, Zap, Leaf, Clock, Shield, TrendingUp, MapPin, Users, Sparkles } from "lucide-react";
+import { Battery, Zap, Leaf, Clock, Shield, TrendingUp, MapPin, Users, Sparkles, Home, Info, DollarSign, Phone } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { useAuthStore } from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
 
 export default function HomePage() {
+    const { token, role } = useAuthStore();
+    const navigate = useNavigate();
+
     const fadeVariants = {
         hidden: { opacity: 0, y: 40 },
         visible: { opacity: 1, y: 0 },
@@ -18,31 +25,42 @@ export default function HomePage() {
         }
     };
 
+    // Menu items for public homepage
+    const publicMenuItems = [
+        { label: "Trang chủ", path: "/", icon: Home },
+        { label: "Giới thiệu", path: "/about", icon: Info },
+        { label: "Trạm đổi pin", path: "/stations", icon: MapPin },
+        { label: "Bảng giá", path: "/pricing", icon: DollarSign },
+        { label: "Liên hệ", path: "/contact", icon: Phone },
+    ];
+
+    // Handle CTA button click
+    const handleGetStarted = () => {
+        if (token) {
+            // If logged in, redirect based on role
+            switch (role) {
+                case "ADMIN":
+                    navigate("/admin/dashboard");
+                    break;
+                case "STAFF":
+                    navigate("/staff/dashboard");
+                    break;
+                case "DRIVER":
+                    navigate("/driver/home");
+                    break;
+                default:
+                    navigate("/");
+            }
+        } else {
+            // If not logged in, redirect to register
+            navigate("/register");
+        }
+    };
+
     return (
         <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50 text-gray-900 overflow-x-hidden">
-            {/* Navbar */}
-            <nav className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-xl z-50 shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
-                            <Zap className="w-6 h-6 text-white" />
-                        </div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
-                            EV Battery Swap
-                        </h1>
-                    </div>
-                    <ul className="hidden md:flex gap-8 text-sm font-medium">
-                        <li className="hover:text-emerald-600 cursor-pointer transition">Trang chủ</li>
-                        <li className="hover:text-emerald-600 cursor-pointer transition">Giới thiệu</li>
-                        <li className="hover:text-emerald-600 cursor-pointer transition">Trạm đổi pin</li>
-                        <li className="hover:text-emerald-600 cursor-pointer transition">Bảng giá</li>
-                        <li className="hover:text-emerald-600 cursor-pointer transition">Liên hệ</li>
-                    </ul>
-                    <button className="hidden md:block px-6 py-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-full font-medium hover:shadow-lg hover:scale-105 transition-all">
-                        Đăng nhập
-                    </button>
-                </div>
-            </nav>
+            {/* Header Component */}
+            <Header menuItems={publicMenuItems} role={role || ""} />
 
             {/* Hero Section */}
             <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -75,7 +93,10 @@ export default function HomePage() {
                             Đổi pin chỉ trong 3 phút, tiếp tục hành trình xanh của bạn.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <button className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-full font-semibold hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-2">
+                            <button
+                                onClick={handleGetStarted}
+                                className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-full font-semibold hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-2"
+                            >
                                 Bắt đầu ngay
                                 <Zap className="w-5 h-5" />
                             </button>
@@ -240,7 +261,10 @@ export default function HomePage() {
                         Tham gia cùng hàng ngàn tài xế đang trải nghiệm tương lai của giao thông bền vững
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center">
-                        <button className="px-10 py-4 bg-white text-emerald-600 rounded-full font-bold hover:shadow-2xl hover:scale-105 transition-all text-lg">
+                        <button
+                            onClick={handleGetStarted}
+                            className="px-10 py-4 bg-white text-emerald-600 rounded-full font-bold hover:shadow-2xl hover:scale-105 transition-all text-lg"
+                        >
                             Đăng ký ngay
                         </button>
                         <button className="px-10 py-4 bg-white/20 backdrop-blur-sm text-white rounded-full font-bold hover:bg-white/30 transition-all text-lg border-2 border-white/50">
@@ -250,55 +274,8 @@ export default function HomePage() {
                 </motion.div>
             </section>
 
-            {/* Footer */}
-            <footer className="py-16 bg-white text-black">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid md:grid-cols-4 gap-12 mb-12">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
-                                    <Zap className="w-6 h-6 text-black" />
-                                </div>
-                                <h3 className="text-xl font-bold text-black">EV Battery Swap</h3>
-                            </div>
-                            <p className="text-sm leading-relaxed">
-                                Giải pháp đổi pin thông minh cho tương lai xanh và bền vững.
-                            </p>
-                        </div>
-
-                        <div>
-                            <h4 className="text-black font-semibold mb-4">Sản phẩm</h4>
-                            <ul className="space-y-2 text-sm">
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Trạm đổi pin</li>
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Ứng dụng di động</li>
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Hệ thống quản lý</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-black font-semibold mb-4">Công ty</h4>
-                            <ul className="space-y-2 text-sm">
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Về chúng tôi</li>
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Tin tức</li>
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Tuyển dụng</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-black font-semibold mb-4">Hỗ trợ</h4>
-                            <ul className="space-y-2 text-sm">
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Trung tâm trợ giúp</li>
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Liên hệ</li>
-                                <li className="hover:text-emerald-400 cursor-pointer transition">Điều khoản</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-800 pt-8 text-center text-sm">
-                        <p>© 2025 EV Battery Swap Management System — Bản quyền thuộc về chúng tôi.</p>
-                    </div>
-                </div>
-            </footer>
+            {/* Footer Component */}
+            <Footer />
         </div>
     );
 }

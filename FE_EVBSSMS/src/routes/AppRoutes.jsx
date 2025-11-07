@@ -5,6 +5,8 @@ import ScrollToTop from "@/components/ScrollToTop";
 
 // Lazy load pages
 const HomePage = lazy(() => import("../pages/HomePage"));
+const LoginPage = lazy(() => import("../pages/LoginPage"));
+const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 
 export default function AppRoutes() {
@@ -21,6 +23,8 @@ export default function AppRoutes() {
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
 
                     {/* Drivers Routes */}
 

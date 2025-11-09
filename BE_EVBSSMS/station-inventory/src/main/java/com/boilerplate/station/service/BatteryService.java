@@ -22,6 +22,7 @@ import com.boilerplate.station.repository.BatteryRepository;
 import com.boilerplate.station.repository.BatteryReturnLogRepository;
 import com.boilerplate.station.repository.BatterySwapLogRepository;
 import com.boilerplate.station.repository.BatterySwapStationLogRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BatteryService {
 
     private final BatteryRepository batteryRepository;

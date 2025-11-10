@@ -12,7 +12,6 @@ import com.boilerplate.station.model.createRequest.BatterySwapLogRequest;
 import com.boilerplate.station.model.createRequest.BatterySwapStationLogRequest;
 import com.boilerplate.station.model.entity.Battery;
 
-import com.boilerplate.station.model.entity.BatteryReturnLog;
 import com.boilerplate.station.model.entity.BatterySwapLog;
 import com.boilerplate.station.model.entity.BatterySwapStationLog;
 import com.boilerplate.station.model.event.Consumer.BatteryHoldEvent;
@@ -23,6 +22,7 @@ import com.boilerplate.station.repository.BatteryRepository;
 import com.boilerplate.station.repository.BatteryReturnLogRepository;
 import com.boilerplate.station.repository.BatterySwapLogRepository;
 import com.boilerplate.station.repository.BatterySwapStationLogRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class BatteryService {
 
     private final BatteryRepository batteryRepository;
@@ -135,6 +136,7 @@ public class BatteryService {
         // Pin Xe -> Trạm - Pin A
         Battery oldBattery = batteryRepository.findById(event.getOldBatteryId())
                 .orElseThrow(() -> new RuntimeException("Old battery not found"));
+        oldBattery.setSoc(event.getSoC());
         oldBattery.setOwnerType(OwnerType.STATION);
         oldBattery.setReferenceId(event.getStationId());
         oldBattery.setStatus(BatteryStatus.IN_STOCK);

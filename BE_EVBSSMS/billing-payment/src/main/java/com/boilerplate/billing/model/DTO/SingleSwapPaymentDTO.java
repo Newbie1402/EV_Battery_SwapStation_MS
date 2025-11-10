@@ -13,12 +13,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class SingleSwapPaymentDTO {
-
     private Long id;
     private Long customerId;
-    private Long bookingId;
-    private Long stationId;
     private Double totalAmount;
+    private Double baseAmount;
+    private Double discountAmount;
+    private Double taxAmount;
     private PaymentMethod method;
     private PaymentStatus status;
     private String transactionId;
@@ -26,21 +26,27 @@ public class SingleSwapPaymentDTO {
     private LocalDateTime paymentTime;
     private LocalDateTime createdAt;
 
-    public static SingleSwapPaymentDTO fromEntity(SingleSwapPayment entity) {
-        if (entity == null) return null;
+    private Long bookingId;
+    private Long stationId;
+    private Long swapLogId;
 
+    public static SingleSwapPaymentDTO fromEntity(SingleSwapPayment entity) {
         return SingleSwapPaymentDTO.builder()
                 .id(entity.getId())
                 .customerId(entity.getCustomerId())
-                .bookingId(entity.getBookingId())
-                .stationId(entity.getStationId())
                 .totalAmount(entity.getTotalAmount())
+                .baseAmount(entity.getBaseAmount())
+                .discountAmount(entity.getDiscountAmount())
+                .taxAmount(entity.getTaxAmount())
                 .method(entity.getMethod())
                 .status(entity.getStatus())
                 .transactionId(entity.getTransactionId())
                 .description(entity.getDescription())
                 .paymentTime(entity.getPaymentTime())
                 .createdAt(entity.getCreatedAt())
+                .bookingId(entity.getBookingId())
+                .stationId(entity.getStationId())
+                .swapLogId(entity.getSwapLogId())
                 .build();
     }
 }

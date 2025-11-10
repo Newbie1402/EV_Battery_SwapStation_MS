@@ -1,7 +1,14 @@
 package com.boilerplate.station.service;
 
+import com.boilerplate.station.model.DTO.NearestStationDTO;
+import com.boilerplate.station.model.entity.Station;
+import com.boilerplate.station.model.response.ResponseData;
+import com.boilerplate.station.repository.StationRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -10,9 +17,15 @@ import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class OpenStreetMapService {
+
+    @Autowired
+    private StationRepository stationRepository;
+
 
     public record LocationDTO(double latitude, double longitude) {}
 
@@ -117,5 +130,36 @@ public class OpenStreetMapService {
         cleaned = cleaned.replaceAll("^[,\\.\\-\\s]+|[,\\.\\-\\s]+$", "");
 
         return cleaned.trim();
+    }
+
+
+    public ResponseEntity<ResponseData<List<NearestStationDTO>>> findNearestStations(double userLat, double userLon) {
+        List<Station> allStations = stationRepository.findAll();
+
+        List<NearestStationDTO> nearestStations = allStations.stream()
+                .sorted(Comparator.comparingDouble(s -> distance(userLat, userLon, s.getLatitude(), s.getLongitude())))
+                .limit(5)
+                .map(s -> NearestStationDTO.fromEntity(s,
+                        distance(userLat, userLon, s.getLatitude(), s.getLongitude())))
+                .toList();
+
+        return ResponseEntity.ok(
+                new ResponseData<>(
+                        HttpStatus.OK.value(),
+                        "Lấy 5 trạm gần nhất thành công",
+                        nearestStations
+                )
+        );
+    }
+
+    private double distance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 }

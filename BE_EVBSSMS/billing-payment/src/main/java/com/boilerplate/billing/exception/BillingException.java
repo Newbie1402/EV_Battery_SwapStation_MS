@@ -13,7 +13,8 @@ public enum BillingException {
     FORBIDDEN("BIL_003", "Không có quyền truy cập", HttpStatus.FORBIDDEN),
     NOT_FOUND("BIL_004", "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
     VALIDATION_FAILED("BIL_005", "Dữ liệu không hợp lệ", HttpStatus.BAD_REQUEST),
-
+    INVALID_PAYMENT_AMOUNT("BIL_006", "Số tiền thanh toán không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_SECURE_HASH("BIL_007", "Chữ ký bảo mật không hợp lệ", HttpStatus.BAD_REQUEST),
     // ================== PAYMENT ==================
     PAYMENT_FAILED("PAY_001", "Thanh toán thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
     PAYMENT_NOT_FOUND("PAY_002", "Không tìm thấy giao dịch thanh toán", HttpStatus.NOT_FOUND),
@@ -22,6 +23,13 @@ public enum BillingException {
     PAYMENT_GATEWAY_ERROR("PAY_005", "Lỗi từ cổng thanh toán (VNPAY, MOMO...)", HttpStatus.BAD_GATEWAY),
     PAYMENT_REFUND_FAILED("PAY_006", "Hoàn tiền thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
     INSUFFICIENT_FUNDS("PAY_007", "Số dư tài khoản không đủ để thanh toán", HttpStatus.BAD_REQUEST),
+
+    // === NEW: Lỗi VNPAY chi tiết ===
+    INVALID_SIGNATURE("PAY_008", "Chữ ký xác thực VNPAY không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_PAYMENT_TYPE("PAY_009", "Loại thanh toán không hợp lệ (package/swap)", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_INFO("PAY_010", "Thông tin đơn hàng không hợp lệ hoặc sai định dạng", HttpStatus.BAD_REQUEST),
+    VNPAY_CALLBACK_ERROR("PAY_011", "Lỗi khi xử lý callback từ VNPAY", HttpStatus.INTERNAL_SERVER_ERROR),
+    VNPAY_URL_GENERATION_FAILED("PAY_012", "Không thể tạo URL thanh toán VNPAY", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // ================== PACKAGE / SUBSCRIPTION ==================
     PACKAGE_NOT_FOUND("PKG_001", "Không tìm thấy gói thuê pin", HttpStatus.NOT_FOUND),
@@ -50,8 +58,8 @@ public enum BillingException {
 
     // ================== SUCCESS ==================
     SUCCESS("SUC_200", "Thành công", HttpStatus.OK),
-    CREATED("SUC_201", "Đã tạo mới thành công", HttpStatus.CREATED),
-    INVALID_PAYMENT_AMOUNT("BIL_006", "Số tiền thanh toán không hợp lệ", HttpStatus.BAD_REQUEST);
+    CREATED("SUC_201", "Đã tạo mới thành công", HttpStatus.CREATED);
+
     private final String code;
     private final String message;
     private final HttpStatus httpStatus;

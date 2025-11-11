@@ -17,6 +17,47 @@ import java.util.Map;
 
 @ControllerAdvice
 public class HandlerGlobalException {
+
+    // Bắt lỗi NotFoundException
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ResponseData<String>> handleNotFoundException(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseData<>(
+                HttpStatus.NOT_FOUND.value(),
+                "Không tìm thấy",
+                ex.getMessage()
+        ));
+    }
+
+    // Bắt lỗi ConflictException
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ResponseData<String>> handleConflictException(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResponseData<>(
+                HttpStatus.CONFLICT.value(),
+                "Xung đột dữ liệu",
+                ex.getMessage()
+        ));
+    }
+
+    // Bắt lỗi ForbiddenException
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ResponseData<String>> handleForbiddenException(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ResponseData<>(
+                HttpStatus.FORBIDDEN.value(),
+                "Không có quyền truy cập",
+                ex.getMessage()
+        ));
+    }
+
+    // Bắt lỗi BadRequestException
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ResponseData<String>> handleBadRequestException(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(
+                HttpStatus.BAD_REQUEST.value(),
+                "Yêu cầu không hợp lệ",
+                ex.getMessage()
+        ));
+    }
+
     // Bắt lỗi NullPointerException
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ResponseData<String>> handleNullPointerException(NullPointerException ex) {
@@ -33,6 +74,16 @@ public class HandlerGlobalException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(
                 StatusApplication.INTERNAL_SERVER_ERROR.getCode(),
                 StatusApplication.INTERNAL_SERVER_ERROR.getMessage(),
+                ex.getMessage()
+        ));
+    }
+
+    // Bắt lỗi IllegalStateException
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ResponseData<String>> handleIllegalStateException(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseData<>(
+                HttpStatus.BAD_REQUEST.value(),
+                "Yêu cầu không hợp lệ",
                 ex.getMessage()
         ));
     }

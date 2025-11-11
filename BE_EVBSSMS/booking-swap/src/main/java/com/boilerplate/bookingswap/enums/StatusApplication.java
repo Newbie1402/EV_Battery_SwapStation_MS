@@ -22,7 +22,11 @@ public enum StatusApplication {
     SCHEDULE_CONFLICT(409, "Schedule Conflict"),
 
     // Validation errors
-    VALIDATION_FAILED(422, "Validation Failed");
+    VALIDATION_FAILED(422, "Validation Failed"),
+
+    // Booking status
+    CONFIRMED(201, "Confirmed"),
+    CANCELLED(202, "Cancelled");
 
     private final int code;
     private final String message;

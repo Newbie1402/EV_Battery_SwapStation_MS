@@ -1,0 +1,29 @@
+# .dockerignore cho nginx
+
+# Documentation
+*.md
+README.md
+DEPLOYMENT_GUIDE.md
+QUICKSTART.md
+CHANGELOG.md
+
+# Test scripts
+*.sh
+*.bat
+test-*
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+

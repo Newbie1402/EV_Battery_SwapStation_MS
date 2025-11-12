@@ -1,5 +1,5 @@
 server:
-  port: 8081  # Port khác 8080 để tránh conflict với các service khác khi run local
+  port: 9001  # Port khác 8080 để tránh conflict với các service khác khi run local
 
 spring:
   # Database Configuration - Connect to Docker PostgreSQL via localhost

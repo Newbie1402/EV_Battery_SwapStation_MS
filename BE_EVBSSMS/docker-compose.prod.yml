@@ -6,7 +6,8 @@
 #   docker-compose -f docker-compose.prod.yml up -d --build
 #
 # Tất cả services chạy trong Docker network và giao tiếp qua container names:
-#   - Gateway: localhost:9000 → container api-gateway:8080
+#   - Nginx: localhost:80 → container nginx:80 → api-gateway:8080
+#   - Gateway: localhost:9000 → container api-gateway:8080 (direct access)
 #   - Auth-User: localhost:9001 → container auth-user:8080
 #   - Station: localhost:9002 → container station:8080
 #   - Booking: localhost:9003 → container booking:8080
@@ -16,6 +17,26 @@
 version: '3.8'
 
 services:
+  # ==========================================
+  # NGINX - Reverse Proxy & Load Balancer
+  # ==========================================
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx-proxy
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS (khi có SSL)
+    networks: [ evnet ]
+    depends_on:
+      - gateway
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
   # Eureka Server - Service Discovery
   eureka-server:
     build:

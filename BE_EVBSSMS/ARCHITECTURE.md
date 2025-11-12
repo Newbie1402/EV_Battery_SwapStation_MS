@@ -4,9 +4,70 @@
 
 Hệ thống được tổ chức thành **5 service chính** theo domain-driven design, mỗi service chịu trách nhiệm cho một nhóm chức năng nghiệp vụ cụ thể.
 
-## 🎯 5 Service Chính
+## 🌐 Kiến trúc tổng thể
 
-### 1. **auth-user** (Port 9001)
+```
+Client (Browser/Mobile App)
+    ↓
+Nginx:80 (Reverse Proxy)
+    ├─ Rate Limiting
+    ├─ SSL/TLS Termination
+    ├─ Compression
+    └─ Load Balancing
+    ↓
+API Gateway:8080 (Entry Point)
+    ├─ Routing
+    ├─ Authentication
+    └─ Service Discovery
+    ↓
+┌─────────────┬─────────────┬─────────────┬─────────────┐
+│ Auth-User   │ Station     │ Booking     │ Billing     │
+│ :8080       │ :8080       │ :8080       │ :8080       │
+└─────────────┴─────────────┴─────────────┴─────────────┘
+    ↓               ↓               ↓               ↓
+┌─────────────┬─────────────┬─────────────┬─────────────┐
+│ AuthDB      │ StationDB   │ BookingDB   │ BillingDB   │
+│ :5432       │ :5432       │ :5432       │ :5432       │
+└─────────────┴─────────────┴─────────────┴─────────────┘
+```
+
+## 🎯 6 Thành phần Chính
+
+### 0. **nginx** (Port 80/443)
+**Vai trò:** Reverse Proxy & Load Balancer
+
+**Chức năng:**
+- ✅ Reverse proxy cho API Gateway
+- ✅ SSL/TLS termination (HTTPS)
+- ✅ Rate limiting (chống DDoS)
+- ✅ Gzip compression
+- ✅ Security headers
+- ✅ Load balancing giữa nhiều API Gateway instances
+- ✅ Static content serving (nếu cần)
+
+**Tài liệu:** [nginx/README.md](nginx/README.md), [nginx/DEPLOYMENT_GUIDE.md](nginx/DEPLOYMENT_GUIDE.md)
+
+---
+
+### 1. **gateway** (Port 9000 → Container 8080)
+**Service:** `api-gateway`
+
+**Chức năng:**
+- ✅ Điểm vào (entry point) cho tất cả microservices
+- ✅ Định tuyến (routing) request đến service tương ứng
+- ✅ Xác thực token (JWT)
+- ✅ Service discovery via Eureka
+- ✅ Monitoring và rate limiting
+
+**Container:** `api-gateway:8080`
+
+**Access:**
+- Via Nginx: `http://localhost/api/*`
+- Direct: `http://localhost:9000/api/*`
+
+---
+
+### 2. **auth-user** (Port 9001 → Container 8080)
 **Gộp từ:** `auth-user` + `admin`
 
 **Chức năng:**
@@ -19,9 +80,16 @@ Hệ thống được tổ chức thành **5 service chính** theo domain-driven
 
 **Database:** `authdb` (PostgreSQL - Port 5433)
 
+**Container:** `auth-user-service:8080`
+
+**Access:**
+- Via Nginx: `http://localhost/auth-user/swagger-ui/index.html`
+- Via Gateway: `http://localhost:9000/auth-user/swagger-ui/index.html`
+- Direct: `http://localhost:9001/swagger-ui/index.html`
+
 ---
 
-### 2. **station** (Port 9002)
+### 3. **station** (Port 9002 → Container 8080)
 **Gộp từ:** `station-inventory` + `geo-routing`
 
 **Chức năng:**
@@ -34,9 +102,16 @@ Hệ thống được tổ chức thành **5 service chính** theo domain-driven
 
 **Database:** `stationdb` (PostgreSQL - Port 5434)
 
+**Container:** `station-service:8080`
+
+**Access:**
+- Via Nginx: `http://localhost/station/swagger-ui/index.html`
+- Via Gateway: `http://localhost:9000/station/swagger-ui/index.html`
+- Direct: `http://localhost:9002/swagger-ui/index.html`
+
 ---
 
-### 3. **booking** (Port 9003)
+### 4. **booking** (Port 9003 → Container 8080)
 **Gộp từ:** `booking-swap` + `support-feedback` + `notification`
 
 **Chức năng:**
@@ -50,11 +125,18 @@ Hệ thống được tổ chức thành **5 service chính** theo domain-driven
 
 **Database:** `bookingdb` (PostgreSQL - Port 5435)
 
+**Container:** `booking-service:8080`
+
 **Tích hợp:** Kafka, MailHog
+
+**Access:**
+- Via Nginx: `http://localhost/booking/swagger-ui/index.html`
+- Via Gateway: `http://localhost:9000/booking/swagger-ui/index.html`
+- Direct: `http://localhost:9003/swagger-ui/index.html`
 
 ---
 
-### 4. **billing** (Port 9004)
+### 5. **billing** (Port 9004 → Container 8080)
 **Gộp từ:** `billing-payment` + `analytics`
 
 **Chức năng:**
@@ -68,21 +150,14 @@ Hệ thống được tổ chức thành **5 service chính** theo domain-driven
 
 **Database:** `billingdb` (PostgreSQL - Port 5436)
 
+**Container:** `billing-service:8080`
+
 **Tích hợp:** Kafka
 
----
-
-### 5. **gateway** (Port 9000)
-**Service:** `api-gateway`
-
-**Chức năng:**
-- ✅ Điểm vào (entry point) duy nhất cho client
-- ✅ Định tuyến (routing) request đến service tương ứng
-- ✅ Xác thực token (JWT)
-- ✅ Rate limiting
-- ✅ Monitoring và logging
-
-**Không có database riêng**
+**Access:**
+- Via Nginx: `http://localhost/billing/swagger-ui/index.html`
+- Via Gateway: `http://localhost:9000/billing/swagger-ui/index.html`
+- Direct: `http://localhost:9004/swagger-ui/index.html`
 
 ---
 
@@ -110,6 +185,12 @@ Hệ thống được tổ chức thành **5 service chính** theo domain-driven
                         ┌─────────────────┐
                         │   Client Apps   │
                         │  (Web/Mobile)   │
+                        └────────┬────────┘
+                                 │ HTTP/HTTPS
+                        ┌────────▼────────┐
+                        │      Nginx      │ :80/:443
+                        │ (Reverse Proxy) │
+                        │  Rate Limiting  │
                         └────────┬────────┘
                                  │
                         ┌────────▼────────┐

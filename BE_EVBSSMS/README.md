@@ -10,30 +10,67 @@
 
 Nếu không dùng service trực tiếp ở docker muốn chạy được file env thì cần dùng thêm plugin Vd:
 EnvFile plugin
-http://localhost:8081/swagger-ui/index.html#/Admin/approveRegistration
+
+## Kiến trúc hệ thống
+
+```
+Client → Nginx:80 → API Gateway:8080 → [Microservices]
+         ↓
+    Rate Limiting
+    Compression
+    SSL/TLS
+    Load Balancing
+```
 
 | Service       | Chức năng chính                       | Loại giao tiếp chính    |
 |---------------|---------------------------------------|-------------------------|
+| **nginx**     | Reverse proxy, load balancer, security| HTTP/HTTPS              |
+| **gateway**   | API Gateway, routing                  | HTTP/REST               |
 | **auth-user** | Xác thực, quản lý user, role, profile | ✅ REST sync (HTTP)      |
 | **station**   | Quản lý trạm, pin, slot, vị trí       | ✅ REST + 🔄 Kafka event |
 | **booking**   | Đặt lịch, đổi pin, xử lý giao dịch    | ✅ REST + 🔄 Kafka event |
 | **billing**   | Thanh toán, gói thuê, hóa đơn         | ✅ REST + 🔄 Kafka event |
 
-Auth-User Service: http://localhost:8080/auth-user/swagger-ui.html
-Station Service: http://localhost:8080/station/swagger-ui.html
-Booking Service: http://localhost:8080/booking/swagger-ui.html
-Billing Service: http://localhost:8080/billing/swagger-ui.html
-Hoặc trực tiếp các service:
-http://localhost:8081/swagger-ui.html (Auth-User)
-http://localhost:8082/swagger-ui.html (Station)
-http://localhost:8083/swagger-ui.html (Booking)
-http://localhost:8084/swagger-ui.html (Billing)
+## Truy cập API và Swagger UI
 
-Docker:
-Auth: http://localhost:9000/auth-user/swagger-ui/index.html
+### Qua Nginx (Production - Recommended):
+```
+http://localhost/api/auth/login
+http://localhost/api/stations
+http://localhost/api/bookings
+http://localhost/api/billings
+```
 
-Trực tiếp các service:
-Auth: http://localhost:9001/swagger-ui/index.html#/
+### Swagger UI qua Nginx:
+```
+http://localhost/auth-user/swagger-ui/index.html
+http://localhost/station/swagger-ui/index.html
+http://localhost/booking/swagger-ui/index.html
+http://localhost/billing/swagger-ui/index.html
+```
+
+### Qua API Gateway trực tiếp (Development):
+```
+Auth-User Service: http://localhost:9000/auth-user/swagger-ui.html
+Station Service: http://localhost:9000/station/swagger-ui.html
+Booking Service: http://localhost:9000/booking/swagger-ui.html
+Billing Service: http://localhost:9000/billing/swagger-ui.html
+```
+
+### Trực tiếp các service (Development only):
+```
+Auth: http://localhost:9001/swagger-ui/index.html
+Station: http://localhost:9002/swagger-ui/index.html
+Booking: http://localhost:9003/swagger-ui/index.html
+Billing: http://localhost:9004/swagger-ui/index.html
+```
+
+### Infrastructure:
+```
+Eureka Dashboard: http://localhost:8761
+MailHog Web UI: http://localhost:8025
+```
+
 
 
 ## 4. Project code style

@@ -1,26 +1,22 @@
+server:
+  port: 8081  # Port khác 8080 để tránh conflict với các service khác khi run local
+
 spring:
-  # Datasource cho môi trường local (dev)
+  # Database Configuration - Connect to Docker PostgreSQL via localhost
   datasource:
     url: jdbc:postgresql://localhost:5433/authdb
     username: ev
     password: evpass
     driver-class-name: org.postgresql.Driver
 
+  # JPA Config - Bật SQL logging cho dev
   jpa:
-    hibernate:
-      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    clean-disabled: false
-
-  # Kafka Configuration (local)
+  # Kafka Configuration - Connect to Docker Kafka via localhost
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -29,7 +25,7 @@ spring:
       properties:
         spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
     consumer:
-      group-id: auth-user-service
+      group-id: auth-user-service-dev
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
@@ -37,38 +33,44 @@ spring:
         spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
       auto-offset-reset: earliest
 
-  # Mail Configuration (local - MailHog)
+  # Mail Configuration - Connect to MailHog Docker via localhost
   mail:
     host: localhost
     port: 1025
+    username: ""
+    password: ""
     properties:
       mail:
         smtp:
           auth: false
           starttls:
             enable: false
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    default-encoding: UTF-8
 
-  # OAuth2 Configuration (local)
-#  security:
-#    oauth2:
-#      client:
-#        registration:
-#          google:
-#            client-id: ${GOOGLE_CLIENT_ID:465257132532-fake-client-id.apps.googleusercontent.com}
-#            client-secret: ${GOOGLE_CLIENT_SECRET:GOCSPX-fake-secret-key}
-#            scope:
-#              - email
-#              - profile
-#              - openid
-#            redirect-uri: http://localhost:8080/oauth2/callback
-#        provider:
-#          google:
-#            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-#            token-uri: https://oauth2.googleapis.com/token
-#            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-#            user-name-attribute: sub
+  # OAuth2 Configuration - Development
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:465257132532-fake-client-id.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET:GOCSPX-fake-secret-key}
+            scope:
+              - email
+              - profile
+              - openid
+            redirect-uri: http://localhost:8081/oauth2/callback
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
 
-# Eureka Configuration (local)
+# Eureka Client Configuration - Connect to Docker Eureka via localhost
 eureka:
   client:
     serviceUrl:
@@ -77,17 +79,9 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
 
-# Logging (verbose cho dev)
-logging:
-  level:
-    org.springframework: INFO
-    com.boilerplate.auth: DEBUG
-    org.springframework.kafka: DEBUG
-    org.springframework.mail: DEBUG
-    org.flywaydb: DEBUG
-
-# Springdoc OpenAPI (Swagger) Configuration
+# Springdoc OpenAPI (Swagger) - Development URLs
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -95,7 +89,14 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
-    operations-sorter: method
-    tags-sorter: alpha
-    doc-expansion: none
-  show-actuator: true
+
+# Logging - Development (verbose)
+logging:
+  level:
+    org.springframework: INFO
+    com.boilerplate.auth: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.mail: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+

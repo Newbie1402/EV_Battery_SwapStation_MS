@@ -1,35 +1,28 @@
+server:
+  port: 8080  # Container luôn dùng port 8080 (docker-compose map 9001:8080)
+
 spring:
-  # Datasource kết nối đến PostgreSQL Docker container (từ local)
+  # Database Configuration - Connect via Docker network (container name)
   datasource:
-    url: jdbc:postgresql://localhost:5433/authdb
+    url: jdbc:postgresql://auth-user-db:5432/authdb
     username: ev
     password: evpass
     driver-class-name: org.postgresql.Driver
 
+  # JPA Config - Tắt SQL logging cho prod
   jpa:
-    hibernate:
-      ddl-auto: none
     show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    clean-disabled: false
-
-  # Kafka Configuration (kết nối đến Kafka Docker)
+  # Kafka Configuration - Connect via Docker network
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
     consumer:
-      group-id: auth-user-service
+      group-id: auth-user-service-prod
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
@@ -37,25 +30,24 @@ spring:
         spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
       auto-offset-reset: earliest
 
-  # Mail Configuration (MailHog Docker)
+  # Mail Configuration - Connect to MailHog via Docker network
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:your_email@gmail.com}
-    password: ${MAIL_PASSWORD:your_app_password}
+    host: mailhog
+    port: 1025
+    username: ""
+    password: ""
     properties:
       mail:
         smtp:
-          auth: true
+          auth: false
           starttls:
-            enable: true
-            required: true
+            enable: false
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
     default-encoding: UTF-8
 
-  # OAuth2 Configuration
+  # OAuth2 Configuration - Production
   security:
     oauth2:
       client:
@@ -67,7 +59,7 @@ spring:
               - email
               - profile
               - openid
-            redirect-uri: http://localhost:8080/oauth2/callback
+            redirect-uri: http://localhost:9001/oauth2/callback
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
@@ -75,26 +67,18 @@ spring:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
 
-# Eureka Configuration
+# Eureka Client Configuration - Connect via Docker network
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:
     prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
 
-# Logging cho production
-logging:
-  level:
-    org.springframework: INFO
-    com.boilerplate.auth: INFO
-    org.springframework.security: DEBUG
-    org.springframework.kafka: WARN
-    org.springframework.mail: INFO
-
-# Springdoc OpenAPI (Swagger)
+# Springdoc OpenAPI (Swagger) - Production URLs
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -102,5 +86,15 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
-    operations-sorter: method
-    tags-sorter: alpha
+  # Optional: Server URL for Swagger UI (nếu truy cập qua Gateway)
+  server:
+    url: http://localhost:9000/auth-user
+
+# Logging - Production (less verbose)
+logging:
+  level:
+    org.springframework: INFO
+    com.boilerplate.auth: INFO
+    org.springframework.kafka: WARN
+    org.springframework.mail: INFO
+

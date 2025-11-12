@@ -1,20 +1,24 @@
-server:
-  port: 8761
+# application.yml - Base Configuration for Eureka Server
+# Common config cho TẤT CẢ môi trường (dev, prod)
+# Profile mặc định: dev
 
 spring:
   application:
     name: eureka-server
 
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+# Eureka Server Configuration - Sẽ được override bởi profile
 eureka:
   client:
-    register-with-eureka: false
-    fetch-registry: false
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: false  # Eureka server không đăng ký với chính nó
+    fetch-registry: false  # Không fetch registry từ server khác
   server:
-    enable-self-preservation: false
+    enable-self-preservation: false  # Tắt self-preservation cho dev (bật trong prod)
     eviction-interval-timer-in-ms: 4000
 
+# Management Endpoints
 management:
   endpoints:
     web:
@@ -24,7 +28,8 @@ management:
     health:
       show-details: always
 
+# Logging
 logging:
   level:
-    com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO

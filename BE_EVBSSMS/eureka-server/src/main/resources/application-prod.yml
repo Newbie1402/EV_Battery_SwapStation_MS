@@ -1,0 +1,24 @@
+# application-prod.yml - Production Profile for Eureka Server
+# Dùng khi chạy Eureka Server trong Docker
+# Chạy bằng: docker-compose -f docker-compose.prod.yml up -d --build
+
+server:
+  port: 8761  # Container dùng port 8761 (docker-compose map 8761:8761)
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  server:
+    enable-self-preservation: true  # Bật self-preservation cho production
+    eviction-interval-timer-in-ms: 10000  # Tăng interval cho prod
+
+# Logging - Production (less verbose)
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    org.springframework: WARN
+

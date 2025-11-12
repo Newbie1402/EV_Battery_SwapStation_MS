@@ -4,7 +4,35 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d144f2f8-ab58-4ae7-95c9-fec67bbd87be" name="Changes" comment="" />
+    <list default="true" id="d144f2f8-ab58-4ae7-95c9-fec67bbd87be" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/GoogleStyle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/api-gateway/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/api-gateway/src/main/resources/application-dev.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/api-gateway/src/main/resources/application-prod.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/eureka-server/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/eureka-server/src/main/resources/application-dev.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/eureka-server/src/main/resources/application-prod.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BE_EVBSSMS/load-and-test.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/.github/copilot-instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/.github/copilot-instructions.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/api-gateway/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/api-gateway/src/main/java/com/boilerplate/gateway/model/response/ResponseData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/api-gateway/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/api-gateway/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/SETUP_GUIDE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/src/main/resources/application-dev.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/src/main/resources/application-dev.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/src/main/resources/application-prod.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/src/main/resources/application-prod.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/auth-user/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/billing-payment/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/booking-swap/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/build-all.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/build-all.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/docker-compose.base.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/docker-compose.base.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/docker-compose.prod.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/eureka-server/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BE_EVBSSMS/eureka-server/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BE_EVBSSMS/rebuild-services.bat" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -26,12 +54,16 @@
     &quot;assignee&quot;: &quot;Newbie1402&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Newbie1402/EV_Battery_SwapStation_MS.git&quot;,
-    &quot;accountId&quot;: &quot;1bd897bc-5775-4719-bf8c-ab34a9369d67&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Newbie1402/EV_Battery_SwapStation_MS.git",
+    "accountId": "b3a3f8cf-ac5b-47a9-82b6-a8b39512730f"
   }
-}</component>
+}]]></component>
+  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
+  <component name="KubernetesApiProvider"><![CDATA[{
+  "isMigrated": true
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -192,6 +224,7 @@
       <workItem from="1758778631647" duration="4406000" />
       <workItem from="1758783072051" duration="11704000" />
       <workItem from="1758809416873" duration="46000" />
+      <workItem from="1762968057354" duration="10000" />
     </task>
     <servers />
   </component>

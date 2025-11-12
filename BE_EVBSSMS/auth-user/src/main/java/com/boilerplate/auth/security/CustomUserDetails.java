@@ -1,6 +1,6 @@
 package com.boilerplate.auth.security;
 
-import com.boilerplate.auth.model.entity.User;
+import com.boilerplate.auth.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

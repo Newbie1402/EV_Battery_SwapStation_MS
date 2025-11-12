@@ -1,0 +1,35 @@
+# application-dev.yml - Development Profile for API Gateway
+# Dùng khi chạy Gateway bằng IDE
+# Infrastructure: docker-compose -f docker-compose.base.yml up -d
+
+server:
+  port: 9000  # Port riêng cho Gateway khi chạy local
+
+spring:
+  cloud:
+    gateway:
+      # Discovery Locator (tự động tạo routes từ Eureka)
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+# Eureka Client - Connect to Docker Eureka via localhost
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Logging - Development (verbose)
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.route: DEBUG
+    reactor.netty: DEBUG
+    org.springframework: INFO
+

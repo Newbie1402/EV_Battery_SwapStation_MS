@@ -2,8 +2,8 @@ package com.boilerplate.auth.service;
 
 import com.boilerplate.auth.enums.OtpType;
 import com.boilerplate.auth.exception.InvalidOtpException;
-import com.boilerplate.auth.model.entity.OtpToken;
-import com.boilerplate.auth.model.entity.User;
+import com.boilerplate.auth.entity.OtpToken;
+import com.boilerplate.auth.entity.User;
 import com.boilerplate.auth.repository.OtpTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

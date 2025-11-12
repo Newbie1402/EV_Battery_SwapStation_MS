@@ -1,0 +1,29 @@
+name: "[CI] EVC FLIGHT HUB"
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - release
+
+jobs:
+  run-tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Make test script executable
+        run: chmod +x ./load-and-test.sh
+
+      - name: Run tests
+        run: ./load-and-test.sh

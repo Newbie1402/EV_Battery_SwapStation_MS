@@ -1,6 +1,6 @@
 package com.boilerplate.auth.service;
 
-import com.boilerplate.auth.model.entity.User;
+import com.boilerplate.auth.entity.User;
 import com.boilerplate.auth.repository.UserRepository;
 import com.boilerplate.auth.util.EmployeeIdGenerator;
 import lombok.RequiredArgsConstructor;

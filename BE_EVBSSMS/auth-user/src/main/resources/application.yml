@@ -1,93 +1,41 @@
 spring:
   application:
     name: auth-user
-  datasource:
-    url: jdbc:postgresql://${AUTH_USER_DB_HOST:localhost}:${AUTH_USER_DB_PORT:5433}/${AUTH_USER_DB_NAME:authdb}
-    username: ${AUTH_USER_DB_USER:ev}
-    password: ${AUTH_USER_DB_PASSWORD:evpass}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    clean-disabled: false
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}  # Default: dev profile cho IDE
+
+  # Docker Compose Integration - TẮT (không cần khi deploy Docker)
   docker:
     compose:
       enabled: false
 
-  # Kafka Configuration
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
-    consumer:
-      group-id: auth-user-service
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-        spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
-      auto-offset-reset: earliest
-
-  # Mail Configuration
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:your_email@gmail.com}
-    password: ${MAIL_PASSWORD:your_app_password}
+  # JPA & Hibernate - Common config
+  jpa:
+    hibernate:
+      ddl-auto: none  # Không tự động tạo schema (dùng Flyway)
+    show-sql: false  # Không log SQL (bật trong dev profile nếu cần)
     properties:
-      mail:
-        smtp:
-          auth: ${MAIL_SMTP_AUTH:true}
-          starttls:
-            enable: ${MAIL_SMTP_STARTTLS:true}
-            required: ${MAIL_SMTP_STARTTLS:true}
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-    default-encoding: UTF-8
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # OAuth2 Configuration
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID:465257132532-fake-client-id.apps.googleusercontent.com}
-            client-secret: ${GOOGLE_CLIENT_SECRET:GOCSPX-fake-secret-key}
-            scope:
-              - email
-              - profile
-              - openid
-            redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:8081/oauth2/callback}
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-            user-name-attribute: sub
+  # Flyway Migration - Common config
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: false
 
+# Eureka Client - Sẽ được override bởi profile
 eureka:
   client:
-    serviceUrl:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
   instance:
     prefer-ip-address: true
 
+# Server Config - Sẽ được override bởi profile
 server:
-  port: ${SERVER_PORT:8081}
   servlet:
     context-path: /
   forward-headers-strategy: framework
@@ -99,8 +47,8 @@ server:
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET:yourSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm}
-  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}  # 1 hour
-  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}  # 7 days
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}  # 1 hour (ms)
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}  # 7 days (ms)
 
 # OTP Configuration
 otp:
@@ -117,25 +65,17 @@ springdoc:
   api-docs:
     path: /v3/api-docs
     enabled: true
-    groups:
-      enabled: true
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
     operations-sorter: method
     tags-sorter: alpha
     doc-expansion: none
-    urls:
-      - name: "Auth-User Service (Direct)"
-        url: "/v3/api-docs"
-      - name: "Auth-User Service (Via Gateway)"
-        url: "http://localhost:9000/auth-user/v3/api-docs"
   show-actuator: false
 
+# Logging - Common config
 logging:
   level:
     org.springframework: INFO
     com.boilerplate.auth: DEBUG
-    org.springframework.kafka: INFO
-    org.springframework.mail: DEBUG
 

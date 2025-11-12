@@ -1,6 +1,6 @@
 package com.boilerplate.auth.security;
 
-import com.boilerplate.auth.model.entity.User;
+import com.boilerplate.auth.entity.User;
 import com.boilerplate.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

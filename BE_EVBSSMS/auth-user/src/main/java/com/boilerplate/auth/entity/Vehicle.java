@@ -1,4 +1,4 @@
-package com.boilerplate.auth.model.entity;
+package com.boilerplate.auth.entity;
 
 import com.boilerplate.auth.enums.VehicleStatus;
 import jakarta.persistence.*;

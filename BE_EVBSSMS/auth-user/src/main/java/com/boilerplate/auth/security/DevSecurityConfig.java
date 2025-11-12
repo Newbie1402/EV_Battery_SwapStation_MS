@@ -2,7 +2,7 @@ package com.boilerplate.auth.security;
 
 import com.boilerplate.auth.enums.Role;
 import com.boilerplate.auth.enums.UserStatus;
-import com.boilerplate.auth.model.entity.User;
+import com.boilerplate.auth.entity.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,0 +1,35 @@
+# application-prod.yml - Production Profile for API Gateway
+# Dùng khi chạy Gateway trong Docker
+# Chạy bằng: docker-compose -f docker-compose.prod.yml up -d --build
+
+server:
+  port: 8080  # Container luôn dùng port 8080 (docker-compose map 9000:8080)
+
+spring:
+  cloud:
+    gateway:
+      # Discovery Locator (tự động tạo routes từ Eureka)
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+# Eureka Client - Connect via Docker network
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
+
+# Logging - Production (less verbose)
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.gateway.route: INFO
+    reactor.netty: WARN
+    org.springframework: INFO
+

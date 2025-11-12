@@ -30,7 +30,6 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="code (3)" />
-        <module name="code (5)" />
         <module name="code (6)" />
       </profile>
       <profile name="Annotation profile for station-service" enabled="true">
@@ -42,6 +41,7 @@
         </processorPath>
         <module name="code (4)" />
         <module name="code (9)" />
+        <module name="code (5)" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

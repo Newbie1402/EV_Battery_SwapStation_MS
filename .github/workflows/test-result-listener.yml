@@ -1,0 +1,81 @@
+# Tên của workflow, sẽ hiển thị trong tab Actions của GitHub
+name: 👂 Report EV_BSS_MS Test Results
+
+# Trigger: Chạy workflow này khi nhận được sự kiện repository_dispatch
+# với type là 'test-report' do service test runner của bạn gửi đến.
+on:
+  repository_dispatch:
+    types: [ test-report ]
+
+jobs:
+  # Tên của job
+  report-status-as-check:
+    # Chạy trên máy ảo Ubuntu phiên bản mới nhất
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Bước chính: Sử dụng actions/github-script để tương tác với GitHub API
+      - name: Create Commit Check Run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Lấy dữ liệu (payload) được gửi từ service test runner
+            const payload = context.payload.client_payload;
+            const sha = payload.commitSha;
+            
+            // Nếu không có commitSha trong payload, báo lỗi và dừng lại
+            if (!sha) {
+              core.setFailed('Missing "commitSha" in the dispatch payload.');
+              return;
+            }
+
+            // Xác định trạng thái cuối cùng của check
+            // 'conclusion' có thể là: success, failure, neutral, cancelled, skipped, timed_out
+            const conclusion = payload.status === 'success' ? 'success' : 'failure';
+
+            // Chuẩn bị tiêu đề và nội dung chi tiết cho báo cáo
+            let summary, details;
+
+            if (conclusion === 'success') {
+              summary = `### ✅ EV_BSS_MS Tests Passed`;
+              details = `Tất cả các bài test tự động trên môi trường staging cho commit \`${sha.substring(0, 7)}\` đã thành công.`;
+            } else {
+              summary = `### ❌ EV_BSS_MS Tests Failed`;
+              // Sử dụng thẻ <details> của Markdown để ẩn log lỗi dài, giúp báo cáo gọn gàng hơn
+              details = `Các bài test tự động trên môi trường staging cho commit \`${sha.substring(0, 7)}\` đã thất bại.
+
+              <details>
+                <summary>Nhấn để xem chi tiết lỗi</summary>
+            
+                \`\`\`bash
+                ${payload.details}
+                \`\`\`
+              </details>
+              `;
+            }
+            
+            // Sử dụng Octokit API (được tích hợp sẵn trong github-script) để tạo một Check Run
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              // Tên của check sẽ hiển thị bên cạnh commit
+              name: 'EV_BSS_MS Staging Tests', 
+              // Gắn check này vào commit SHA cụ thể
+              head_sha: sha,
+              // Trạng thái của check run, 'completed' vì nó đã chạy xong
+              status: 'completed',
+              conclusion: conclusion,
+              // 'output' là nơi chứa nội dung báo cáo chi tiết
+              output: {
+                title: 'EV_BSS_MS Test Results',
+                summary: summary,
+                text: details
+              }
+            });
+
+      # Bước cuối cùng: Đánh dấu cả lần chạy workflow này là 'thất bại' nếu test thất bại.
+      # Điều này rất quan trọng để branch protection rules hoạt động và để nhìn thấy
+      # dấu X màu đỏ trong danh sách các lần chạy workflow.
+      - name: Fail workflow run if tests failed
+        if: ${{ github.event.client_payload.status == 'failure' }}
+        run: exit 1

@@ -1,176 +1,124 @@
+# application.yml - Base Configuration for API Gateway
+# Common config cho TẤT CẢ môi trường (dev, prod)
+# Profile mặc định: dev
+
 spring:
   application:
     name: api-gateway
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
   cloud:
     gateway:
-      # Cấu hình routes
+      # Gateway Routes - Common cho tất cả môi trường
       routes:
-        # ============ SWAGGER API DOCS ROUTES (Swagger JSON docs) ============
+        # ===== Auth-User Service =====
+        - id: auth-user-api
+          uri: lb://auth-user
+          predicates:
+            - Path=/api/auth/**,/api/users/**,/api/admin/**,/api/staff/**,/oauth2/**
 
-        # Auth-User API docs
+        - id: auth-user-swagger-ui
+          uri: lb://auth-user
+          predicates:
+            - Path=/auth-user/swagger-ui/**,/auth-user/swagger-ui.html
+          filters:
+            - RewritePath=/auth-user/(?<segment>.*), /$\{segment}
+
         - id: auth-user-api-docs
-          uri: http://localhost:8081
+          uri: lb://auth-user
           predicates:
             - Path=/auth-user/v3/api-docs/**
           filters:
             - RewritePath=/auth-user/(?<segment>.*), /$\{segment}
 
-        # Station API docs
+        # ===== Station Service =====
+        - id: station-api
+          uri: lb://station-service
+          predicates:
+            - Path=/api/stations/**,/api/batteries/**,/api/geo/**
+
+        - id: station-swagger-ui
+          uri: lb://station-service
+          predicates:
+            - Path=/station/swagger-ui/**,/station/swagger-ui.html
+          filters:
+            - RewritePath=/station/(?<segment>.*), /$\{segment}
+
         - id: station-api-docs
-          uri: http://localhost:8082
+          uri: lb://station-service
           predicates:
             - Path=/station/v3/api-docs/**
           filters:
             - RewritePath=/station/(?<segment>.*), /$\{segment}
 
-        # Booking API docs
+        # ===== Booking Service =====
+        - id: booking-api
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/bookings/**,/api/swaps/**,/api/support/**,/api/notifications/**
+
+        - id: booking-swagger-ui
+          uri: lb://booking-service
+          predicates:
+            - Path=/booking/swagger-ui/**,/booking/swagger-ui.html
+          filters:
+            - RewritePath=/booking/(?<segment>.*), /$\{segment}
+
         - id: booking-api-docs
-          uri: http://localhost:8083
+          uri: lb://booking-service
           predicates:
             - Path=/booking/v3/api-docs/**
           filters:
             - RewritePath=/booking/(?<segment>.*), /$\{segment}
 
-        # Billing API docs
+        # ===== Billing Service =====
+        - id: billing-api
+          uri: lb://billing-service
+          predicates:
+            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**
+
+        - id: billing-swagger-ui
+          uri: lb://billing-service
+          predicates:
+            - Path=/billing/swagger-ui/**,/billing/swagger-ui.html
+          filters:
+            - RewritePath=/billing/(?<segment>.*), /$\{segment}
+
         - id: billing-api-docs
-          uri: http://localhost:8084
+          uri: lb://billing-service
           predicates:
             - Path=/billing/v3/api-docs/**
           filters:
             - RewritePath=/billing/(?<segment>.*), /$\{segment}
 
-        # ============ SWAGGER UI ROUTES (Swagger UI HTML & Resources) ============
+      # CORS Configuration (nếu cần)
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000,http://localhost:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
 
-        # Auth-User Swagger UI
-        - id: auth-user-swagger-ui
-          uri: http://localhost:8081
-          predicates:
-            - Path=/auth-user/swagger-ui/**,/auth-user/swagger-ui.html,/auth-user/v3/swagger-ui/**
-          filters:
-            - RewritePath=/auth-user/(?<segment>.*), /$\{segment}
-
-        # Station Swagger UI
-        - id: station-swagger-ui
-          uri: http://localhost:8082
-          predicates:
-            - Path=/station/swagger-ui/**,/station/swagger-ui.html,/station/v3/swagger-ui/**
-          filters:
-            - RewritePath=/station/(?<segment>.*), /$\{segment}
-
-        # Booking Swagger UI
-        - id: booking-swagger-ui
-          uri: http://localhost:8083
-          predicates:
-            - Path=/booking/swagger-ui/**,/booking/swagger-ui.html,/booking/v3/swagger-ui/**
-          filters:
-            - RewritePath=/booking/(?<segment>.*), /$\{segment}
-
-        # Billing Swagger UI
-        - id: billing-swagger-ui
-          uri: http://localhost:8084
-          predicates:
-            - Path=/billing/swagger-ui/**,/billing/swagger-ui.html,/billing/v3/swagger-ui/**
-          filters:
-            - RewritePath=/billing/(?<segment>.*), /$\{segment}
-
-        # ============ SWAGGER UI & API DOCS - SIMPLE STRIP PREFIX ============
-
-        # Auth-User Swagger - tất cả requests (fallback)
-        - id: auth-user-swagger
-          uri: http://localhost:8081
-          predicates:
-            - Path=/auth-user/**
-          filters:
-            - StripPrefix=1
-
-        # Station Swagger
-        - id: station-swagger
-          uri: http://localhost:8082
-          predicates:
-            - Path=/station/**
-          filters:
-            - StripPrefix=1
-
-        # Booking Swagger
-        - id: booking-swagger
-          uri: http://localhost:8083
-          predicates:
-            - Path=/booking/**
-          filters:
-            - StripPrefix=1
-
-        # Billing Swagger
-        - id: billing-swagger
-          uri: http://localhost:8084
-          predicates:
-            - Path=/billing/**
-          filters:
-            - StripPrefix=1
-
-        # ============ API ROUTES (Business Logic) ============
-
-        # Auth-User routes
-        - id: auth-user-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/auth/**,/api/users/**,/api/admin/**,/api/staff/**,/oauth2/**
-          filters:
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
-
-        # Station routes
-        - id: station-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/api/stations/**,/api/batteries/**,/api/geo/**
-          filters:
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
-
-        # Booking routes
-        - id: booking-service
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/bookings/**,/api/swaps/**,/api/support/**,/api/notifications/**
-          filters:
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
-
-        # Billing routes
-        - id: billing-service
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**
-          filters:
-            - RewritePath=/api/(?<segment>.*), /$\{segment}
-
+# Eureka Client - Sẽ được override bởi profile
 eureka:
   client:
-    serviceUrl:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
   instance:
     prefer-ip-address: true
-    instance-id: ${spring.cloud.client.hostname}:${spring.application.name}:${server.port}
 
-server:
-  port: ${SERVER_PORT:8080}
-  compression:
-    enabled: true
-    min-response-size: 1024
-  error:
-    include-message: always
-    include-stacktrace: never
-
-springdoc:
-  swagger-ui:
-    enabled: false
-  api-docs:
-    enabled: false
-
+# Logging
 logging:
   level:
-    root: INFO
-    org.springframework: INFO
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    org.springframework.cloud.gateway: INFO
+    reactor.netty: INFO

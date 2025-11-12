@@ -1,27 +1,31 @@
-# File này chứa các service infrastructure chung cho development
-# Mỗi developer có thể:
-#   1. Chạy file này: docker-compose -f docker-compose.base.yml up -d
-#   2. Chạy service của mình trong IDEA
-#   3. Service sẽ kết nối với infrastructure này
+# docker-compose.prod.yml
+# Full production deployment - Chạy TOÀN BỘ hệ thống trong Docker
+# Bao gồm: Infrastructure + All Microservices
 #
-# Các service được include:
-#   - Eureka Server (Service Discovery)
-#   - 4 PostgreSQL databases (cho 4 services chính)
-#   - Kafka dùng KRaft (Message Broker)
-#   - MailHog (SMTP Server cho testing)
-# ============================================
+# Cách dùng:
+#   docker-compose -f docker-compose.prod.yml up -d --build
+#
+# Tất cả services chạy trong Docker network và giao tiếp qua container names:
+#   - Gateway: localhost:9000 → container api-gateway:8080
+#   - Auth-User: localhost:9001 → container auth-user:8080
+#   - Station: localhost:9002 → container station:8080
+#   - Booking: localhost:9003 → container booking:8080
+#   - Billing: localhost:9004 → container billing:8080
+#   - Eureka: localhost:8761 → container eureka-server:8761
+
+version: '3.8'
 
 services:
-  # ==== Service Discovery ====
+  # Eureka Server - Service Discovery
   eureka-server:
     build:
       context: ./eureka-server
       dockerfile: Dockerfile
-    container_name: base-eureka-server
+    container_name: eureka-server
     ports:
       - "8761:8761"
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=prod
     networks: [ evnet ]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
@@ -30,7 +34,7 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # ==== Message Broker ====
+  # Kafka - Message Broker
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     container_name: kafka
@@ -56,7 +60,7 @@ services:
       KAFKA_MIN_INSYNC_REPLICAS: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
-      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_RETENTION_HOURS: 168          # 7 ngày
       KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
@@ -70,22 +74,24 @@ services:
       retries: 5
     networks: [ evnet ]
 
-  # ==== Mail Server (Development) ====
+  # MailHog - Email testing
   mailhog:
     image: mailhog/mailhog
-    container_name: base-mailhog
+    container_name: mailhog
     ports:
-      - "8025:8025"    # UI web
+      - "8025:8025"    # Web UI
       - "1025:1025"    # SMTP server
     networks: [ evnet ]
     restart: unless-stopped
 
-  # ==== Databases ====
+  # ==========================================
+  # DATABASES
+  # ==========================================
 
-  # 1. Auth-User Database
+  # Auth-User Database
   auth-user-db:
     image: postgres:16-alpine
-    container_name: base-auth-user-db
+    container_name: auth-user-db
     environment:
       - POSTGRES_DB=authdb
       - POSTGRES_USER=ev
@@ -102,10 +108,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. Station Database
+  # Station Database
   station-db:
     image: postgres:16-alpine
-    container_name: base-station-db
+    container_name: station-db
     environment:
       - POSTGRES_DB=stationdb
       - POSTGRES_USER=ev
@@ -122,10 +128,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # 3. Booking Database
+  # Booking Database
   booking-db:
     image: postgres:16-alpine
-    container_name: base-booking-db
+    container_name: booking-db
     environment:
       - POSTGRES_DB=bookingdb
       - POSTGRES_USER=ev
@@ -142,10 +148,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # 4. Billing Database
+  # Billing Database
   billing-db:
     image: postgres:16-alpine
-    container_name: base-billing-db
+    container_name: billing-db
     environment:
       - POSTGRES_DB=billingdb
       - POSTGRES_USER=ev
@@ -162,10 +168,113 @@ services:
       timeout: 5s
       retries: 5
 
+  # ==========================================
+  # MICROSERVICES
+  # ==========================================
+
+  # API Gateway - Entry point cho tất cả request
+  gateway:
+    container_name: api-gateway
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "9000:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks: [ evnet ]
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Auth-User Service
+  auth-user:
+    container_name: auth-user-service
+    build:
+      context: ./auth-user
+      dockerfile: Dockerfile
+    ports:
+      - "9001:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks: [ evnet ]
+    depends_on:
+      auth-user-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+
+  # Station Service
+  station:
+    container_name: station-service
+    build:
+      context: ./station-inventory
+      dockerfile: Dockerfile
+    ports:
+      - "9002:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks: [ evnet ]
+    depends_on:
+      station-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Booking Service
+  booking:
+    container_name: booking-service
+    build:
+      context: ./booking-swap
+      dockerfile: Dockerfile
+    ports:
+      - "9003:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks: [ evnet ]
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    restart: unless-stopped
+
+  # Billing Service
+  billing:
+    container_name: billing-service
+    build:
+      context: ./billing-payment
+      dockerfile: Dockerfile
+    ports:
+      - "9004:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks: [ evnet ]
+    depends_on:
+      billing-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    restart: unless-stopped
+
 networks:
   evnet:
-    driver: bridge
     name: evnet
+    driver: bridge
 
 volumes:
   auth-user-data:
@@ -178,3 +287,4 @@ volumes:
     name: billing-data
   kafka-data:
     name: kafka-data
+

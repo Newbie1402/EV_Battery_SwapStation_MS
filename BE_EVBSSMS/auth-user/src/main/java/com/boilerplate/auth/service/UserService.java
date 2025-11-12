@@ -1,5 +1,6 @@
 package com.boilerplate.auth.service;
 
+import com.boilerplate.auth.entity.Vehicle;
 import com.boilerplate.auth.enums.Role;
 import com.boilerplate.auth.enums.UserStatus;
 import com.boilerplate.auth.exception.ResourceNotFoundException;
@@ -7,7 +8,7 @@ import com.boilerplate.auth.model.dto.request.UpdateStaffRequest;
 import com.boilerplate.auth.model.dto.request.UpdateProfileRequest;
 import com.boilerplate.auth.model.dto.response.UserResponse;
 import com.boilerplate.auth.model.dto.response.VehicleResponse;
-import com.boilerplate.auth.model.entity.User;
+import com.boilerplate.auth.entity.User;
 import com.boilerplate.auth.repository.UserRepository;
 import com.boilerplate.auth.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
@@ -205,7 +206,7 @@ public class UserService {
     }
 
 
-    private VehicleResponse mapToVehicleResponse(com.boilerplate.auth.model.entity.Vehicle vehicle) {
+    private VehicleResponse mapToVehicleResponse(Vehicle vehicle) {
         return VehicleResponse.builder()
                 .id(vehicle.getId())
                 .vin(vehicle.getVin())

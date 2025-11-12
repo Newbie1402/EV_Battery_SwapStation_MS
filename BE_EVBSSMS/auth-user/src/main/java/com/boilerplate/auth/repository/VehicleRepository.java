@@ -1,7 +1,7 @@
 package com.boilerplate.auth.repository;
 
 import com.boilerplate.auth.enums.VehicleStatus;
-import com.boilerplate.auth.model.entity.Vehicle;
+import com.boilerplate.auth.entity.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

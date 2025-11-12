@@ -2,7 +2,7 @@ package com.boilerplate.auth.repository;
 
 import com.boilerplate.auth.enums.Role;
 import com.boilerplate.auth.enums.UserStatus;
-import com.boilerplate.auth.model.entity.User;
+import com.boilerplate.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

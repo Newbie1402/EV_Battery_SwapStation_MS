@@ -1,7 +1,7 @@
 package com.boilerplate.auth.repository;
 
 import com.boilerplate.auth.enums.OtpType;
-import com.boilerplate.auth.model.entity.OtpToken;
+import com.boilerplate.auth.entity.OtpToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

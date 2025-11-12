@@ -1,0 +1,24 @@
+# application-dev.yml - Development Profile for Eureka Server
+# Dùng khi chạy Eureka Server bằng IDE
+# Infrastructure: docker-compose -f docker-compose.base.yml up -d (nếu cần DB/Kafka)
+
+server:
+  port: 8761  # Port chuẩn cho Eureka Server
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  server:
+    enable-self-preservation: false  # Tắt cho dev (tránh warning)
+    eviction-interval-timer-in-ms: 4000
+
+# Logging - Development (verbose)
+logging:
+  level:
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
+    org.springframework: INFO
+

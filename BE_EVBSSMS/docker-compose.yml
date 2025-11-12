@@ -44,8 +44,8 @@ services:
   gateway:
     container_name: gateway
     build:
-      context: .
-      dockerfile: ./api-gateway/Dockerfile
+      context: ./api-gateway
+      dockerfile: Dockerfile
     command: ["java", "-jar", "/app/app.jar"]
     ports:
       - "9000:8080"
@@ -64,8 +64,8 @@ services:
   auth-user:
     container_name: auth-user-service
     build:
-      context: .
-      dockerfile: ./auth-user/Dockerfile
+      context: ./auth-user
+      dockerfile: Dockerfile
     command: ["java", "-jar", "/app/app.jar"]
     ports:
       - "9001:8080"
@@ -100,8 +100,8 @@ services:
   station:
     container_name: station-service
     build:
-      context: .
-      dockerfile: ./station-inventory/Dockerfile
+      context: ./station-inventory
+      dockerfile: Dockerfile
     command: ["java", "-jar", "/app/app.jar"]
     ports:
       - "9002:8080"
@@ -135,8 +135,8 @@ services:
   booking:
     container_name: booking-service
     build:
-      context: .
-      dockerfile: ./booking-swap/Dockerfile
+      context: ./booking-swap
+      dockerfile: Dockerfile
     command: ["java", "-jar", "/app/app.jar"]
     ports:
       - "9003:8080"
@@ -177,8 +177,8 @@ services:
   billing:
     container_name: billing-service
     build:
-      context: .
-      dockerfile: ./billing-payment/Dockerfile
+      context: ./billing-payment
+      dockerfile: Dockerfile
     command: ["java", "-jar", "/app/app.jar"]
     ports:
       - "9004:8080"

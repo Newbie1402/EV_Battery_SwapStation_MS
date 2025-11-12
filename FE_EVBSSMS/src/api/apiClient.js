@@ -61,11 +61,6 @@ export const apiClient = {
                 ...config,
                 headers: { ...headers, ...config.headers },
             });
-
-            // Only show toast if not explicitly disabled
-            if (config.skipSuccessToast !== true) {
-                toast.success("Thao tác thành công!");
-            }
             return response;
         } catch (error) {
             handleError(error);
@@ -78,10 +73,6 @@ export const apiClient = {
     async put(url, data, config = {}) {
         try {
             const response = await axiosInstance.put(url, data, config);
-            // Only show toast if not explicitly disabled
-            if (config.skipSuccessToast !== true) {
-                toast.success("Cập nhật thành công!");
-            }
             return response.data;
         } catch (error) {
             handleError(error);
@@ -94,7 +85,6 @@ export const apiClient = {
     async patch(url, data, config = {}) {
         try {
             const response = await axiosInstance.patch(url, data, config);
-            toast.success("Cập nhật thành công!");
             return response.data;
         } catch (error) {
             handleError(error);
@@ -107,7 +97,6 @@ export const apiClient = {
     async delete(url, config = {}) {
         try {
             const response = await axiosInstance.delete(url, config);
-            toast.success("Đã xóa thành công!");
             return response.data;
         } catch (error) {
             handleError(error);

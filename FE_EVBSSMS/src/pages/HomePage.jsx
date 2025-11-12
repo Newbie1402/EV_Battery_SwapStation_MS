@@ -29,7 +29,7 @@ export default function HomePage() {
     const publicMenuItems = [
         { label: "Trang chủ", path: "/", icon: Home },
         { label: "Giới thiệu", path: "/about", icon: Info },
-        { label: "Trạm đổi pin", path: "/stations", icon: MapPin },
+        { label: "Trạm đổi pin", path: "/driver/stations", icon: MapPin },
         { label: "Bảng giá", path: "/pricing", icon: DollarSign },
         { label: "Liên hệ", path: "/contact", icon: Phone },
     ];
@@ -46,7 +46,7 @@ export default function HomePage() {
                     navigate("/staff/dashboard");
                     break;
                 case "DRIVER":
-                    navigate("/driver/home");
+                    navigate("/driver/dashboard");
                     break;
                 default:
                     navigate("/");
@@ -100,7 +100,9 @@ export default function HomePage() {
                                 Bắt đầu ngay
                                 <Zap className="w-5 h-5" />
                             </button>
-                            <button className="px-8 py-4 bg-white text-gray-700 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all border-2 border-gray-200">
+                            <button
+                                onClick ={() => navigate("/about")}
+                                className="px-8 py-4 bg-white text-gray-700 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all border-2 border-gray-200">
                                 Tìm hiểu thêm
                             </button>
                         </div>

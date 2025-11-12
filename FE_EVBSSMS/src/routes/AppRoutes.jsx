@@ -11,6 +11,19 @@ const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 
+//Layouts
+const DriverLayout = lazy(() => import("../layouts/DriverLayout"));
+const StaffLayout = lazy(() => import("../layouts/StaffLayout"));
+const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
+
+//Driver Pages
+const DriverDashboardPage = lazy(() => import("../pages/driver/DriverDashboard"));
+const DriverStationsPage = lazy(() => import("../pages/driver/StationListPage"));
+const DriverBookingsPage = lazy(() => import("../pages/driver/MyBookingsPage"));
+//Staff Pages
+
+//Admin Pages
+
 export default function AppRoutes() {
     return (
         <>
@@ -31,6 +44,17 @@ export default function AppRoutes() {
                     <Route path="/register" element={<RegisterPage />} />
 
                     {/* Drivers Routes */}
+                    <Route
+                        path="/driver/"
+                        element={
+                            <ProtectedRoute
+                                element={<DriverLayout />}
+                                allowedRoles={["DRIVER"]}/>}
+                    >
+                        <Route path="dashboard" element={<DriverDashboardPage />} />
+                        <Route path="stations" element={<DriverStationsPage />} />
+                        <Route path="bookings" element={<DriverBookingsPage />} />
+                    </Route>
 
                     {/* Staff Routes */}
 

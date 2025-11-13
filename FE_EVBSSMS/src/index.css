@@ -1,6 +1,28 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Leaflet custom styles */
+@layer base {
+  .leaflet-container {
+    font-family: inherit;
+  }
+
+  .custom-marker,
+  .user-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

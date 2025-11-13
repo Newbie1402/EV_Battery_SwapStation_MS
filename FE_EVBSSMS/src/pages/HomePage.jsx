@@ -63,7 +63,7 @@ export default function HomePage() {
             <Header menuItems={publicMenuItems} role={role || ""} />
 
             {/* Hero Section */}
-            <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+            <section className="relative min-h-screen flex items-center justify-center pt-20">
                 {/* Animated Background Elements */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-300/30 rounded-full blur-3xl animate-pulse" />

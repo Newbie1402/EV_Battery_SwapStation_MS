@@ -7,6 +7,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 const HomePage = lazy(() => import("../pages/HomePage"));
 const AboutPage = lazy(() => import("../pages/AboutPage"));
 const ContactPage = lazy(() => import("../pages/ContactPage"));
+const PricingPage = lazy(() => import("../pages/PricingPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
@@ -23,6 +24,9 @@ const DriverBookingsPage = lazy(() => import("../pages/driver/MyBookingsPage"));
 //Staff Pages
 
 //Admin Pages
+const AdminDashboardPage = lazy(() => import("../pages/admin/AdminDashboard"));
+const AdminStationManagementPage = lazy(() => import("../pages/admin/StationManagementPage"));
+const AdminPackagePlanManagementPage = lazy(() => import("../pages/admin/PackagePlanManagementPage"));
 
 export default function AppRoutes() {
     return (
@@ -40,6 +44,7 @@ export default function AppRoutes() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
@@ -59,6 +64,17 @@ export default function AppRoutes() {
                     {/* Staff Routes */}
 
                     {/* Admin Routes */}
+                    <Route
+                        path="/admin/"
+                        element={
+                            <ProtectedRoute
+                                element={<AdminLayout />}
+                                allowedRoles={["ADMIN"]}/>}
+                    >
+                        <Route path="dashboard" element={<AdminDashboardPage />} />
+                        <Route path="stations" element={<AdminStationManagementPage />} />
+                        <Route path="packages" element={<AdminPackagePlanManagementPage />} />
+                    </Route>
 
                     {/* 404 Not Found */}
                     <Route path="*" element={<NotFoundPage />} />

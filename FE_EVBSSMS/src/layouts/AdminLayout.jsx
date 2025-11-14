@@ -21,6 +21,11 @@ export default function AdminLayout() {
             icon: MapPin,
         },
         {
+            label: "Gói dịch vụ",
+            path: "/admin/packages",
+            icon: Package,
+        },
+        {
             label: "Quản lý pin",
             path: "/admin/batteries",
             icon: Battery,
@@ -35,15 +40,10 @@ export default function AdminLayout() {
             path: "/admin/reports",
             icon: BarChart3,
         },
-        {
-            label: "Cài đặt",
-            path: "/admin/settings",
-            icon: Settings,
-        },
     ];
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50">
+        <div className="flex flex-col min-h-screen bg-white">
             <Header menuItems={adminMenuItems} role="ADMIN" />
 
             <main className="flex-1 pt-16">

@@ -1,5 +1,6 @@
 package com.boilerplate.bookingswap.service;
 
+import com.boilerplate.bookingswap.enums.PackageStatus;
 import com.boilerplate.bookingswap.enums.PackageType;
 import com.boilerplate.bookingswap.exception.NotFoundException;
 import com.boilerplate.bookingswap.model.entity.PackagePlan;
@@ -76,12 +77,12 @@ public class PackagePlanService {
     }
 
     /**
-     * Lấy gói thuê pin theo loại
+     * Lấy gói thuê pin theo loại (chỉ ACTIVE)
      */
     public List<PackagePlanResponse> getPackagePlansByType(PackageType packageType) {
-        log.debug("Lấy danh sách gói thuê pin theo loại: {}", packageType);
+        log.debug("Lấy danh sách gói thuê pin ACTIVE theo loại: {}", packageType);
 
-        List<PackagePlan> packagePlans = packagePlanRepository.findByPackageType(packageType);
+        List<PackagePlan> packagePlans = packagePlanRepository.findByPackageTypeAndStatus(packageType, PackageStatus.ACTIVE);
 
         return packagePlans.stream()
                 .map(packagePlanMapper::toResponseDTO)
@@ -140,7 +141,7 @@ public class PackagePlanService {
     }
 
     /**
-     * Xóa gói thuê pin
+     * Xóa gói thuê pin (soft delete - set status về INACTIVE)
      */
     @Transactional
     public void deletePackagePlan(Long id) {
@@ -149,14 +150,39 @@ public class PackagePlanService {
         PackagePlan packagePlan = packagePlanRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy gói thuê pin với ID: " + id));
 
-        // Kiểm tra có người đang sử dụng gói này không
-        Long activeSubscriptions = packagePlanRepository.countByPackageType(packagePlan.getPackageType());
-        if (activeSubscriptions > 0) {
-            throw new IllegalStateException("Không thể xóa gói thuê pin đang có người sử dụng");
+        // Set status về INACTIVE thay vì xóa thật
+        packagePlan.setStatus(PackageStatus.INACTIVE);
+        packagePlanRepository.save(packagePlan);
+
+        log.info("Đã đánh dấu gói thuê pin ID: {} là INACTIVE", id);
+    }
+
+    /**
+     * Kích hoạt lại gói thuê pin đã bị INACTIVE
+     */
+    @Transactional
+    public PackagePlanResponse activatePackagePlan(Long id) {
+        log.info("Kích hoạt lại gói thuê pin ID: {}", id);
+
+        PackagePlan packagePlan = packagePlanRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy gói thuê pin với ID: " + id));
+
+        // Kiểm tra gói đã INACTIVE chưa
+        if (packagePlan.getStatus() == PackageStatus.ACTIVE) {
+            throw new IllegalStateException("Gói thuê pin đã ở trạng thái ACTIVE");
         }
 
-        packagePlanRepository.deleteById(id);
+        // Kiểm tra tên gói có bị trùng với gói ACTIVE khác không
+        if (packagePlanRepository.existsByName(packagePlan.getName())) {
+            throw new IllegalStateException("Tên gói đã tồn tại trong các gói ACTIVE: " + packagePlan.getName());
+        }
 
-        log.info("Đã xóa gói thuê pin ID: {}", id);
+        // Set status về ACTIVE
+        packagePlan.setStatus(PackageStatus.ACTIVE);
+        PackagePlan activatedPackagePlan = packagePlanRepository.save(packagePlan);
+
+        log.info("Đã kích hoạt lại gói thuê pin ID: {} - Tên: {}", id, packagePlan.getName());
+
+        return packagePlanMapper.toResponseDTO(activatedPackagePlan);
     }
 }

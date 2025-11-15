@@ -1,5 +1,6 @@
 package com.boilerplate.bookingswap.model.dto.respone;
 
+import com.boilerplate.bookingswap.enums.PackageStatus;
 import com.boilerplate.bookingswap.enums.PackageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,9 @@ public class PackagePlanResponse {
 
     /** Loại gói thuê */
     private PackageType packageType;
+
+    /** Trạng thái gói */
+    private PackageStatus status;
 
     /** Thời gian tạo */
     private LocalDateTime createdAt;

@@ -19,7 +19,7 @@ import java.util.List;
  * Controller xử lý các API liên quan đến BatterySwapTransaction
  */
 @RestController
-@RequestMapping("/api/v1/transactions")
+@RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 @Slf4j
 public class BatterySwapTransactionController {

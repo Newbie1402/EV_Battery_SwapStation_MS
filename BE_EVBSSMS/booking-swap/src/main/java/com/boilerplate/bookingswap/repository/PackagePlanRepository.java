@@ -1,5 +1,6 @@
 package com.boilerplate.bookingswap.repository;
 
+import com.boilerplate.bookingswap.enums.PackageStatus;
 import com.boilerplate.bookingswap.enums.PackageType;
 import com.boilerplate.bookingswap.model.entity.PackagePlan;
 import org.springframework.data.domain.Page;
@@ -27,11 +28,42 @@ public interface PackagePlanRepository extends JpaRepository<PackagePlan, Long> 
     Optional<PackagePlan> findByName(String name);
 
     /**
+     * Tìm gói thuê theo tên và status
+     * @param name Tên gói
+     * @param status Trạng thái gói
+     * @return Optional package plan
+     */
+    Optional<PackagePlan> findByNameAndStatus(String name, PackageStatus status);
+
+    /**
+     * Tìm gói thuê theo status
+     * @param status Trạng thái gói
+     * @return Danh sách gói thuê
+     */
+    List<PackagePlan> findByStatus(PackageStatus status);
+
+    /**
+     * Tìm gói thuê theo status với phân trang
+     * @param status Trạng thái gói
+     * @param pageable Thông tin phân trang
+     * @return Trang gói thuê
+     */
+    Page<PackagePlan> findByStatus(PackageStatus status, Pageable pageable);
+
+    /**
      * Tìm gói thuê theo loại
      * @param packageType Loại gói
      * @return Danh sách gói thuê
      */
     List<PackagePlan> findByPackageType(PackageType packageType);
+
+    /**
+     * Tìm gói thuê theo loại và status
+     * @param packageType Loại gói
+     * @param status Trạng thái gói
+     * @return Danh sách gói thuê
+     */
+    List<PackagePlan> findByPackageTypeAndStatus(PackageType packageType, PackageStatus status);
 
     /**
      * Tìm gói thuê theo loại với phân trang
@@ -40,6 +72,15 @@ public interface PackagePlanRepository extends JpaRepository<PackagePlan, Long> 
      * @return Trang gói thuê
      */
     Page<PackagePlan> findByPackageType(PackageType packageType, Pageable pageable);
+
+    /**
+     * Tìm gói thuê theo loại và status với phân trang
+     * @param packageType Loại gói
+     * @param status Trạng thái gói
+     * @param pageable Thông tin phân trang
+     * @return Trang gói thuê
+     */
+    Page<PackagePlan> findByPackageTypeAndStatus(PackageType packageType, PackageStatus status, Pageable pageable);
 
     /**
      * Tìm gói thuê theo khoảng giá
@@ -82,13 +123,14 @@ public interface PackagePlanRepository extends JpaRepository<PackagePlan, Long> 
     Page<PackagePlan> findAllOrderByMaxSwapDesc(Pageable pageable);
 
     /**
-     * Tìm gói thuê phổ biến nhất (có nhiều người đăng ký nhất)
+     * Tìm gói thuê phổ biến nhất (có nhiều người đăng ký nhất) - chỉ lấy gói ACTIVE
      * Lưu ý: Cần join với UserPackageSubscription
      * @param limit Số lượng gói
      * @return Danh sách gói thuê
      */
     @Query("SELECT p FROM PackagePlan p " +
            "LEFT JOIN UserPackageSubscription s ON s.packagePlan.id = p.id " +
+           "WHERE p.status = 'ACTIVE' " +
            "GROUP BY p.id ORDER BY COUNT(s) DESC LIMIT :limit")
     List<PackagePlan> findMostPopularPackages(@Param("limit") int limit);
 
@@ -110,20 +152,21 @@ public interface PackagePlanRepository extends JpaRepository<PackagePlan, Long> 
     Optional<PackagePlan> findCheapestByType(@Param("packageType") PackageType packageType);
 
     /**
-     * Tìm gói thuê có giá trị tốt nhất (giá/số lần đổi)
+     * Tìm gói thuê có giá trị tốt nhất (giá/số lần đổi) - chỉ lấy gói ACTIVE
      * @param packageType Loại gói
      * @return Danh sách gói thuê
      */
-    @Query("SELECT p FROM PackagePlan p WHERE p.packageType = :packageType " +
+    @Query("SELECT p FROM PackagePlan p WHERE p.packageType = :packageType AND p.status = 'ACTIVE' " +
            "ORDER BY (p.price / p.maxSwapPerMonth) ASC")
     List<PackagePlan> findBestValuePackages(@Param("packageType") PackageType packageType);
 
     /**
-     * Kiểm tra tên gói đã tồn tại chưa
+     * Kiểm tra tên gói đã tồn tại chưa (trong các gói ACTIVE)
      * @param name Tên gói
      * @return true nếu tồn tại, false nếu không
      */
-    boolean existsByName(String name);
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM PackagePlan p WHERE p.name = :name AND p.status = 'ACTIVE'")
+    boolean existsByName(@Param("name") String name);
 
     /**
      * Đếm số lượng gói theo loại
@@ -133,7 +176,7 @@ public interface PackagePlanRepository extends JpaRepository<PackagePlan, Long> 
     Long countByPackageType(PackageType packageType);
 
     /**
-     * Tìm kiếm gói thuê với nhiều điều kiện
+     * Tìm kiếm gói thuê với nhiều điều kiện - chỉ lấy gói ACTIVE
      * @param name Tên gói (có thể null)
      * @param packageType Loại gói (có thể null)
      * @param minPrice Giá tối thiểu (có thể null)
@@ -143,6 +186,7 @@ public interface PackagePlanRepository extends JpaRepository<PackagePlan, Long> 
      * @return Trang gói thuê
      */
     @Query("SELECT p FROM PackagePlan p WHERE " +
+           "p.status = 'ACTIVE' AND " +
            "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
            "(:packageType IS NULL OR p.packageType = :packageType) AND " +
            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +

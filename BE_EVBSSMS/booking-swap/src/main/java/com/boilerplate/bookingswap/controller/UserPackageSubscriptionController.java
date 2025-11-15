@@ -19,7 +19,7 @@ import java.util.List;
  * Controller xử lý các API liên quan đến UserPackageSubscription
  */
 @RestController
-@RequestMapping("/api/v1/subscriptions")
+@RequestMapping("/api/subscriptions")
 @RequiredArgsConstructor
 @Slf4j
 public class UserPackageSubscriptionController {

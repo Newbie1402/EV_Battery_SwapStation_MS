@@ -1,11 +1,10 @@
-name: "[CI] EVC FLIGHT HUB"
+name: "[CI] EV BATTERY HUB"
 
 on:
   pull_request:
     branches:
+      - main
       - develop
-      - staging
-      - release
 
 jobs:
   run-tests:

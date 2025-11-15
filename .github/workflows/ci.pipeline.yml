@@ -1,14 +1,14 @@
-name: "[CI] EV BATTERY HUB"
+name: "[CI] EV Battery TEST SERVICE"
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
       - develop
+      - main
 
 jobs:
-  run-tests:
-    name: Run Tests
+  build:
+    name: Build Project
     runs-on: ubuntu-latest
 
     steps:
@@ -20,9 +20,41 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "21"
+          cache: maven
 
-      - name: Make test script executable
-        run: chmod +x ./load-and-test.sh
+      - name: Build project with Maven
+        run: mvn clean package -DskipTests
 
-      - name: Run tests
-        run: ./load-and-test.sh
+      - name: Notify Discord - Build Successful
+        if: success()
+        run: |
+          curl -s -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "✅ Build Successful",
+                "description": "EVC Flight Hub Test Service built successfully",
+                "color": 3066993,
+                "fields": [
+                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+                  {"name": "Commit", "value": "${{ github.sha }}", "inline": true}
+                ]
+              }]
+            }' || true
+
+      - name: Notify Discord - Build Failed
+        if: failure()
+        run: |
+          curl -s -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "❌ Build Failed",
+                "description": "EVC Flight Hub Test Service build failed",
+                "color": 15158332,
+                "fields": [
+                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+                  {"name": "Commit", "value": "${{ github.sha }}", "inline": true}
+                ]
+              }]
+            }' || true

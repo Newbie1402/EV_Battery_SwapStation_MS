@@ -37,11 +37,10 @@ public class OAuth2Controller {
     private String frontendUrl;
 
     // URI chính xác đã đăng ký trong Google Cloud Console
-    private final String REDIRECT_URI = "http://localhost:8080/oauth2/callback";
+    private final String REDIRECT_URI = "http://localhost:9001/oauth2/callback";
 
     /**
      * Endpoint khởi đầu - Redirect đến Google OAuth2
-     * Truy cập: http://localhost:8081/oauth2/login
      */
     @GetMapping("/login")
     @Operation(summary = "Đăng nhập Google", description = "Redirect đến trang đăng nhập Google")
@@ -266,7 +265,7 @@ public class OAuth2Controller {
                         try {
                             resultDiv.innerHTML = '<p>⏳ Đang gọi API đăng ký...</p>';
                             
-                            const response = await fetch('http://localhost:8080/api/auth/oauth2/google/register', {
+                            const response = await fetch('http://localhost:9001/api/auth/oauth2/google/register', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -313,7 +312,7 @@ public class OAuth2Controller {
                         try {
                             resultDiv.innerHTML = '<p>⏳ Đang gọi API đăng nhập...</p>';
                             
-                            const response = await fetch('http://localhost:8080/api/auth/oauth2/google/login', {
+                            const response = await fetch('http://localhost:9001/api/auth/oauth2/google/login', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'

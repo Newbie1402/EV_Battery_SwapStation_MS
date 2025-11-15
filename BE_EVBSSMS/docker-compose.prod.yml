@@ -56,54 +56,41 @@ services:
     restart: unless-stopped
 
   # Kafka - Message Broker
-  kafka:
-    image: confluentinc/cp-kafka:7.6.0
-    container_name: kafka
-    restart: unless-stopped
-    volumes:
-      - kafka-data:/var/lib/kafka/data
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: zookeeper-ev
     ports:
-      - "9092:9092"
-      - "9093:9093"
+      - "2181:2181"
     environment:
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
-      KAFKA_LOG_DIRS: /var/lib/kafka/data
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_MIN_INSYNC_REPLICAS: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_NUM_PARTITIONS: 3
-      KAFKA_LOG_RETENTION_HOURS: 168          # 7 ngày
-      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "nc -z localhost 9092" ]
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks: [ evnet ]
 
-  # MailHog - Email testing
-  mailhog:
-    image: mailhog/mailhog
-    container_name: mailhog
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka-ev
+    depends_on:
+      zookeeper:
+        condition: service_healthy
     ports:
-      - "8025:8025"    # Web UI
-      - "1025:1025"    # SMTP server
-    networks: [ evnet ]
+      - "9092:9092"
     restart: unless-stopped
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks: [ evnet ]
+
 
   # ==========================================
   # DATABASES
@@ -220,6 +207,8 @@ services:
       - "9001:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     networks: [ evnet ]
     depends_on:
       auth-user-db:
@@ -227,8 +216,6 @@ services:
       eureka-server:
         condition: service_healthy
       kafka:
-        condition: service_started
-      mailhog:
         condition: service_started
     restart: unless-stopped
 
@@ -267,8 +254,6 @@ services:
       eureka-server:
         condition: service_healthy
       kafka:
-        condition: service_started
-      mailhog:
         condition: service_started
     restart: unless-stopped
 

@@ -20,15 +20,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Cấu hình Spring Security cho Production
- * Chỉ hoạt động khi KHÔNG phải profile "dev"
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Profile("!dev")  // Không hoạt động khi chạy với profile dev
+// Bỏ @Profile("!dev") - cho phép chạy trong TẤT CẢ profile
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;

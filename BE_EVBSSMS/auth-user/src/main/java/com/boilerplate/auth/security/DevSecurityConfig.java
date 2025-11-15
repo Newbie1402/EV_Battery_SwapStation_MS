@@ -23,76 +23,38 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * Cấu hình Security cho môi trường DEV
- * TẮT HOÀN TOÀN Security và tự động inject mock user
+ * ⚠️⚠️⚠️ CẢNH BÁO BẢO MẬT - FILE NÀY ĐÃ BỊ TẮT ⚠️⚠️⚠️
  *
- * Chỉ hoạt động khi chạy với profile "dev"
+ * File này đang TẮT HOÀN TOÀN Security và tự động inject mock user!
+ * Đây là LỖ HỔNG BẢO MẬT NGHIÊM TRỌNG!
+ *
+ * ĐÃ TẮT bằng cách đổi @Profile("dev") thành @Profile("DISABLED")
+ *
+ * Vui lòng ĐĂNG NHẬP BÌNH THƯỜNG qua /api/auth/login
  */
 @Configuration
 @EnableWebSecurity
-@Profile("dev")
+@Profile("DISABLED")  // ⚠️ TẮT HOÀN TOÀN - KHÔNG CHẠY TRONG BẤT KỲ PROFILE NÀO
 @Slf4j
 public class DevSecurityConfig {
 
     @Bean
     public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()  // CHO PHÉP TẤT CẢ REQUEST - CHỈ DÙNG CHO DEV
-                )
-                .addFilterBefore(mockUserFilter(), UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+        // ĐÃ TẮT - không sử dụng config này nữa
+        log.error("⚠️⚠️⚠️ DevSecurityConfig ĐÃ BỊ TẮT! Nếu bạn thấy log này, có gì đó sai!");
+        throw new IllegalStateException("DevSecurityConfig đã bị tắt và không nên được load!");
     }
 
-    /**
-     * Filter tự động inject mock user vào SecurityContext
-     */
     @Bean
     public OncePerRequestFilter mockUserFilter() {
+        // ĐÃ TẮT - không inject mock user nữa
         return new OncePerRequestFilter() {
             @Override
             protected void doFilterInternal(HttpServletRequest request,
                                           HttpServletResponse response,
                                           FilterChain filterChain) throws ServletException, IOException {
-
-                // Lấy userId từ query param, nếu không có thì dùng default
-                String userIdParam = request.getParameter("userId");
-                Long userId = (userIdParam != null && !userIdParam.isEmpty())
-                        ? Long.parseLong(userIdParam) : 1L;
-
-                // Lấy role từ query param, nếu không có thì dùng DRIVER
-                String roleParam = request.getParameter("mockRole");
-                Role role = (roleParam != null && !roleParam.isEmpty())
-                        ? Role.valueOf(roleParam.toUpperCase()) : Role.DRIVER;
-
-                // Tạo mock User entity
-                User mockUserEntity = User.builder()
-                        .id(userId)
-                        .email("dev-user-" + userId + "@test.com")
-                        .fullName("Dev User " + userId)
-                        .role(role)
-                        .status(UserStatus.ACTIVE)
-                        .isActive(true)
-                        .isVerified(true)
-                        .build();
-
-                // Tạo CustomUserDetails
-                CustomUserDetails mockUser = new CustomUserDetails(mockUserEntity);
-
-                // Set vào SecurityContext
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                log.debug("🧪 [DEV MODE] Mock user injected - userId: {}, role: {}", userId, role);
-
-                // Tiếp tục filter chain
+                log.error("⚠️ MockUserFilter ĐÃ BỊ TẮT nhưng vẫn được gọi! Có lỗi nghiêm trọng!");
                 filterChain.doFilter(request, response);
-
-                // Clear SecurityContext sau khi request xong
-                SecurityContextHolder.clearContext();
             }
         };
     }

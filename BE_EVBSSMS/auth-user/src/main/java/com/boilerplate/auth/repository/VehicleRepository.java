@@ -16,6 +16,16 @@ import java.util.Optional;
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     /**
+     * Tìm phương tiện theo vehicleId (mã xe công khai)
+     */
+    Optional<Vehicle> findByVehicleId(String vehicleId);
+
+    /**
+     * Kiểm tra vehicleId đã tồn tại chưa
+     */
+    boolean existsByVehicleId(String vehicleId);
+
+    /**
      * Tìm phương tiện theo VIN
      */
     Optional<Vehicle> findByVin(String vin);
@@ -38,17 +48,41 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     /**
      * Tìm tất cả phương tiện của một người dùng
      */
+    @Deprecated
     List<Vehicle> findByUserId(Long userId);
 
     /**
-     * Tìm phương tiện theo ID và userId (đảm bảo phương tiện thuộc về user)
+     * Tìm tất cả phương tiện của một người dùng theo employeeId
+     */
+    @Query("SELECT v FROM Vehicle v JOIN FETCH v.user u WHERE u.employeeId = :employeeId")
+    List<Vehicle> findByUserEmployeeId(@Param("employeeId") String employeeId);
+
+    /**
+     * Tìm phương tiện theo ID và userId (đảm bảo phương tiện thuộc về user) - DEPRECATED
      */
     Optional<Vehicle> findByIdAndUserId(Long id, Long userId);
+
+    /**
+     * Tìm phương tiện theo vehicleId và userId
+     */
+    Optional<Vehicle> findByVehicleIdAndUserId(String vehicleId, Long userId);
+
+    /**
+     * Tìm phương tiện theo vehicleId và employeeId
+     * QUAN TRỌNG: User PHẢI có employeeId thì mới query được
+     */
+    @Query("SELECT v FROM Vehicle v JOIN FETCH v.user u WHERE v.vehicleId = :vehicleId AND u.employeeId = :employeeId")
+    Optional<Vehicle> findByVehicleIdAndUserEmployeeId(@Param("vehicleId") String vehicleId, @Param("employeeId") String employeeId);
 
     /**
      * Tìm tất cả phương tiện của một người dùng theo trạng thái
      */
     List<Vehicle> findByUserIdAndStatus(Long userId, VehicleStatus status);
+
+    /**
+     * Tìm tất cả phương tiện chưa được cấp phát (chưa có chủ)
+     */
+    List<Vehicle> findByUserIsNull();
 
     /**
      * Đếm số lượng phương tiện của một người dùng

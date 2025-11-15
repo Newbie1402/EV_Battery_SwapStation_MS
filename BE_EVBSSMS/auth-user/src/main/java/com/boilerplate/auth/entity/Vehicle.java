@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "vehicles", indexes = {
+    @Index(name = "idx_vehicle_id", columnList = "vehicle_id"),
     @Index(name = "idx_vin", columnList = "vin"),
     @Index(name = "idx_license_plate", columnList = "license_plate"),
     @Index(name = "idx_user_id", columnList = "user_id")
@@ -28,6 +29,14 @@ public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * Mã xe công khai (Vehicle ID)
+     * Format: EV + 2 số cuối biển số + ddMMYY + model
+     * Ví dụ: EV45141124VFe34 (biển số 30A12345, ngày 14/11/24, model VF e34)
+     */
+    @Column(name = "vehicle_id", nullable = false, unique = true, length = 50)
+    private String vehicleId;
 
     /**
      * VIN - Vehicle Identification Number (Số khung xe)
@@ -71,7 +80,7 @@ public class Vehicle {
      * Người sở hữu phương tiện
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     /**
@@ -79,6 +88,12 @@ public class Vehicle {
      */
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /**
+     * URL ảnh xe (lưu trên AWS S3)
+     */
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
 
     /**
      * Thời gian tạo

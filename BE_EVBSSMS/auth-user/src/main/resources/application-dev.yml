@@ -1,5 +1,5 @@
 server:
-  port: 9001  # Port khác 8080 để tránh conflict với các service khác khi run local
+  port: 9001
 
 spring:
   # Database Configuration - Connect to Docker PostgreSQL via localhost
@@ -22,33 +22,44 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      compression-type: snappy
+      max-in-flight-requests-per-connection: 5
+      enable-idempotence: true
+      request-timeout-ms: 30000
+      delivery-timeout-ms: 120000
       properties:
-        spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
+        spring.json.add.type.headers: false
+        spring.json.type.mapping: >
+          emailEvent:com.boilerplate.auth.model.event.EmailEvent,
+          supportTicketEvent:com.boilerplate.auth.model.event.SupportTicketEvent
     consumer:
       group-id: auth-user-service-dev
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
-        spring.json.type.mapping: emailEvent:com.boilerplate.auth.model.event.EmailEvent
+        spring.json.type.mapping: >
+          emailEvent:com.boilerplate.auth.model.event.EmailEvent,
+          supportTicketEvent:com.boilerplate.auth.model.event.SupportTicketEvent
       auto-offset-reset: earliest
 
-  # Mail Configuration - Connect to MailHog Docker via localhost
+  # Mail Configuration - Development (sử dụng Gmail SMTP)
   mail:
-    host: localhost
-    port: 1025
-    username: ""
-    password: ""
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
-          auth: false
+          auth: true
           starttls:
-            enable: false
-          connectiontimeout: 5000
+            enable: true
           timeout: 5000
+          connectiontimeout: 5000
           writetimeout: 5000
-    default-encoding: UTF-8
 
   # OAuth2 Configuration - Development
   security:

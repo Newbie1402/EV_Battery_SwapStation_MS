@@ -8,24 +8,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Cấu hình Web MVC cho dev mode
- * Đăng ký DevMockUserInterceptor
+ * ⚠️ ĐÃ TẮT DevMockUserInterceptor vì lý do bảo mật!
  */
 @Configuration
-@Profile("dev")
+@Profile("DISABLED")  // TẮT HOÀN TOÀN
 @RequiredArgsConstructor
 public class DevWebMvcConfig implements WebMvcConfigurer {
 
-    private final DevMockUserInterceptor devMockUserInterceptor;
+    // DevMockUserInterceptor đã bị tắt
+    // private final DevMockUserInterceptor devMockUserInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(devMockUserInterceptor)
-                .addPathPatterns("/api/**")
-                .excludePathPatterns(
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/actuator/**"
-                );
+        // Không đăng ký interceptor nào nữa
     }
 }
 

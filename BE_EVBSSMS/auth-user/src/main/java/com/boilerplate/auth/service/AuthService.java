@@ -461,8 +461,8 @@ public class AuthService {
     private UserResponse mapToUserResponse(User user) {
         // Lấy danh sách vehicles của user nếu có
         List<VehicleResponse> vehicles = null;
-        if (user.getRole() == Role.DRIVER) {
-            vehicles = vehicleRepository.findByUserId(user.getId())
+        if (user.getRole() == Role.DRIVER && user.getEmployeeId() != null) {
+            vehicles = vehicleRepository.findByUserEmployeeId(user.getEmployeeId())
                     .stream()
                     .map(this::mapToVehicleResponse)
                     .collect(Collectors.toList());
@@ -491,7 +491,7 @@ public class AuthService {
      */
     private VehicleResponse mapToVehicleResponse(Vehicle vehicle) {
         return VehicleResponse.builder()
-                .id(vehicle.getId())
+                .vehicleId(vehicle.getVehicleId())
                 .vin(vehicle.getVin())
                 .model(vehicle.getModel())
                 .licensePlate(vehicle.getLicensePlate())

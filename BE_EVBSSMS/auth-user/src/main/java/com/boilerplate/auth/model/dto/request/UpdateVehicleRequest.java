@@ -1,7 +1,6 @@
 package com.boilerplate.auth.model.dto.request;
 
 import com.boilerplate.auth.enums.VehicleStatus;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -15,6 +14,9 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UpdateVehicleRequest {
+
+    @Size(max = 20, message = "Mã nhân viên không được quá 20 ký tự")
+    private String employeeId; // Mã nhân viên để cấp phát phương tiện (ví dụ: EVD120612)
 
     @Size(max = 50, message = "Model không được quá 50 ký tự")
     private String model;

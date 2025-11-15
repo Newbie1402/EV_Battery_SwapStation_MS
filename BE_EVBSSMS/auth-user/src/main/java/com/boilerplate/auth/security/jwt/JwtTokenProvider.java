@@ -147,17 +147,20 @@ public class JwtTokenProvider {
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token);
+            log.debug("JWT token validated successfully");
             return true;
         } catch (SecurityException ex) {
-            log.error("Invalid JWT signature");
+            log.error("Invalid JWT signature: {}", ex.getMessage());
         } catch (MalformedJwtException ex) {
-            log.error("Invalid JWT token");
+            log.error("Invalid JWT token format: {}", ex.getMessage());
         } catch (ExpiredJwtException ex) {
-            log.error("Expired JWT token");
+            log.error("Expired JWT token. Expired at: {}", ex.getClaims().getExpiration());
         } catch (UnsupportedJwtException ex) {
-            log.error("Unsupported JWT token");
+            log.error("Unsupported JWT token: {}", ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            log.error("JWT claims string is empty");
+            log.error("JWT claims string is empty: {}", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Unexpected error validating JWT token: {}", ex.getMessage(), ex);
         }
         return false;
     }

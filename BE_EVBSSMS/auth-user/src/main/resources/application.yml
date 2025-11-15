@@ -59,6 +59,11 @@ otp:
 app:
   name: "EV Battery Swap Station Management System"
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  kafka:
+    topics:
+      support-ticket-created: support.ticket.created
+      support-ticket-updated: support.ticket.updated
+      email-notification: notification.email
 
 # Springdoc OpenAPI (Swagger) Configuration
 springdoc:
@@ -72,6 +77,14 @@ springdoc:
     tags-sorter: alpha
     doc-expansion: none
   show-actuator: false
+
+#AWS S3 Configuration
+aws:
+  region: ap-southeast-2
+  s3:
+    bucket-name: shoe-store-images-newbie
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET}
 
 # Logging - Common config
 logging:

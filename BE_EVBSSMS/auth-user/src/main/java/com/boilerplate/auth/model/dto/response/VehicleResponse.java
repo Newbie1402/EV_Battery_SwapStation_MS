@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VehicleResponse {
 
-    private Long id;
+    private String vehicleId; // Mã xe công khai (EV45141124VFe34)
     private String vin;
     private String model;
     private String licensePlate;
@@ -27,6 +27,12 @@ public class VehicleResponse {
     private Double batteryCapacity;
     private VehicleStatus status;
     private String notes;
+    private String imageUrl; // URL ảnh xe từ AWS S3
+
+    // Thông tin chủ sở hữu (nếu có)
+    private String employeeId; // Mã nhân viên của tài xế được cấp phát
+    private String driverName; // Tên tài xế được cấp phát
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

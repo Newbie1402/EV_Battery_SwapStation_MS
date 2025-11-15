@@ -119,7 +119,7 @@ Route API, auth, monitoring
     - Viết comment bằng ngôn ngữ nghiêm túc, tránh sử dụng ngôn ngữ tếu táo hoặc không trang trọng.
     - Đảm bảo comment luôn đồng bộ với code, cập nhật comment khi code thay đổi.
     - Chỉ comment giải thích vấn đề, không ghi kiểu là vừa thay đổi cái gì, khi nào, bởi ai.
-8. Không tự tạo các file .md gây lãng phsi token vô bổ
+8. Không tự tạo các file .md gây lãng phí token vô bổ(Vô cùng quan trọng)
 9. không dùng các emoji hãy nghiêm túc trong từng câu trả lời
 
 ---

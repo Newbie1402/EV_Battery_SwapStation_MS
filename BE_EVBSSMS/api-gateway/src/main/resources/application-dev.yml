@@ -14,6 +14,12 @@ spring:
           enabled: true
           lower-case-service-id: true
 
+# JWT Configuration - Phải giống với auth-user service
+jwt:
+  secret: ${JWT_SECRET:yourSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm}
+  access-token-expiration: 3600000  # 1 hour
+  refresh-token-expiration: 86400000  # 24 hours
+
 # Eureka Client - Connect to Docker Eureka via localhost
 eureka:
   client:
@@ -32,4 +38,5 @@ logging:
     org.springframework.cloud.gateway.route: DEBUG
     reactor.netty: DEBUG
     org.springframework: INFO
+    com.boilerplate.gateway.filter: DEBUG
 

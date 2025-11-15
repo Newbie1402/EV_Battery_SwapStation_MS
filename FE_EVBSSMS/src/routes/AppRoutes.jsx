@@ -21,6 +21,8 @@ const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const DriverDashboardPage = lazy(() => import("../pages/driver/DriverDashboard"));
 const DriverStationsPage = lazy(() => import("../pages/driver/StationListPage"));
 const DriverBookingsPage = lazy(() => import("../pages/driver/MyBookingsPage"));
+const PaymentPackagePage = lazy(() => import("../pages/driver/PaymentPackagePage"));
+const PaymentSuccessPage = lazy(() => import("../pages/driver/PaymentSuccessPage"));
 //Staff Pages
 
 //Admin Pages
@@ -59,6 +61,8 @@ export default function AppRoutes() {
                         <Route path="dashboard" element={<DriverDashboardPage />} />
                         <Route path="stations" element={<DriverStationsPage />} />
                         <Route path="bookings" element={<DriverBookingsPage />} />
+                        <Route path="payment-package/:packageId" element={<PaymentPackagePage />} />
+                        <Route path="payment-success" element={<PaymentSuccessPage />} />
                     </Route>
 
                     {/* Staff Routes */}

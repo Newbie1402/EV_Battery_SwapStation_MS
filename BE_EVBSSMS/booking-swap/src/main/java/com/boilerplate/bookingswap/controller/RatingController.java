@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * Controller xử lý các API liên quan đến Rating
  */
 @RestController
-@RequestMapping("/api/v1/ratings")
+@RequestMapping("/api/ratings")
 @RequiredArgsConstructor
 @Slf4j
 public class RatingController {

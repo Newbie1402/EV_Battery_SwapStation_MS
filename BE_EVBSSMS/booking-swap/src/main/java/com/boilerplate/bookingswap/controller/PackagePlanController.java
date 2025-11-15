@@ -20,7 +20,7 @@ import java.util.List;
  * Controller xử lý các API liên quan đến PackagePlan
  */
 @RestController
-@RequestMapping("/api/v1/package-plans")
+@RequestMapping("/api/package-plans")
 @RequiredArgsConstructor
 @Slf4j
 public class PackagePlanController {
@@ -175,6 +175,24 @@ public class PackagePlanController {
                         .statusCode(HttpStatus.OK.value())
                         .message("Xóa gói thuê pin thành công")
                         .data("Đã xóa gói thuê pin ID: " + id)
+                        .build()
+        );
+    }
+
+    /**
+     * Kích hoạt lại gói thuê pin đã bị INACTIVE
+     */
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<ResponseData<PackagePlanResponse>> activatePackagePlan(@PathVariable Long id) {
+        log.info("REST request to activate package plan: {}", id);
+
+        PackagePlanResponse response = packagePlanService.activatePackagePlan(id);
+
+        return ResponseEntity.ok(
+                ResponseData.<PackagePlanResponse>builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Kích hoạt lại gói thuê pin thành công")
+                        .data(response)
                         .build()
         );
     }

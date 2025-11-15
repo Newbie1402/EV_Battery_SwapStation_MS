@@ -40,6 +40,8 @@ public class JwtTokenProvider {
     public void init() {
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         log.info("JWT Token Provider đã được khởi tạo");
+        log.info("JWT Secret length: {} characters", jwtSecret.length());
+        log.debug("JWT Secret (first 10 chars): {}", jwtSecret.substring(0, Math.min(10, jwtSecret.length())));
     }
 
     /**

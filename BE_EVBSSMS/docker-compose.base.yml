@@ -8,7 +8,6 @@
 #   - Eureka Server (Service Discovery)
 #   - 4 PostgreSQL databases (cho 4 services chính)
 #   - Kafka dùng KRaft (Message Broker)
-#   - MailHog (SMTP Server cho testing)
 # ============================================
 
 services:
@@ -81,6 +80,45 @@ services:
     depends_on:
       kafka:
         condition: service_started
+    networks: [ evnet ]
+    restart: unless-stopped
+  # ============================================
+  # Apache NiFi - Data Flow Automation
+  # ============================================
+  nifi:
+    container_name: nifi
+    image: 'apache/nifi:1.25.0'
+    ports:
+      - "9090:8080"
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_WEB_HTTP_HOST=0.0.0.0
+      - SINGLE_USER_CREDENTIALS_USERNAME=admin
+      - SINGLE_USER_CREDENTIALS_PASSWORD=ctsBtRBKHRAx69EqUghvvgEvjnaLjFEB
+    volumes:
+      - nifi-data:/opt/nifi/nifi-current/conf
+      - nifi-data:/opt/nifi/nifi-current/logs
+      - ./driver:/opt/nifi/nifi-current/driver
+    networks: [ evnet ]
+    depends_on:
+      - kafka
+      - zookeeper
+    restart: unless-stopped
+
+  # ==========================================
+  # NiFi Registry - Version control for NiFi flows
+  # ==========================================
+  nifi-registry:
+    image: apache/nifi-registry:1.25.0
+    container_name: nifi-registry
+    ports:
+      - "18080:18080"
+    environment:
+      - NIFI_REGISTRY_WEB_HTTP_PORT=18080
+      - NIFI_REGISTRY_WEB_HTTP_HOST=0.0.0.0
+    volumes:
+      - nifi-registry-database:/opt/nifi-registry/nifi-registry-current/database
+      - nifi-registry-flow:/opt/nifi-registry/nifi-registry-current/flow_storage
     networks: [ evnet ]
     restart: unless-stopped
 
@@ -174,12 +212,10 @@ networks:
 
 volumes:
   auth-user-data:
-    name: auth-user-data
   station-data:
-    name: station-data
   booking-data:
-    name: booking-data
   billing-data:
-    name: billing-data
   kafka-data:
-    name: kafka-data
+  nifi-data:
+  nifi-registry-database:
+  nifi-registry-flow:

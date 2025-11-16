@@ -52,6 +52,20 @@ public class AdminController {
     }
 
     /**
+     * Lấy chi tiết thông tin nhân viên theo employeeId
+     */
+    @GetMapping("/staff/{employeeId}")
+    @Operation(summary = "Lấy chi tiết nhân viên", description = "Lấy thông tin chi tiết của một nhân viên theo mã nhân viên")
+    public ResponseEntity<ResponseData<UserResponse>> getStaffByEmployeeId(@PathVariable String employeeId) {
+        log.info("Admin lấy thông tin nhân viên employeeId: {}", employeeId);
+        UserResponse response = userService.getStaffByEmployeeId(employeeId);
+
+        return ResponseEntity.ok(
+                new ResponseData<>(200, "Lấy thông tin nhân viên thành công", response)
+        );
+    }
+
+    /**
      * Lấy danh sách tất cả tài xế
      */
     @GetMapping("/drivers")
@@ -66,29 +80,29 @@ public class AdminController {
     }
 
     /**
-     * Lấy thông tin user theo ID
+     * Lấy chi tiết thông tin tài xế theo employeeId
      */
-    @GetMapping("/users/{userId}")
-    @Operation(summary = "Lấy thông tin user", description = "Lấy thông tin chi tiết một user")
-    public ResponseEntity<ResponseData<UserResponse>> getUserById(@PathVariable Long userId) {
-        log.info("Admin lấy thông tin user ID: {}", userId);
-        UserResponse response = userService.getUserById(userId);
+    @GetMapping("/drivers/{employeeId}")
+    @Operation(summary = "Lấy chi tiết tài xế", description = "Lấy thông tin chi tiết của một tài xế theo mã nhân viên")
+    public ResponseEntity<ResponseData<UserResponse>> getDriverByEmployeeId(@PathVariable String employeeId) {
+        log.info("Admin lấy thông tin tài xế employeeId: {}", employeeId);
+        UserResponse response = userService.getDriverByEmployeeId(employeeId);
 
         return ResponseEntity.ok(
-                new ResponseData<>(200, "Lấy thông tin user thành công", response)
+                new ResponseData<>(200, "Lấy thông tin tài xế thành công", response)
         );
     }
 
     /**
      * Cập nhật thông tin nhân viên
      */
-    @PutMapping("/staff/{staffId}")
-    @Operation(summary = "Cập nhật thông tin nhân viên", description = "Cập nhật thông tin nhân viên, bao gồm gán trạm")
+    @PutMapping("/staff/{employeeId}")
+    @Operation(summary = "Cập nhật thông tin nhân viên", description = "Cập nhật thông tin nhân viên")
     public ResponseEntity<ResponseData<UserResponse>> updateStaff(
-            @PathVariable Long staffId,
+            @PathVariable String employeeId,
             @Valid @RequestBody UpdateStaffRequest request) {
-        log.info("Admin cập nhật thông tin staff ID: {}", staffId);
-        UserResponse response = userService.updateStaff(staffId, request);
+        log.info("Admin cập nhật thông tin staff employeeId: {}", employeeId);
+        UserResponse response = userService.updateStaffByEmployeeId(employeeId, request);
 
         return ResponseEntity.ok(
                 new ResponseData<>(200, "Cập nhật thông tin nhân viên thành công", response)
@@ -123,35 +137,6 @@ public class AdminController {
         );
     }
 
-    /**
-     * Gán nhân viên vào trạm
-     */
-    @PutMapping("/staff/{staffId}/assign-station/{stationId}")
-    @Operation(summary = "Gán nhân viên vào trạm", description = "Gán nhân viên vào một trạm cụ thể")
-    public ResponseEntity<ResponseData<UserResponse>> assignStaffToStation(
-            @PathVariable Long staffId,
-            @PathVariable Long stationId) {
-        log.info("Admin gán staff ID {} vào trạm ID {}", staffId, stationId);
-        UserResponse response = userService.assignStaffToStation(staffId, stationId);
-
-        return ResponseEntity.ok(
-                new ResponseData<>(200, "Gán nhân viên vào trạm thành công", response)
-        );
-    }
-
-    /**
-     * Lấy danh sách nhân viên theo trạm
-     */
-    @GetMapping("/stations/{stationId}/staff")
-    @Operation(summary = "Lấy nhân viên theo trạm", description = "Lấy danh sách nhân viên được gán vào một trạm")
-    public ResponseEntity<ResponseData<List<UserResponse>>> getStaffByStation(@PathVariable Long stationId) {
-        log.info("Admin lấy danh sách nhân viên của trạm ID: {}", stationId);
-        List<UserResponse> response = userService.getStaffByStation(stationId);
-
-        return ResponseEntity.ok(
-                new ResponseData<>(200, "Lấy danh sách nhân viên thành công", response)
-        );
-    }
 
     /**
      * Lấy danh sách đơn đăng ký chờ duyệt

@@ -1,59 +1,37 @@
 import { Outlet } from "react-router-dom";
+import { Home, MapPin, Calendar, Clock } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Home, MapPin, Battery, Calendar, History, Wallet, User } from "lucide-react";
+
+const driverMenuItems = [
+    { label: "Trang chủ", path: "/driver/dashboard", icon: Home },
+    { label: "Trạm đổi pin", path: "/driver/stations", icon: MapPin },
+    { label: "Lịch của tôi", path: "/driver/bookings", icon: Calendar },
+    { label: "Lịch sử", path: "/driver/history", icon: Clock },
+];
 
 export default function DriverLayout() {
-    const driverMenuItems = [
-        {
-            label: "Trang chủ",
-            path: "/driver/home",
-            icon: Home,
-        },
-        {
-            label: "Tìm trạm",
-            path: "/driver/find-station",
-            icon: MapPin,
-        },
-        {
-            label: "Đặt lịch đổi pin",
-            path: "/driver/booking",
-            icon: Calendar,
-        },
-        {
-            label: "Pin của tôi",
-            path: "/driver/my-battery",
-            icon: Battery,
-        },
-        {
-            label: "Lịch sử",
-            path: "/driver/history",
-            icon: History,
-        },
-        {
-            label: "Ví của tôi",
-            path: "/driver/wallet",
-            icon: Wallet,
-        },
-        {
-            label: "Tài khoản",
-            path: "/driver/profile",
-            icon: User,
-        },
-    ];
+    const { role } = useAuthStore();
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50">
-            <Header menuItems={driverMenuItems} role="DRIVER" />
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50">
+            {/* Animated Background Elements */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-20 right-10 w-96 h-96 bg-emerald-300/20 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-20 left-10 w-80 h-80 bg-cyan-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
+            </div>
 
-            <main className="flex-1 pt-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <Outlet />
-                </div>
+            {/* Header Component */}
+            <Header menuItems={driverMenuItems} role={role || "DRIVER"} />
+
+            {/* Main Content */}
+            <main className="relative z-10 pt-16">
+                <Outlet />
             </main>
 
+            {/* Footer Component */}
             <Footer />
         </div>
     );
 }
-

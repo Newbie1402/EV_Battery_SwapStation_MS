@@ -51,7 +51,7 @@ export default function LoginPage() {
                     navigate("/staff/dashboard");
                     break;
                 case "DRIVER":
-                    navigate("/driver/home");
+                    navigate("/driver/dashboard");
                     break;
                 default:
                     navigate("/");

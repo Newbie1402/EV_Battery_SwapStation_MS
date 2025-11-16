@@ -7,9 +7,28 @@ import ScrollToTop from "@/components/ScrollToTop";
 const HomePage = lazy(() => import("../pages/HomePage"));
 const AboutPage = lazy(() => import("../pages/AboutPage"));
 const ContactPage = lazy(() => import("../pages/ContactPage"));
+const PricingPage = lazy(() => import("../pages/PricingPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
+
+//Layouts
+const DriverLayout = lazy(() => import("../layouts/DriverLayout"));
+const StaffLayout = lazy(() => import("../layouts/StaffLayout"));
+const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
+
+//Driver Pages
+const DriverDashboardPage = lazy(() => import("../pages/driver/DriverDashboard"));
+const DriverStationsPage = lazy(() => import("../pages/driver/StationListPage"));
+const DriverBookingsPage = lazy(() => import("../pages/driver/MyBookingsPage"));
+const PaymentPackagePage = lazy(() => import("../pages/driver/PaymentPackagePage"));
+const PaymentSuccessPage = lazy(() => import("../pages/driver/PaymentSuccessPage"));
+//Staff Pages
+
+//Admin Pages
+const AdminDashboardPage = lazy(() => import("../pages/admin/AdminDashboard"));
+const AdminStationManagementPage = lazy(() => import("../pages/admin/StationManagementPage"));
+const AdminPackagePlanManagementPage = lazy(() => import("../pages/admin/PackagePlanManagementPage"));
 
 export default function AppRoutes() {
     return (
@@ -27,14 +46,39 @@ export default function AppRoutes() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
                     {/* Drivers Routes */}
+                    <Route
+                        path="/driver/"
+                        element={
+                            <ProtectedRoute
+                                element={<DriverLayout />}
+                                allowedRoles={["DRIVER"]}/>}
+                    >
+                        <Route path="dashboard" element={<DriverDashboardPage />} />
+                        <Route path="stations" element={<DriverStationsPage />} />
+                        <Route path="bookings" element={<DriverBookingsPage />} />
+                        <Route path="payment-package/:packageId" element={<PaymentPackagePage />} />
+                        <Route path="payment-success" element={<PaymentSuccessPage />} />
+                    </Route>
 
                     {/* Staff Routes */}
 
                     {/* Admin Routes */}
+                    <Route
+                        path="/admin/"
+                        element={
+                            <ProtectedRoute
+                                element={<AdminLayout />}
+                                allowedRoles={["ADMIN"]}/>}
+                    >
+                        <Route path="dashboard" element={<AdminDashboardPage />} />
+                        <Route path="stations" element={<AdminStationManagementPage />} />
+                        <Route path="packages" element={<AdminPackagePlanManagementPage />} />
+                    </Route>
 
                     {/* 404 Not Found */}
                     <Route path="*" element={<NotFoundPage />} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Zap, Menu, X, LogOut, User, Settings } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import {
@@ -17,6 +17,7 @@ export default function Header({ menuItems = [], role = "" }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { logout, userId } = useAuthStore();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = () => {
         logout();
@@ -39,6 +40,10 @@ export default function Header({ menuItems = [], role = "" }) {
         return role ? role.substring(0, 2).toUpperCase() : "U";
     };
 
+    const isActivePath = (path) => {
+        return location.pathname === path;
+    };
+
     return (
         <header className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-xl z-50 shadow-sm border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,19 +59,26 @@ export default function Header({ menuItems = [], role = "" }) {
                     </Link>
 
                     {/* Desktop Menu */}
-                    <nav className="hidden md:flex items-center gap-6">
-                        {menuItems.map((item, idx) => (
-                            <Link
-                                key={idx}
-                                to={item.path}
-                                className="text-sm font-medium text-gray-700 hover:text-emerald-600 transition"
-                            >
-                                <div className="flex items-center gap-2">
-                                    {item.icon && <item.icon className="w-4 h-4" />}
-                                    {item.label}
-                                </div>
-                            </Link>
-                        ))}
+                    <nav className="hidden md:flex items-center gap-2">
+                        {menuItems.map((item, idx) => {
+                            const isActive = isActivePath(item.path);
+                            return (
+                                <Link
+                                    key={idx}
+                                    to={item.path}
+                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                                        isActive
+                                            ? "bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-md"
+                                            : "text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {item.icon && <item.icon className="w-4 h-4" strokeWidth={2} />}
+                                        {item.label}
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </nav>
 
                     {/* User Menu */}
@@ -87,8 +99,8 @@ export default function Header({ menuItems = [], role = "" }) {
                                             </span>
                                         </button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
-                                        <DropdownMenuLabel>
+                                    <DropdownMenuContent align="end" className="w-56" modal={false}>
+                                    <DropdownMenuLabel>
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-semibold">{getRoleDisplayName(role)}</span>
                                                 <span className="text-xs text-gray-500">ID: {userId}</span>
@@ -142,18 +154,25 @@ export default function Header({ menuItems = [], role = "" }) {
                 {/* Mobile Menu */}
                 {isMenuOpen && userId && (
                     <div className="md:hidden py-4 border-t border-gray-200">
-                        <nav className="flex flex-col gap-3">
-                            {menuItems.map((item, idx) => (
-                                <Link
-                                    key={idx}
-                                    to={item.path}
-                                    onClick={() => setIsMenuOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                                >
-                                    {item.icon && <item.icon className="w-5 h-5" />}
-                                    {item.label}
-                                </Link>
-                            ))}
+                        <nav className="flex flex-col gap-2">
+                            {menuItems.map((item, idx) => {
+                                const isActive = isActivePath(item.path);
+                                return (
+                                    <Link
+                                        key={idx}
+                                        to={item.path}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                                            isActive
+                                                ? "bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-md"
+                                                : "text-gray-700 hover:bg-emerald-50"
+                                        }`}
+                                    >
+                                        {item.icon && <item.icon className="w-5 h-5" strokeWidth={2} />}
+                                        {item.label}
+                                    </Link>
+                                );
+                            })}
                             <div className="border-t border-gray-200 my-2" />
                             <div className="flex items-center gap-3 px-4 py-2">
                                 <Avatar className="w-10 h-10">
@@ -170,7 +189,7 @@ export default function Header({ menuItems = [], role = "" }) {
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition"
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition"
                             >
                                 <LogOut className="w-5 h-5" />
                                 Đăng xuất

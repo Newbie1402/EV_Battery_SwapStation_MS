@@ -1,0 +1,308 @@
+import { motion } from "framer-motion";
+import { Battery, MapPin, Calendar, Clock, TrendingUp, Zap, Info } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+export default function DriverDashboard() {
+    const { userId } = useAuthStore();
+    const navigate = useNavigate();
+
+    const fadeVariants = {
+        hidden: { opacity: 0, y: 40 },
+        visible: { opacity: 1, y: 0 },
+    };
+
+    const stats = [
+        {
+            title: "Lượt đổi pin",
+            value: "24",
+            icon: Battery,
+            color: "from-emerald-500 to-green-500",
+            bgColor: "bg-emerald-50",
+            change: "+12%",
+        },
+        {
+            title: "Trạm yêu thích",
+            value: "5",
+            icon: MapPin,
+            color: "from-blue-500 to-cyan-500",
+            bgColor: "bg-blue-50",
+            change: "+2",
+        },
+        {
+            title: "Lịch sắp tới",
+            value: "3",
+            icon: Calendar,
+            color: "from-purple-500 to-pink-500",
+            bgColor: "bg-purple-50",
+            change: "Hôm nay",
+        },
+        {
+            title: "Thời gian tiết kiệm",
+            value: "2.5h",
+            icon: Clock,
+            color: "from-orange-500 to-red-500",
+            bgColor: "bg-orange-50",
+            change: "Tuần này",
+        },
+    ];
+
+    const quickActions = [
+        {
+            title: "Đặt lịch đổi pin",
+            description: "Tìm và đặt lịch tại trạm gần bạn",
+            icon: Calendar,
+            color: "from-emerald-500 to-cyan-500",
+            action: () => navigate("/driver/stations"),
+        },
+        {
+            title: "Xem lịch của tôi",
+            description: "Quản lý các lịch đã đặt",
+            icon: Clock,
+            color: "from-blue-500 to-purple-500",
+            action: () => navigate("/driver/bookings"),
+        },
+        {
+            title: "Tìm trạm gần nhất",
+            description: "Xem danh sách trạm đổi pin",
+            icon: MapPin,
+            color: "from-orange-500 to-pink-500",
+            action: () => navigate("/driver/stations"),
+        },
+    ];
+
+    const recentBookings = [
+        {
+            id: "1",
+            station: "Trạm Cầu Giấy",
+            date: "2025-01-15",
+            time: "14:00",
+            status: "confirmed",
+        },
+        {
+            id: "2",
+            station: "Trạm Hoàn Kiếm",
+            date: "2025-01-12",
+            time: "09:30",
+            status: "completed",
+        },
+        {
+            id: "3",
+            station: "Trạm Đống Đa",
+            date: "2025-01-10",
+            time: "16:00",
+            status: "completed",
+        },
+    ];
+
+    const getStatusBadge = (status) => {
+        const statusMap = {
+            confirmed: { label: "Đã xác nhận", variant: "default" },
+            completed: { label: "Hoàn thành", variant: "secondary" },
+            cancelled: { label: "Đã hủy", variant: "destructive" },
+        };
+        return statusMap[status] || { label: status, variant: "outline" };
+    };
+
+    return (
+        <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50 text-gray-900 overflow-x-hidden">
+            <div className="py-8 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto">
+                    {/* Welcome Section */}
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={fadeVariants}
+                        transition={{ duration: 0.8 }}
+                        className="mb-8"
+                    >
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 rounded-full mb-4">
+                            <Zap className="w-4 h-4 text-emerald-600" />
+                            <span className="text-sm font-medium text-emerald-700">Driver Dashboard</span>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-extrabold mb-3 leading-tight">
+                            <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                                Chào mừng trở lại!
+                            </span>
+                        </h1>
+                        <p className="text-lg text-gray-600">
+                            ID: <span className="font-semibold text-gray-800">{userId}</span>
+                        </p>
+                    </motion.div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    {stats.map((stat, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial="hidden"
+                            animate="visible"
+                            variants={fadeVariants}
+                            transition={{ duration: 0.6, delay: idx * 0.1 }}
+                        >
+                            <Card className={`${stat.bgColor} border-none hover:shadow-xl transition-all transform hover:-translate-y-2`}>
+                                <CardContent className="p-6">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-600 mb-1">
+                                                {stat.title}
+                                            </p>
+                                            <p className="text-3xl font-bold text-gray-900">
+                                                {stat.value}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {stat.change}
+                                            </p>
+                                        </div>
+                                        <div
+                                            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}
+                                        >
+                                            <stat.icon className="w-7 h-7 text-white" strokeWidth={2} />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Quick Actions */}
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeVariants}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="mb-12"
+                >
+                    <h2 className="text-3xl font-bold text-gray-800 mb-6">Thao tác nhanh</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {quickActions.map((action, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial="hidden"
+                                animate="visible"
+                                variants={fadeVariants}
+                                transition={{ duration: 0.6, delay: 0.5 + idx * 0.1 }}
+                            >
+                                <Card
+                                    className="cursor-pointer hover:shadow-xl transition-all transform hover:-translate-y-2 border border-gray-100 bg-white rounded-3xl"
+                                    onClick={action.action}
+                                >
+                                    <CardHeader className="p-8">
+                                        <div
+                                            className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-6 shadow-lg`}
+                                        >
+                                            <action.icon className="w-8 h-8 text-white" strokeWidth={2} />
+                                        </div>
+                                        <CardTitle className="text-xl mb-3 text-gray-800">{action.title}</CardTitle>
+                                        <CardDescription className="text-gray-600 leading-relaxed">{action.description}</CardDescription>
+                                    </CardHeader>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+
+                {/* Recent Bookings */}
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeVariants}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-3xl font-bold text-gray-800">Lịch đổi pin gần đây</h2>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate("/driver/bookings")}
+                            className="text-emerald-600 hover:text-emerald-700 font-semibold"
+                        >
+                            Xem tất cả →
+                        </Button>
+                    </div>
+
+                    <Card className="border-gray-100 shadow-lg rounded-3xl overflow-hidden bg-white">
+                        <CardContent className="p-0">
+                            <div className="divide-y divide-gray-100">
+                                {recentBookings.map((booking, idx) => (
+                                    <motion.div
+                                        key={booking.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.7 + idx * 0.1 }}
+                                        className="p-6 hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-cyan-50/50 transition-all"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center shadow-lg">
+                                                    <Battery className="w-7 h-7 text-white" strokeWidth={2} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-gray-900 mb-1 text-lg">
+                                                        {booking.station}
+                                                    </h3>
+                                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="w-4 h-4" />
+                                                            {booking.date}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <Clock className="w-4 h-4" />
+                                                            {booking.time}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Badge variant={getStatusBadge(booking.status).variant} className="font-medium">
+                                                {getStatusBadge(booking.status).label}
+                                            </Badge>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
+                {/* Tips Section */}
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeVariants}
+                    transition={{ duration: 0.8, delay: 0.8 }}
+                    className="mt-12"
+                >
+                    <Card className="bg-gradient-to-br from-emerald-500 via-cyan-500 to-blue-500 border-none text-white shadow-2xl rounded-3xl overflow-hidden relative">
+                        {/* Background decoration */}
+                        <div className="absolute inset-0 opacity-10">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl" />
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl" />
+                        </div>
+
+                        <CardContent className="p-8 relative z-10">
+                            <div className="flex items-start gap-4">
+                                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <Info className="w-8 h-8 text-white" strokeWidth={2} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-2xl mb-3 text-white">
+                                        💡 Mẹo sử dụng hiệu quả
+                                    </h3>
+                                    <p className="text-white/90 leading-relaxed text-lg">
+                                        Đặt lịch trước để tiết kiệm thời gian chờ đợi. Trạm đổi pin hoạt động
+                                        hiệu quả nhất vào khung giờ 8:00 - 10:00 và 14:00 - 16:00.
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            </div>
+        </div>
+    </div>
+    );
+}
+

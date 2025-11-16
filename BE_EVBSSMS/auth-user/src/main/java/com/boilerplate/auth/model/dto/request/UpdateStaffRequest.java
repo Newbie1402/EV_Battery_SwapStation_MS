@@ -1,6 +1,5 @@
 package com.boilerplate.auth.model.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -42,10 +41,5 @@ public class UpdateStaffRequest {
      */
     @Size(max = 255, message = "Địa chỉ không được vượt quá 255 ký tự")
     private String address;
-
-    /**
-     * ID trạm được gán (có thể null)
-     */
-    private Long assignedStationId;
 }
 

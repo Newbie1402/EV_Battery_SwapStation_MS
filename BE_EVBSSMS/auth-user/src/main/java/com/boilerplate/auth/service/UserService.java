@@ -51,19 +51,40 @@ public class UserService {
     }
 
     /**
-     * Lấy thông tin user theo ID
+     * Lấy thông tin staff theo employeeId
      */
-    public UserResponse getUserById(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
-        return mapToUserResponse(user);
+    public UserResponse getStaffByEmployeeId(String employeeId) {
+        User staff = userRepository.findByEmployeeId(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân viên với mã: " + employeeId));
+
+        if (staff.getRole() != Role.STAFF) {
+            throw new IllegalArgumentException("User này không phải là nhân viên trạm");
+        }
+
+        return mapToUserResponse(staff);
+    }
+
+    /**
+     * Lấy thông tin driver theo employeeId
+     */
+    public UserResponse getDriverByEmployeeId(String employeeId) {
+        User driver = userRepository.findByEmployeeId(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài xế với mã: " + employeeId));
+
+        if (driver.getRole() != Role.DRIVER) {
+            throw new IllegalArgumentException("User này không phải là tài xế");
+        }
+
+        return mapToUserResponse(driver);
     }
 
     /**
      * Lấy thông tin profile của user hiện tại
      */
     public UserResponse getCurrentUserProfile(Long userId) {
-        return getUserById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+        return mapToUserResponse(user);
     }
 
     /**
@@ -98,12 +119,12 @@ public class UserService {
     }
 
     /**
-     * Cập nhật thông tin nhân viên
+     * Cập nhật thông tin nhân viên theo employeeId
      */
     @Transactional
-    public UserResponse updateStaff(Long staffId, UpdateStaffRequest request) {
-        User staff = userRepository.findById(staffId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân viên với ID: " + staffId));
+    public UserResponse updateStaffByEmployeeId(String employeeId, UpdateStaffRequest request) {
+        User staff = userRepository.findByEmployeeId(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân viên với mã: " + employeeId));
 
         if (staff.getRole() != Role.STAFF) {
             throw new IllegalArgumentException("User này không phải là nhân viên trạm");
@@ -124,7 +145,7 @@ public class UserService {
         }
 
         staff = userRepository.save(staff);
-        log.info("Đã cập nhật thông tin nhân viên ID: {}", staffId);
+        log.info("Đã cập nhật thông tin nhân viên employeeId: {}", employeeId);
 
         return mapToUserResponse(staff);
     }
@@ -141,39 +162,6 @@ public class UserService {
         userRepository.save(user);
 
         log.info("Đã {} tài khoản user ID: {}", active ? "kích hoạt" : "vô hiệu hóa", userId);
-    }
-
-    /**
-     * Gán nhân viên vào trạm
-     * Note: Cần thêm trường assignedStationId vào User entity nếu chưa có
-     */
-    @Transactional
-    public UserResponse assignStaffToStation(Long staffId, Long stationId) {
-        User staff = userRepository.findById(staffId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân viên với ID: " + staffId));
-
-        if (staff.getRole() != Role.STAFF) {
-            throw new IllegalArgumentException("User này không phải là nhân viên trạm");
-        }
-
-        // TODO: Kiểm tra stationId có tồn tại không (cần gọi station-service)
-        // Tạm thời lưu vào notes hoặc cần thêm trường assignedStationId vào User entity
-
-        staff = userRepository.save(staff);
-        log.info("Đã gán nhân viên ID: {} vào trạm ID: {}", staffId, stationId);
-
-        return mapToUserResponse(staff);
-    }
-
-    /**
-     * Lấy danh sách nhân viên theo trạm
-     * Note: Cần thêm trường assignedStationId vào User entity
-     */
-    public List<UserResponse> getStaffByStation(Long stationId) {
-        // TODO: Cần thêm query method findByRoleAndAssignedStationId trong UserRepository
-        // Tạm thời trả về danh sách rỗng
-        log.warn("Chức năng getStaffByStation chưa được triển khai đầy đủ. Cần thêm trường assignedStationId vào User entity");
-        return List.of();
     }
 
 

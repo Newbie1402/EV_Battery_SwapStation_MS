@@ -117,11 +117,6 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
 
-    /**
-     * ID trạm được phân công (chỉ áp dụng cho STAFF)
-     */
-    @Column(name = "assigned_station_id")
-    private Long assignedStationId;
 
     /**
      * Trạng thái tài khoản

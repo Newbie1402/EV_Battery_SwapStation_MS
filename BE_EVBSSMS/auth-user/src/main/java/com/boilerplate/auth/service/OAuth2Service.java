@@ -310,7 +310,6 @@ public class OAuth2Service {
                 .identityCard(user.getIdentityCard())
                 .isVerified(user.getIsVerified())
                 .isActive(user.getIsActive())
-                .assignedStationId(user.getAssignedStationId())
                 .employeeId(user.getEmployeeId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

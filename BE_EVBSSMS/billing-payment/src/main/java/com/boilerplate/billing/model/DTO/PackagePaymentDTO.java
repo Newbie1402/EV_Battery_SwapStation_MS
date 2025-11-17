@@ -23,7 +23,7 @@ public class PackagePaymentDTO {
     private Double taxAmount;
     private PaymentMethod method;
     private PaymentStatus status;
-    private String transactionId;
+    private Long bookingId;
     private String description;
     private LocalDateTime paymentTime;
     private LocalDateTime createdAt;
@@ -43,7 +43,7 @@ public class PackagePaymentDTO {
                 .taxAmount(entity.getTaxAmount())
                 .method(entity.getMethod())
                 .status(entity.getStatus())
-                .transactionId(entity.getTransactionId())
+                .bookingId(entity.getBookingId())
                 .description(entity.getDescription())
                 .paymentTime(entity.getPaymentTime())
                 .createdAt(entity.getCreatedAt())

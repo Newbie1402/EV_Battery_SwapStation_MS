@@ -233,8 +233,8 @@ public class BatterySlotService {
                 .toList();
 
         ResponseData<List<ChargeLogDTO>> response = ResponseData.<List<ChargeLogDTO>>builder()
-                .StatusCode(200)
-                .Message("Lấy danh sách ChargeLog thành công")
+                .statusCode(200)
+                .message("Lấy danh sách ChargeLog thành công")
                 .data(dtoList)
                 .build();
 

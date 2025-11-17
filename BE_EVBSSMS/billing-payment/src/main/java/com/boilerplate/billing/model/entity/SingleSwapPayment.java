@@ -15,8 +15,6 @@ import lombok.*;
 @Builder
 public class SingleSwapPayment extends BasePayment {
 
-    // ID trạm đổi pin nơi diễn ra giao dịch
-    @ManyToOne
-    private Station station;
+    private Long stationId;
 
 }

@@ -1,7 +1,5 @@
 package com.boilerplate.billing.service;
 
-import com.boilerplate.billing.enums.PaymentType;
-import com.boilerplate.billing.model.DTO.PaymentDTO;
 import com.boilerplate.billing.model.entity.MonthlyReport;
 import com.boilerplate.billing.model.entity.SingleSwapPayment;
 import com.boilerplate.billing.model.entity.StationMonthlyReport;
@@ -80,13 +78,13 @@ public class ReportService {
         monthlyReportRepository.save(report);
 
         return ResponseData.<MonthlyReport>builder()
-                .StatusCode(200)
-                .Message("Báo cáo trung bình doanh thu tháng/năm")
+                .statusCode(200)
+                .message("Báo cáo trung bình doanh thu tháng/năm")
                 .data(report)
                 .build();
     }
 
-    // =================== Doanh thu theo từng trạm ===================
+//    // =================== Doanh thu theo từng trạm ===================
     public ResponseData<List<StationMonthlyReport>> generateStationMonthlyReport(ReportRequest request) {
         int year = request.getYear();
         int month = request.getMonth();
@@ -129,8 +127,8 @@ public class ReportService {
         }
 
         return ResponseData.<List<StationMonthlyReport>>builder()
-                .StatusCode(200)
-                .Message("Báo cáo doanh thu từng trạm")
+                .statusCode(200)
+                .message("Báo cáo doanh thu từng trạm")
                 .data(reports)
                 .build();
     }

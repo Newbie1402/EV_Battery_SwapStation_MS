@@ -17,7 +17,8 @@ public class StationMonthlyReport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long stationId;
+    @ManyToOne
+    private Station stationId;
 
     private int year;
     private int month;

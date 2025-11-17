@@ -40,5 +40,9 @@ public class Station {
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<Battery> batteries;
+
+    @OneToMany(mappedBy = "station",cascade = CascadeType.ALL)  // phải trùng với tên property ở Staff
+    private List<Staff> staffs;
+
 }
 

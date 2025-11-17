@@ -19,7 +19,7 @@ public class BatteryDTO {
     private BatteryStatus status;
 
     private OwnerType ownerType;
-    private Long referenceId;
+    private String referenceId;
 
     public static BatteryDTO fromEntity(Battery battery) {
         if (battery == null) return null;

@@ -30,7 +30,7 @@ public class Battery {
 
 
     private OwnerType ownerType; // "STATION" hoặc "VERHICE"
-    private Long referenceId; // id của Station hoặc User tương ứng
+    private String referenceId; // code của Station hoặc User tương ứng
 
 
     @Column(nullable = false)

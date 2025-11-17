@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BatterySwapLogRequest {
-    private Long verhicleBatteryId;      // ID pin của xe
+    private String verhicleBatteryId;      // ID pin của xe
     private Long stationBatteryId;       // ID pin trong trạm
     private Long stationId;              // ID trạm
     private Long verhicleId;             // ID xe

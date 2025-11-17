@@ -20,7 +20,9 @@ public abstract class BasePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long customerId;
+    @OneToOne(cascade = CascadeType.ALL)
+    private Driver customerId;
+
     private Double totalAmount;
     private Double baseAmount;
     private Double discountAmount;
@@ -32,7 +34,6 @@ public abstract class BasePayment {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    private String transactionId;
     private String description;
 
     private LocalDateTime paymentTime;

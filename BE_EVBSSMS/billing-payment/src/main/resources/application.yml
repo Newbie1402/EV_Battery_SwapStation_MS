@@ -34,7 +34,7 @@ eureka:
     prefer-ip-address: true
 
 server:
-  port: 8084
+  port: 9004
   forward-headers-strategy: framework
   tomcat:
     remoteip:

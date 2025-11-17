@@ -57,7 +57,7 @@ spring:
         - id: booking-api
           uri: lb://booking-service
           predicates:
-            - Path=/api/bookings/**,/api/swaps/**,/api/support/**,/api/notifications/**
+            - Path=/api/bookings/**,/api/swaps/**,/api/support/**,/api/notifications/**, /api/package-plans/**, /api/subscriptions/**, /api/transactions/**
 
         - id: booking-swagger-ui
           uri: lb://booking-service
@@ -77,7 +77,7 @@ spring:
         - id: billing-api
           uri: lb://billing-service
           predicates:
-            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**
+            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**, /api/vnpay/**
 
         - id: billing-swagger-ui
           uri: lb://billing-service
@@ -95,19 +95,23 @@ spring:
 
       # CORS Configuration (nếu cần)
       globalcors:
-        cors-configurations:
+        corsConfigurations:
           '[/**]':
-            allowedOrigins: "http://localhost:3000,http://localhost:3001"
+            allowedOrigins:
+              - "http://localhost:5173"
             allowedMethods:
               - GET
               - POST
               - PUT
-              - DELETE
               - PATCH
+              - DELETE
               - OPTIONS
-            allowedHeaders: "*"
+            allowedHeaders:
+              - "*"
             allowCredentials: true
-            maxAge: 3600
+            max-age: 3600
+      default-filters:
+          - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
 
 # Eureka Client - Sẽ được override bởi profile
 eureka:

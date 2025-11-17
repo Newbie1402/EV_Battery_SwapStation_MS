@@ -29,9 +29,11 @@ public class BatterySwapLog {
     @JoinColumn(name = "old_battery_id")
     private Battery stationBattery;
 
-    private Long stationId;
+    @ManyToOne
+    @JoinColumn(name = "statiom_id")
+    private Station station;
 
-    private Long verhiceId;
+    private String vehiceId;
 
     @OneToOne
     @JoinColumn(name = "battery_Return_Log_id")

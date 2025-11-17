@@ -21,16 +21,6 @@
         </processorPath>
         <module name="eureka-server" />
       </profile>
-      <profile name="Annotation profile for booking-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-        </processorPath>
-        <module name="code (6)" />
-      </profile>
       <profile name="Annotation profile for api-gateway" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -43,29 +33,28 @@
         <module name="code (5)" />
         <module name="code (9)" />
       </profile>
+      <profile name="Annotation profile for station-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="station-service" />
+        <module name="code (6)" />
+      </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="code (1)" target="21" />
-      <module name="code (10)" target="21" />
-      <module name="code (2)" target="21" />
-      <module name="code (7)" target="21" />
-      <module name="code (8)" target="21" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="code" options="-parameters" />
-      <module name="code (1)" options="-parameters" />
-      <module name="code (10)" options="-parameters" />
-      <module name="code (2)" options="-parameters" />
-      <module name="code (3)" options="-parameters" />
-      <module name="code (4)" options="-parameters" />
-      <module name="code (5)" options="-parameters" />
-      <module name="code (6)" options="-parameters" />
-      <module name="code (7)" options="-parameters" />
-      <module name="code (8)" options="-parameters" />
-      <module name="code (9)" options="-parameters" />
+      <module name="EV_Battery_SwapStation_MS" options="" />
+      <module name="api-gateway" options="-parameters" />
+      <module name="auth-user-service" options="-parameters" />
+      <module name="billing-service" options="-parameters" />
+      <module name="booking-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
+      <module name="station-service" options="-parameters" />
     </option>
   </component>
 </project>

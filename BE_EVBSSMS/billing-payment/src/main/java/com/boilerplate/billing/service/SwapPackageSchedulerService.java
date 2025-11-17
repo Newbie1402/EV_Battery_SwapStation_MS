@@ -51,8 +51,8 @@ public class SwapPackageSchedulerService {
         swapPackageRepository.save(swapPackage);
 
         ResponseData<SwapPackage> response = ResponseData.<SwapPackage>builder()
-                .StatusCode(HttpStatus.CREATED.value())
-                .Message("Tạo gói thuê pin thành công")
+                .statusCode(HttpStatus.CREATED.value())
+                .message("Tạo gói thuê pin thành công")
                 .data(swapPackage)
                 .build();
 
@@ -80,8 +80,8 @@ public class SwapPackageSchedulerService {
         swapPackageRepository.save(existing);
 
         ResponseData<SwapPackage> response = ResponseData.<SwapPackage>builder()
-                .StatusCode(HttpStatus.OK.value())
-                .Message("Gia hạn gói thuê pin thành công")
+                .statusCode(HttpStatus.OK.value())
+                .message("Gia hạn gói thuê pin thành công")
                 .data(existing)
                 .build();
 
@@ -98,8 +98,8 @@ public class SwapPackageSchedulerService {
         swapPackageRepository.delete(existing);
 
         ResponseData<String> response = ResponseData.<String>builder()
-                .StatusCode(HttpStatus.OK.value())
-                .Message("Xóa gói thuê pin thành công")
+                .statusCode(HttpStatus.OK.value())
+                .message("Xóa gói thuê pin thành công")
                 .data("Đã xóa gói có ID: " + id)
                 .build();
 
@@ -117,8 +117,8 @@ public class SwapPackageSchedulerService {
         }
 
         ResponseData<List<SwapPackage>> response = ResponseData.<List<SwapPackage>>builder()
-                .StatusCode(HttpStatus.OK.value())
-                .Message("Lấy danh sách gói thuê pin thành công")
+                .statusCode(HttpStatus.OK.value())
+                .message("Lấy danh sách gói thuê pin thành công")
                 .data(packages)
                 .build();
 
@@ -133,8 +133,8 @@ public class SwapPackageSchedulerService {
                 .orElseThrow(() -> new BusinessException(BillingException.PACKAGE_NOT_FOUND));
 
         ResponseData<SwapPackage> response = ResponseData.<SwapPackage>builder()
-                .StatusCode(HttpStatus.OK.value())
-                .Message("Lấy thông tin gói thuê pin thành công")
+                .statusCode(HttpStatus.OK.value())
+                .message("Lấy thông tin gói thuê pin thành công")
                 .data(existing)
                 .build();
 

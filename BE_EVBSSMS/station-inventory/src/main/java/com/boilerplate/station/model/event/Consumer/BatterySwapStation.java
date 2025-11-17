@@ -9,9 +9,9 @@ import lombok.*;
 @Setter
 public class BatterySwapStation {
     private Long bookingId;        // ID của phiên đặt trước
-    private Long oldBatteryId;     // ID pin cũ người dùng mang đến
-    private Long newBatteryId;     // ID pin mới cấp cho người dùng
-    private Long oldstationId;           // Tram thực hiện đổi
-    private Long newstationId;        // Trạm nơi đổi pin
+    private String oldBatteryId;     // ID pin cũ người dùng mang đến
+    private String newBatteryId;     // ID pin mới cấp cho người dùng
+    private String oldstationId;           // Tram thực hiện đổi
+    private String newstationId;        // Trạm nơi đổi pin
     private String swapStatus;     // SUCCESS, FAILED, PENDING
 }

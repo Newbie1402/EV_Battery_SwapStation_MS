@@ -2,6 +2,7 @@ package com.boilerplate.billing.model.entity;
 
 import com.boilerplate.billing.enums.PaymentMethod;
 import com.boilerplate.billing.enums.PaymentStatus;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -21,6 +22,7 @@ public abstract class BasePayment {
     private Long id;
 
     private Long customerId;
+
     private Double totalAmount;
     private Double baseAmount;
     private Double discountAmount;
@@ -32,8 +34,8 @@ public abstract class BasePayment {
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
-    private String transactionId;
     private String description;
+    private Long bookingId;
 
     private LocalDateTime paymentTime;
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -6,23 +6,32 @@ import java.security.SecureRandom;
 
 @Service
 public class BatteryCodeGenerator {
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    private static final String DIGITS = "0123456789";
     private static final SecureRandom random = new SecureRandom();
 
-    public static String generateRandomCode() {
-        int length = 8;
-        StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+    /**
+     * Generate battery code
+     * Format: BTR + 6 digits
+     * Example: BTR123456
+     */
+    public static String generateBatteryCode() {
+        StringBuilder sb = new StringBuilder("BTR");
+        for (int i = 0; i < 6; i++) {
+            sb.append(DIGITS.charAt(random.nextInt(DIGITS.length())));
         }
         return sb.toString();
     }
 
-    public static String generateStationRandomCode() {
-        int length = 6;
-        StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+    /**
+     * Generate station code
+     * Format: STT + 6 digits
+     * Example: STT948201
+     */
+    public static String generateStationCode() {
+        StringBuilder sb = new StringBuilder("STT");
+        for (int i = 0; i < 6; i++) {
+            sb.append(DIGITS.charAt(random.nextInt(DIGITS.length())));
         }
         return sb.toString();
     }

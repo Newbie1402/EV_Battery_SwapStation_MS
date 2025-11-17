@@ -1,7 +1,6 @@
 package com.boilerplate.billing.service;
 
 import com.boilerplate.billing.model.DTO.PackagePaymentDTO;
-import com.boilerplate.billing.model.DTO.PaymentDTO;
 import com.boilerplate.billing.model.entity.PackagePayment;
 import com.boilerplate.billing.model.entity.SingleSwapPayment;
 import com.boilerplate.billing.model.request.PackagePaymentRequest;
@@ -9,7 +8,7 @@ import com.boilerplate.billing.model.request.SingleSwapPaymentRequest;
 import com.boilerplate.billing.model.response.ResponseData;
 import com.boilerplate.billing.repository.PackagePaymentRepository;
 import com.boilerplate.billing.repository.SingleSwapPaymentRepository;
-import com.boilerplate.billing.model.dto.SingleSwapPaymentDTO;
+import com.boilerplate.billing.model.DTO.SingleSwapPaymentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -53,7 +52,7 @@ public class PaymentService {
         payment.setTaxAmount(request.getTaxAmount());
         payment.setMethod(request.getMethod());
         payment.setStatus(request.getStatus());
-        payment.setTransactionId(request.getTransactionId());
+        payment.setBookingId(request.getBookingId());
         payment.setDescription(request.getDescription());
         payment.setPaymentTime(request.getPaymentTime());
         payment.setPackageId(request.getPackageId());
@@ -76,8 +75,8 @@ public class PaymentService {
     }
 
     //================= SINGLE SWAP PAYMENT CRUD ===================
-    public ResponseEntity<ResponseData<List<com.boilerplate.billing.model.dto.SingleSwapPaymentDTO>>> getAllSingleSwapPayments() {
-        List<com.boilerplate.billing.model.dto.SingleSwapPaymentDTO> payments = singleSwapPaymentRepository.findAll()
+    public ResponseEntity<ResponseData<List<SingleSwapPaymentDTO>>> getAllSingleSwapPayments() {
+        List<SingleSwapPaymentDTO> payments = singleSwapPaymentRepository.findAll()
                 .stream().map(SingleSwapPaymentDTO::fromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(),
@@ -103,12 +102,11 @@ public class PaymentService {
         payment.setTaxAmount(request.getTaxAmount());
         payment.setMethod(request.getMethod());
         payment.setStatus(request.getStatus());
-        payment.setTransactionId(request.getTransactionId());
+        payment.setBookingId(request.getBookingId());
         payment.setDescription(request.getDescription());
         payment.setPaymentTime(request.getPaymentTime());
         payment.setBookingId(request.getBookingId());
         payment.setStationId(request.getStationId());
-        payment.setSwapLogId(request.getSwapLogId());
 
         SingleSwapPayment saved = singleSwapPaymentRepository.save(payment);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -125,25 +123,5 @@ public class PaymentService {
         return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(), "Single swap payment deleted successfully", null));
     }
 
-    public ResponseData<List<PaymentDTO>> getAllPayments() {
-        try {
-            List<PaymentDTO> payments = new java.util.ArrayList<>();
-            packagePaymentRepository.findAll().forEach(p -> payments.add(PaymentDTO.fromEntity(p)));
-            singleSwapPaymentRepository.findAll().forEach(s -> payments.add(PaymentDTO.fromEntity(s)));
-            return ResponseData.<List<PaymentDTO>>builder()
-                    .StatusCode(200)
-                    .Message("Fetched all payments successfully")
-                    .data(payments)
-                    .build();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseData.<List<PaymentDTO>>builder()
-                    .StatusCode(500)
-                    .Message("Error fetching payment list: " + e.getMessage())
-                    .data(null)
-                    .build();
-        }
-    }
 
 }

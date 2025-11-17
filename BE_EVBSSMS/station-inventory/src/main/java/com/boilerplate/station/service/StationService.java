@@ -52,7 +52,7 @@ public class StationService {
         try {
             var location = openStreetMapService.getCoordinatesFromAddress(request.getAddress());
             Station station = new Station();
-            station.setStationCode(BatteryCodeGenerator.generateStationRandomCode());
+            station.setStationCode(BatteryCodeGenerator.generateStationCode());
             station.setStationName(request.getStationName());
             station.setAddress(request.getAddress());
             station.setPhoneNumber(request.getPhoneNumber());

@@ -2,7 +2,7 @@ package com.boilerplate.billing.controller;
 
 
 import com.boilerplate.billing.model.DTO.PackagePaymentDTO;
-import com.boilerplate.billing.model.dto.SingleSwapPaymentDTO;
+import com.boilerplate.billing.model.DTO.SingleSwapPaymentDTO;
 import com.boilerplate.billing.model.request.PackagePaymentRequest;
 import com.boilerplate.billing.model.request.SingleSwapPaymentRequest;
 import com.boilerplate.billing.model.response.ResponseData;
@@ -62,8 +62,4 @@ public class PaymentController {
         return paymentService.deleteSingleSwapPayment(id);
     }
 
-    @GetMapping("/all")
-    public ResponseData<?> getAllPayments() {
-        return paymentService.getAllPayments();
-    }
 }

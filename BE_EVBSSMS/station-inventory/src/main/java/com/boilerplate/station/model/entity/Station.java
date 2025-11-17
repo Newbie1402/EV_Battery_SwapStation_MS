@@ -40,5 +40,8 @@ public class Station {
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<Battery> batteries;
+
+    private List<String> staffs;
+
 }
 

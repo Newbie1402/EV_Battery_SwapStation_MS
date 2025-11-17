@@ -13,8 +13,8 @@ import java.io.Serializable;
 @Builder
 @JsonPropertyOrder({ "statusCode", "message", "data" })
 public class ResponseData<T> implements Serializable {
-    private int StatusCode;
-    private String Message;
+    private int statusCode;
+    private String message;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T data;
 }

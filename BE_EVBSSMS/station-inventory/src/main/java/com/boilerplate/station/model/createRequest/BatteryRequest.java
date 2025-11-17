@@ -19,5 +19,5 @@ public class BatteryRequest {
     private BatteryStatus status;
 
     private OwnerType ownerType; // STATION hoặc VEHICLE
-    private Long referenceId; // ID của chủ sở hữu (trạm hoặc user)
+    private String referenceId; // ID của chủ sở hữu (trạm hoặc user)
 }

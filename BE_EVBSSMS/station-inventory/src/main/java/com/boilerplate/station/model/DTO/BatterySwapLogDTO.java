@@ -1,36 +1,40 @@
 package com.boilerplate.station.model.DTO;
 
 import com.boilerplate.station.model.entity.BatterySwapLog;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class BatterySwapLogDTO {
 
     private Long id;
-    private BatteryDTO vehicleBattery;   // pin trên xe
-    private BatteryDTO stationBattery;   // pin trong trạm
-    private Long stationId;
-    private Long vehicleId;
-    private Long batteryReturnLogId;
+    private String verhicleBatteryCode;
+    private String stationBatteryCode;
+    private String stationCode;
+    private String vehicleCode;
+    private String batteryReturnLogId;
     private LocalDateTime swapTime;
 
-    public static BatterySwapLogDTO fromEntity(BatterySwapLog entity) {
-        if (entity == null) return null;
+    // ===============================
+    //       MAPPER STATIC
+    // ===============================
+    public static BatterySwapLogDTO fromEntity(BatterySwapLog log) {
+        if (log == null) return null;
 
-        return new BatterySwapLogDTO(
-                entity.getId(),
-                BatteryDTO.fromEntity(entity.getVerhicleBattery()),
-                BatteryDTO.fromEntity(entity.getStationBattery()),
-                entity.getStationId(),
-                entity.getVerhiceId(),
-                entity.getBatteryReturnLog() != null ? entity.getBatteryReturnLog().getId() : null,
-                entity.getSwapTime()
-        );
+        return BatterySwapLogDTO.builder()
+                .id(log.getId())
+                .verhicleBatteryCode(log.getVerhicleBattery() != null ? log.getVerhicleBattery().getBatteryCode() : null)
+                .stationBatteryCode(log.getStationBattery() != null ? log.getStationBattery().getBatteryCode() : null)
+                .stationCode(log.getStation() != null ? log.getStation().getStationCode() : null)
+                .vehicleCode(log.getVehiceId())
+                .batteryReturnLogId(log.getBatteryReturnLog() != null ? log.getBatteryReturnLog().getId().toString() : null)
+                .swapTime(log.getSwapTime())
+                .build();
     }
+
 }

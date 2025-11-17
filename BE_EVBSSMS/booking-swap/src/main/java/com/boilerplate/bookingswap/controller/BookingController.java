@@ -24,7 +24,7 @@ import java.util.List;
  * Controller xử lý các API liên quan đến Booking
  */
 @RestController
-@RequestMapping("/api/v1/bookings")
+@RequestMapping("/api/bookings")
 @RequiredArgsConstructor
 @Slf4j
 public class BookingController {

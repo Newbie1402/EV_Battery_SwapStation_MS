@@ -1,6 +1,8 @@
 package com.boilerplate.billing.model.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.*;
 
@@ -13,11 +15,6 @@ import lombok.*;
 @Builder
 public class SingleSwapPayment extends BasePayment {
 
-    // ID booking hoặc lịch đổi pin cụ thể
-    private Long bookingId;
-
-    // ID trạm đổi pin nơi diễn ra giao dịch
     private Long stationId;
 
-    private Long SwapLogId;
 }

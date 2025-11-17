@@ -228,42 +228,6 @@ public class BookingController {
     }
 
     /**
-     * Lấy booking sắp diễn ra (trong 24h tới)
-     */
-    @GetMapping("/upcoming")
-    public ResponseEntity<ResponseData<List<BookingResponse>>> getUpcomingBookings() {
-        log.info("REST request to get upcoming bookings");
-
-        List<BookingResponse> response = bookingService.getUpcomingBookings();
-
-        return ResponseEntity.ok(
-                ResponseData.<List<BookingResponse>>builder()
-                        .statusCode(HttpStatus.OK.value())
-                        .message("Lấy danh sách booking sắp diễn ra thành công")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    /**
-     * Lấy booking quá hạn
-     */
-    @GetMapping("/overdue")
-    public ResponseEntity<ResponseData<List<BookingResponse>>> getOverdueBookings() {
-        log.info("REST request to get overdue bookings");
-
-        List<BookingResponse> response = bookingService.getOverdueBookings();
-
-        return ResponseEntity.ok(
-                ResponseData.<List<BookingResponse>>builder()
-                        .statusCode(HttpStatus.OK.value())
-                        .message("Lấy danh sách booking quá hạn thành công")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    /**
      * Thống kê booking theo ngày
      */
     @GetMapping("/statistics")

@@ -5,6 +5,7 @@ import com.boilerplate.bookingswap.model.entity.PackagePlan;
 import com.boilerplate.bookingswap.model.entity.UserPackageSubscription;
 import com.boilerplate.bookingswap.model.dto.request.UserPackageSubscriptionRequest;
 import com.boilerplate.bookingswap.model.dto.respone.UserPackageSubscriptionResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,10 @@ import java.time.LocalDateTime;
  * Mapper chuyển đổi giữa UserPackageSubscription Entity và DTOs
  */
 @Component
+@RequiredArgsConstructor
 public class UserPackageSubscriptionMapper {
+
+    private final PackagePlanMapper packagePlanMapper;
 
     /**
      * Chuyển đổi từ Request DTO sang Entity
@@ -36,6 +40,7 @@ public class UserPackageSubscriptionMapper {
                 .endDate(endDate)
                 .usedSwaps(0)
                 .status(SubscriptionStatus.ACTIVE)
+                .autoExtend(Boolean.TRUE.equals(dto.getAutoExtend()))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -56,6 +61,9 @@ public class UserPackageSubscriptionMapper {
                 .userId(entity.getUserId())
                 .packagePlanId(entity.getPackagePlan().getId())
                 .packagePlanName(entity.getPackagePlan().getName())
+                .packagePlan(packagePlanMapper.toResponseDTO(entity.getPackagePlan()))
+                .subscriptionStatus(entity.getStatus())
+                .autoExtend(entity.isAutoExtend())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
                 .usedSwaps(entity.getUsedSwaps())

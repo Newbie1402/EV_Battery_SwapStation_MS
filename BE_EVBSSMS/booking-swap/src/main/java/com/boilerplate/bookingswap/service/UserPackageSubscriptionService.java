@@ -10,6 +10,7 @@ import com.boilerplate.bookingswap.model.dto.respone.UserSubscriptionStatsRespon
 import com.boilerplate.bookingswap.repository.PackagePlanRepository;
 import com.boilerplate.bookingswap.repository.UserPackageSubscriptionRepository;
 import com.boilerplate.bookingswap.service.mapper.UserPackageSubscriptionMapper;
+import com.boilerplate.bookingswap.service.mapper.PackagePlanMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,7 @@ public class UserPackageSubscriptionService {
     private final UserPackageSubscriptionRepository subscriptionRepository;
     private final PackagePlanRepository packagePlanRepository;
     private final UserPackageSubscriptionMapper subscriptionMapper;
+    private final PackagePlanMapper packagePlanMapper;
 
     /**
      * Tạo đăng ký gói thuê pin mới
@@ -52,6 +54,8 @@ public class UserPackageSubscriptionService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy gói thuê pin với ID: " + requestDTO.getPackagePlanId()));
 
         UserPackageSubscription subscription = subscriptionMapper.toEntity(requestDTO, packagePlan);
+        // Set giá trị mặc định cho autoExtend là true khi tạo mới
+        subscription.setAutoExtend(false);
         UserPackageSubscription savedSubscription = subscriptionRepository.save(subscription);
 
         log.info("Đã tạo đăng ký ID: {} cho user: {}",
@@ -114,6 +118,8 @@ public class UserPackageSubscriptionService {
                 .userId(userId)
                 .subscriptionId(activeSubscription.getId())
                 .packageName(packagePlan.getName())
+                .packagePlan(packagePlanMapper.toResponseDTO(packagePlan))
+                .autoExtend(activeSubscription.isAutoExtend())
                 .maxSwapPerMonth(packagePlan.getMaxSwapPerMonth())
                 .usedSwaps(activeSubscription.getUsedSwaps())
                 .remainingSwaps(remainingSwaps)
@@ -143,6 +149,15 @@ public class UserPackageSubscriptionService {
 
         if (updated == 0) {
             throw new RuntimeException("Không thể cập nhật số lần sử dụng");
+        }
+
+        // Kiểm tra sau khi tăng, nếu đạt giới hạn thì chuyển sang OUT_OF_SWAPS
+        subscription = subscriptionRepository.findById(subscriptionId).orElseThrow();
+        if (subscription.getUsedSwaps() >= subscription.getPackagePlan().getMaxSwapPerMonth()) {
+            subscription.setStatus(SubscriptionStatus.OUT_OF_SWAPS);
+            subscription.setUpdatedAt(LocalDateTime.now());
+            subscriptionRepository.save(subscription);
+            log.info("Subscription ID: {} đã hết lượt, chuyển sang OUT_OF_SWAPS", subscriptionId);
         }
 
         log.info("Đã tăng số lần sử dụng cho đăng ký ID: {}", subscriptionId);
@@ -208,6 +223,81 @@ public class UserPackageSubscriptionService {
 
         log.info("Đã cập nhật {} đăng ký hết hạn", expiredSubscriptions.size());
     }
+
+    /**
+     * Cập nhật trạng thái thủ công
+     */
+    @Transactional
+    public UserPackageSubscriptionResponse updateStatusManually(Long id, SubscriptionStatus newStatus) {
+        log.info("Cập nhật trạng thái thủ công cho subscription ID: {} -> {}", id, newStatus);
+
+        UserPackageSubscription subscription = subscriptionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đăng ký với ID: " + id));
+
+        subscription.setStatus(newStatus);
+        subscription.setUpdatedAt(LocalDateTime.now());
+
+        UserPackageSubscription updated = subscriptionRepository.save(subscription);
+        return subscriptionMapper.toResponseDTO(updated);
+    }
+
+    /**
+     * Bật/tắt tự động gia hạn
+     */
+    @Transactional
+    public UserPackageSubscriptionResponse toggleAutoExtend(Long id, boolean autoExtend) {
+        log.info("Cập nhật autoExtend cho subscription ID: {} -> {}", id, autoExtend);
+
+        UserPackageSubscription subscription = subscriptionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đăng ký với ID: " + id));
+
+        subscription.setAutoExtend(autoExtend);
+        subscription.setUpdatedAt(LocalDateTime.now());
+        UserPackageSubscription saved = subscriptionRepository.save(subscription);
+        return subscriptionMapper.toResponseDTO(saved);
+    }
+
+    /**
+     * Gia hạn endDate của subscription dựa trên package type.
+     * - Nếu endDate còn hiệu lực: gia hạn từ endDate hiện tại.
+     * - Nếu đã hết hạn: gia hạn từ thời điểm hiện tại.
+     * - periods < 1 sẽ được set = 1.
+     * - Reset usedSwaps = 0 cho chu kỳ mới.
+     * - Nếu status = EXPIRED sẽ chuyển về ACTIVE.
+     * - Không cho gia hạn nếu PackagePlan đang INACTIVE.
+     */
+    @Transactional
+    public UserPackageSubscriptionResponse extendEndDate(Long id, int periods) {
+        log.info("Gia hạn endDate cho subscription ID: {} với số chu kỳ: {}", id, periods);
+
+        UserPackageSubscription subscription = subscriptionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đăng ký với ID: " + id));
+
+        PackagePlan plan = subscription.getPackagePlan();
+        if (plan.getStatus() != com.boilerplate.bookingswap.enums.PackageStatus.ACTIVE) {
+            throw new IllegalStateException("Không thể gia hạn do gói thuê pin đang INACTIVE");
+        }
+
+        if (periods < 1) periods = 1;
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime base = subscription.getEndDate().isAfter(now) ? subscription.getEndDate() : now;
+        LocalDateTime newEnd;
+        switch (plan.getPackageType()) {
+            case MONTHLY -> newEnd = base.plusMonths(periods);
+            case YEARLY -> newEnd = base.plusYears(periods);
+            default -> newEnd = base.plusMonths(periods);
+        }
+
+        subscription.setEndDate(newEnd);
+        subscription.setUsedSwaps(0); // reset lượt sử dụng cho chu kỳ mới
+        if (subscription.getStatus() == SubscriptionStatus.EXPIRED
+                || subscription.getStatus() == SubscriptionStatus.OUT_OF_SWAPS) {
+            subscription.setStatus(SubscriptionStatus.ACTIVE);
+        }
+        subscription.setUpdatedAt(now);
+
+        UserPackageSubscription saved = subscriptionRepository.save(subscription);
+        return subscriptionMapper.toResponseDTO(saved);
+    }
 }
-
-

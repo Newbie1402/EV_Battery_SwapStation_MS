@@ -254,38 +254,6 @@ public class BookingService {
     }
 
     /**
-     * Lấy booking sắp diễn ra (trong 24h tới)
-     * @return Danh sách booking
-     */
-    public List<BookingResponse> getUpcomingBookings() {
-        log.debug("Lấy danh sách booking sắp diễn ra");
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime future = now.plusHours(24);
-
-        List<Booking> upcomingBookings = bookingRepository.findUpcomingBookings(now, future);
-
-        return upcomingBookings.stream()
-                .map(bookingMapper::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Lấy booking quá hạn chưa hoàn thành
-     * @return Danh sách booking
-     */
-    public List<BookingResponse> getOverdueBookings() {
-        log.debug("Lấy danh sách booking quá hạn");
-
-        LocalDateTime now = LocalDateTime.now();
-        List<Booking> overdueBookings = bookingRepository.findOverdueBookings(now);
-
-        return overdueBookings.stream()
-                .map(bookingMapper::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Thống kê booking theo ngày
      * @param date Ngày cần thống kê
      * @return Thống kê

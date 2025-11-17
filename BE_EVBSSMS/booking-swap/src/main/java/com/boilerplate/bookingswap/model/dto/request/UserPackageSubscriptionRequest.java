@@ -23,4 +23,8 @@ public class UserPackageSubscriptionRequest {
     /** Id gói thuê pin */
     @NotNull(message = "packagePlanId không được để trống")
     private Long packagePlanId;
+
+    /** Bật tự động gia hạn hay không */
+    @Builder.Default
+    private Boolean autoExtend = false;
 }

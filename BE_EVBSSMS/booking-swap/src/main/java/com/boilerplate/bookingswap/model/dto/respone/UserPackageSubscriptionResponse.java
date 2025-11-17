@@ -29,6 +29,15 @@ public class UserPackageSubscriptionResponse {
     /** Tên gói thuê pin */
     private String packagePlanName;
 
+    /** Thông tin chi tiết gói thuê pin */
+    private PackagePlanResponse packagePlan;
+
+    /** Trạng thái đăng ký (alias cho status) */
+    private SubscriptionStatus subscriptionStatus;
+
+    /** Tự động gia hạn */
+    private Boolean autoExtend;
+
     /** Thời gian bắt đầu */
     private LocalDateTime startDate;
 
@@ -47,5 +56,3 @@ public class UserPackageSubscriptionResponse {
     /** Thời gian cập nhật */
     private LocalDateTime updatedAt;
 }
-
-

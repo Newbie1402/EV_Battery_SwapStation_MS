@@ -90,32 +90,6 @@ public class PackagePlanService {
     }
 
     /**
-     * Lấy gói thuê pin phổ biến nhất
-     */
-    public List<PackagePlanResponse> getMostPopularPackages(int limit) {
-        log.debug("Lấy {} gói thuê pin phổ biến nhất", limit);
-
-        List<PackagePlan> popularPackages = packagePlanRepository.findMostPopularPackages(limit);
-
-        return popularPackages.stream()
-                .map(packagePlanMapper::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Lấy gói thuê pin có giá trị tốt nhất
-     */
-    public List<PackagePlanResponse> getBestValuePackages(PackageType packageType) {
-        log.debug("Lấy gói thuê pin có giá trị tốt nhất cho loại: {}", packageType);
-
-        List<PackagePlan> bestValuePackages = packagePlanRepository.findBestValuePackages(packageType);
-
-        return bestValuePackages.stream()
-                .map(packagePlanMapper::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Cập nhật gói thuê pin
      */
     @Transactional

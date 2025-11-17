@@ -104,44 +104,6 @@ public class PackagePlanController {
     }
 
     /**
-     * Lấy gói thuê pin phổ biến nhất
-     */
-    @GetMapping("/popular")
-    public ResponseEntity<ResponseData<List<PackagePlanResponse>>> getMostPopularPackages(
-            @RequestParam(defaultValue = "5") int limit) {
-        log.info("REST request to get most popular package plans");
-
-        List<PackagePlanResponse> response = packagePlanService.getMostPopularPackages(limit);
-
-        return ResponseEntity.ok(
-                ResponseData.<List<PackagePlanResponse>>builder()
-                        .statusCode(HttpStatus.OK.value())
-                        .message("Lấy gói thuê pin phổ biến thành công")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    /**
-     * Lấy gói thuê pin có giá trị tốt nhất
-     */
-    @GetMapping("/best-value/{packageType}")
-    public ResponseEntity<ResponseData<List<PackagePlanResponse>>> getBestValuePackages(
-            @PathVariable PackageType packageType) {
-        log.info("REST request to get best value package plans for type: {}", packageType);
-
-        List<PackagePlanResponse> response = packagePlanService.getBestValuePackages(packageType);
-
-        return ResponseEntity.ok(
-                ResponseData.<List<PackagePlanResponse>>builder()
-                        .statusCode(HttpStatus.OK.value())
-                        .message("Lấy gói thuê pin giá trị tốt nhất thành công")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    /**
      * Cập nhật gói thuê pin
      */
     @PatchMapping("/{id}")

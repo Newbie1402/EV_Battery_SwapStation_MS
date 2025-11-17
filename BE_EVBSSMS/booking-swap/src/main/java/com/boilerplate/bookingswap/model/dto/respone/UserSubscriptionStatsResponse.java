@@ -25,6 +25,12 @@ public class UserSubscriptionStatsResponse {
     /** Tên gói */
     private String packageName;
 
+    /** Thông tin chi tiết gói thuê pin */
+    private PackagePlanResponse packagePlan;
+
+    /** Tự động gia hạn */
+    private Boolean autoExtend;
+
     /** Số lần đổi pin tối đa */
     private Integer maxSwapPerMonth;
 

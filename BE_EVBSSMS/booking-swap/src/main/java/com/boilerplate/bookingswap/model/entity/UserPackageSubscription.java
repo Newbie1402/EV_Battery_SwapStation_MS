@@ -45,6 +45,11 @@ public class UserPackageSubscription {
     @Column(nullable = false)
     private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
 
+    // Có tự động gia hạn không
+    @Builder.Default
+    @Column(name = "auto_extend", nullable = false)
+    private boolean autoExtend = false;
+
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
 

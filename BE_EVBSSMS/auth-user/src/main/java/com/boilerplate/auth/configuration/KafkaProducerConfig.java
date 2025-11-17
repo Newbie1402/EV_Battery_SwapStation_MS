@@ -83,9 +83,10 @@ public class KafkaProducerConfig {
         // Metadata
         configProps.put(ProducerConfig.CLIENT_ID_CONFIG, "auth-service-producer");
 
-        // JSON Serializer settings
-        configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+        // JSON Serializer settings - GỬI type headers để Consumer deserialize chính xác
+        configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
         configProps.put(JsonSerializer.TYPE_MAPPINGS,
+            "emailEvent:com.boilerplate.auth.model.event.EmailEvent," +
             "supportTicketEvent:com.boilerplate.auth.model.event.SupportTicketEvent");
 
         log.info("Kafka Producer initialized with bootstrap servers: {}", bootstrapServers);

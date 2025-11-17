@@ -33,9 +33,7 @@ public class BatterySwapLog {
     @JoinColumn(name = "statiom_id")
     private Station station;
 
-    @ManyToOne
-    @JoinColumn(name = "vehicle")
-    private Vehicle vehiceId;
+    private String vehiceId;
 
     @OneToOne
     @JoinColumn(name = "battery_Return_Log_id")

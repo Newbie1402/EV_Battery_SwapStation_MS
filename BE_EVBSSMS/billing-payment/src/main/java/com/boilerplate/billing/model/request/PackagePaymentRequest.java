@@ -18,6 +18,7 @@ public class PackagePaymentRequest {
     private Double baseAmount;
     private Double discountAmount;
     private Double taxAmount;
+    private Long BookingId;
     private PaymentMethod method;
     private PaymentStatus status;
     private String transactionId;

@@ -2,6 +2,7 @@ package com.boilerplate.billing.model.entity;
 
 import com.boilerplate.billing.enums.PaymentMethod;
 import com.boilerplate.billing.enums.PaymentStatus;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -20,8 +21,7 @@ public abstract class BasePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private Driver customerId;
+    private Long customerId;
 
     private Double totalAmount;
     private Double baseAmount;
@@ -35,6 +35,7 @@ public abstract class BasePayment {
     private PaymentStatus status;
 
     private String description;
+    private Long bookingId;
 
     private LocalDateTime paymentTime;
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -90,8 +90,8 @@ public class VnpayService {
             String paymentUrl = vnp_PayUrl + "?" + query;
 
             return ResponseData.<String>builder()
-                    .StatusCode(200)
-                    .Message("Tạo URL thanh toán thành công")
+                    .statusCode(200)
+                    .message("Tạo URL thanh toán thành công")
                     .data(paymentUrl)
                     .build();
 

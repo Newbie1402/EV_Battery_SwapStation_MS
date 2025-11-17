@@ -1,8 +1,8 @@
-package com.boilerplate.billing.model.dto;
+package com.boilerplate.billing.model.DTO;
 
+import com.boilerplate.billing.model.entity.SingleSwapPayment;
 import com.boilerplate.billing.enums.PaymentMethod;
 import com.boilerplate.billing.enums.PaymentStatus;
-import com.boilerplate.billing.model.entity.SingleSwapPayment;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class SingleSwapPaymentDTO {
+
     private Long id;
     private Long customerId;
     private Double totalAmount;
@@ -21,32 +22,32 @@ public class SingleSwapPaymentDTO {
     private Double taxAmount;
     private PaymentMethod method;
     private PaymentStatus status;
-    private String transactionId;
     private String description;
+    private Long bookingId;
     private LocalDateTime paymentTime;
     private LocalDateTime createdAt;
-
-    private Long bookingId;
     private Long stationId;
-    private Long swapLogId;
 
-    public static SingleSwapPaymentDTO fromEntity(SingleSwapPayment entity) {
+    // ===============================
+    //       MAPPER STATIC
+    // ===============================
+    public static SingleSwapPaymentDTO fromEntity(SingleSwapPayment payment) {
+        if (payment == null) return null;
+
         return SingleSwapPaymentDTO.builder()
-                .id(entity.getId())
-                .customerId(entity.getCustomerId())
-                .totalAmount(entity.getTotalAmount())
-                .baseAmount(entity.getBaseAmount())
-                .discountAmount(entity.getDiscountAmount())
-                .taxAmount(entity.getTaxAmount())
-                .method(entity.getMethod())
-                .status(entity.getStatus())
-                .transactionId(entity.getTransactionId())
-                .description(entity.getDescription())
-                .paymentTime(entity.getPaymentTime())
-                .createdAt(entity.getCreatedAt())
-                .bookingId(entity.getBookingId())
-                .stationId(entity.getStationId())
-                .swapLogId(entity.getSwapLogId())
+                .id(payment.getId())
+                .customerId(payment.getCustomerId())
+                .totalAmount(payment.getTotalAmount())
+                .baseAmount(payment.getBaseAmount())
+                .discountAmount(payment.getDiscountAmount())
+                .taxAmount(payment.getTaxAmount())
+                .method(payment.getMethod())
+                .status(payment.getStatus())
+                .description(payment.getDescription())
+                .bookingId(payment.getBookingId())
+                .paymentTime(payment.getPaymentTime())
+                .createdAt(payment.getCreatedAt())
+                .stationId(payment.getStationId())
                 .build();
     }
 }

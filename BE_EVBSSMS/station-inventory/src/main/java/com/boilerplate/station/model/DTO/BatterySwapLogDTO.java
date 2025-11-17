@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 public class BatterySwapLogDTO {
 
     private Long id;
-    private Long verhicleBatteryId;
-    private Long stationBatteryId;
-    private Long stationId;
-    private Long vehicleId;
-    private Long batteryReturnLogId;
+    private String verhicleBatteryCode;
+    private String stationBatteryCode;
+    private String stationCode;
+    private String vehicleCode;
+    private String batteryReturnLogId;
     private LocalDateTime swapTime;
 
     // ===============================
@@ -28,12 +28,13 @@ public class BatterySwapLogDTO {
 
         return BatterySwapLogDTO.builder()
                 .id(log.getId())
-                .verhicleBatteryId(log.getVerhicleBattery() != null ? log.getVerhicleBattery().getId() : null)
-                .stationBatteryId(log.getStationBattery() != null ? log.getStationBattery().getId() : null)
-                .stationId(log.getStation() != null ? log.getStation().getId() : null)
-                .vehicleId(log.getVehiceId() != null ? log.getVehiceId().getId() : null)
-                .batteryReturnLogId(log.getBatteryReturnLog() != null ? log.getBatteryReturnLog().getId() : null)
+                .verhicleBatteryCode(log.getVerhicleBattery() != null ? log.getVerhicleBattery().getBatteryCode() : null)
+                .stationBatteryCode(log.getStationBattery() != null ? log.getStationBattery().getBatteryCode() : null)
+                .stationCode(log.getStation() != null ? log.getStation().getStationCode() : null)
+                .vehicleCode(log.getVehiceId())
+                .batteryReturnLogId(log.getBatteryReturnLog() != null ? log.getBatteryReturnLog().getId().toString() : null)
                 .swapTime(log.getSwapTime())
                 .build();
     }
+
 }

@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BatterySwapStationLogRequest {
-    private String oldStationBatteryId;    // ID pin cũ ở trạm ban đầu
-    private String newStationBatteryId;    // ID pin mới ở trạm mới
-    private String oldStationId;           // ID trạm cũ
-    private String newStationId;           // ID trạm mới
+    private String oldStationBatteryCode;    // ID pin cũ ở trạm ban đầu
+    private String newStationBatteryCode;    // ID pin mới ở trạm mới
+    private String oldStationCode;           // ID trạm cũ
+    private String newStationCode;           // ID trạm mới
 }

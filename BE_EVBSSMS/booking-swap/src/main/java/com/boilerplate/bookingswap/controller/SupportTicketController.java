@@ -20,7 +20,7 @@ import java.util.List;
  * Controller xử lý các API liên quan đến SupportTicket
  */
 @RestController
-@RequestMapping("/api/v1/support-tickets")
+@RequestMapping("/api/support-tickets")
 @RequiredArgsConstructor
 @Slf4j
 public class SupportTicketController {

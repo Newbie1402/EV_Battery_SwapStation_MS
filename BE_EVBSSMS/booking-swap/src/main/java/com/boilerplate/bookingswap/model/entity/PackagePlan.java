@@ -1,5 +1,6 @@
 package com.boilerplate.bookingswap.model.entity;
 
+import com.boilerplate.bookingswap.enums.PackageStatus;
 import com.boilerplate.bookingswap.enums.PackageType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,11 @@ public class PackagePlan {
 
     @Enumerated(EnumType.STRING)
     private PackageType packageType; // loại gói (THUÊ_THEO_THÁNG, THUÊ_THEO_NĂM)
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private PackageStatus status = PackageStatus.ACTIVE; // trạng thái gói (ACTIVE, INACTIVE)
 
     @OneToMany(mappedBy = "packagePlan", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

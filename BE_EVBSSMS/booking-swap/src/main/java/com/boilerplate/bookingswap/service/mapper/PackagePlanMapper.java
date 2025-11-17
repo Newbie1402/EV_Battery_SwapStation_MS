@@ -52,6 +52,7 @@ public class PackagePlanMapper {
                 .maxSwapPerMonth(entity.getMaxSwapPerMonth())
                 .price(entity.getPrice())
                 .packageType(entity.getPackageType())
+                .status(entity.getStatus())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

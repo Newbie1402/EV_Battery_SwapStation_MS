@@ -29,9 +29,9 @@ public class BatterySwapStationLog {
     @JoinColumn(name = "old_battery_id")
     private Battery newStationBattery;
 
-    private Long oldStationId;
+    private String oldStationId;
 
-    private Long newStationId;
+    private String newStationId;
 
     private LocalDateTime swapTime;
 

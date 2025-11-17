@@ -32,7 +32,7 @@ eureka:
     prefer-ip-address: true
 
 server:
-  port: 8082
+  port: 9002
   forward-headers-strategy: framework
   tomcat:
     remoteip:

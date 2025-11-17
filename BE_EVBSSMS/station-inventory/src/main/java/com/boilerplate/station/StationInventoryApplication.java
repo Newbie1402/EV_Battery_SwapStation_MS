@@ -12,7 +12,7 @@ public class StationInventoryApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(StationInventoryApplication.class, args);
-		System.out.println("Station Inventory running on port 8082");
+		System.out.println("Station Inventory running on port 9002");
 	}
 
 }

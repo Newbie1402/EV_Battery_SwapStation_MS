@@ -14,7 +14,7 @@ public class BillingPaymentApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(BillingPaymentApplication.class, args);
-		System.out.println("Billing Payment chạy được rồi nè hẹ hẹ :))");
+        System.out.println("Station Inventory running on port 9004");
 	}
 
 }

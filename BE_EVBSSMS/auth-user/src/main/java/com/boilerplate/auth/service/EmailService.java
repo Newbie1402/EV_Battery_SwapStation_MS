@@ -36,7 +36,11 @@ public class EmailService {
      * - Retry tự động khi gửi email thất bại
      * - Scale tốt khi có nhiều email cần gửi
      */
-    @KafkaListener(topics = "email-topic", groupId = "auth-user-service", concurrency = "3")
+    @KafkaListener(
+        topics = "email-topic",
+        groupId = "auth-user-service",
+        containerFactory = "emailEventKafkaListenerContainerFactory"
+    )
     public void consumeEmailEvent(EmailEvent emailEvent) {
         try {
             sendEmail(emailEvent.getTo(), emailEvent.getSubject(), emailEvent.getBody());

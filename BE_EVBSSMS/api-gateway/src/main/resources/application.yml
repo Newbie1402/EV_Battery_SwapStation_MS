@@ -77,7 +77,7 @@ spring:
         - id: billing-api
           uri: lb://billing-service
           predicates:
-            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**
+            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**, /api/vnpay/**
 
         - id: billing-swagger-ui
           uri: lb://billing-service
@@ -109,6 +109,7 @@ spring:
             allowedHeaders:
               - "*"
             allowCredentials: true
+            max-age: 3600
       default-filters:
           - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
 

@@ -1,49 +1,50 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { Zap, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { authApi } from "@/api/authApi";
 import toast from "react-hot-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const { login } = useAuthStore();
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-
-        // Validation
-        if (!email || !password) {
-            toast.error("Vui lòng điền đầy đủ thông tin!");
-            return;
-        }
-
+    const handleGoogleLogin = async (credentialResponse) => {
         setIsLoading(true);
 
         try {
-            const response = await authApi.login(email, password);
+            const idToken = credentialResponse.credential;
+            const response = await authApi.loginWithGoogle(idToken);
+
+            // Kiểm tra response structure
+            const userData = response.data || response;
 
             // Save to Zustand store
             login({
-                userId: response.userId,
-                token: response.token,
-                role: response.role,
+                userId: userData.user.id,
+                token: userData.accessToken,
+                refreshToken: userData.refreshToken,
+                role: userData.user.role,
+                stationId: userData.user.stationId || null,
+                status: userData.user.status,
+                user: userData.user, // Lưu toàn bộ thông tin user
             });
 
-            toast.success(`Chào mừng ${response.name}!`);
+            toast.success(`Chào mừng ${userData.user.fullName}!`);
+
+            // Kiểm tra status để redirect hoặc yêu cầu verify
+            if (userData.user.status === "PENDING_VERIFICATION") {
+                toast.error("Vui lòng xác thực email để tiếp tục!");
+                navigate("/verify-otp", { state: { email: userData.user.email } });
+                return;
+            }
 
             // Redirect based on role
-            switch (response.role) {
+            switch (userData.user.role) {
                 case "ADMIN":
                     navigate("/admin/dashboard");
                     break;
@@ -57,9 +58,28 @@ export default function LoginPage() {
                     navigate("/");
             }
         } catch (error) {
-            toast.error(error.message || "Đăng nhập thất bại!");
+            // Xử lý lỗi 404 - tài khoản chưa đăng ký
+            if (error.statusCode === 404) {
+                toast.error("Tài khoản Google chưa được đăng ký. Vui lòng đăng ký trước!");
+                navigate("/register");
+            } else {
+                toast.error(error.data || error.message || "Đăng nhập thất bại!");
+            }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleGoogleError = (error) => {
+        console.error("Google Login Error:", error);
+
+        // Xử lý các lỗi phổ biến
+        if (error?.error === "popup_closed_by_user") {
+            toast.error("Bạn đã đóng cửa sổ đăng nhập!");
+        } else if (error?.error === "access_denied") {
+            toast.error("Bạn đã từ chối quyền truy cập!");
+        } else {
+            toast.error("Đăng nhập Google thất bại! Vui lòng thử lại.");
         }
     };
 
@@ -71,12 +91,7 @@ export default function LoginPage() {
                 <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-300/30 rounded-full blur-3xl animate-pulse delay-1000" />
             </div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md relative z-10"
-            >
+            <div className="w-full max-w-md relative z-10">
                 <Card className="shadow-2xl border-0">
                     <CardHeader className="space-y-4 pb-6">
                         {/* Logo */}
@@ -97,93 +112,36 @@ export default function LoginPage() {
                     </CardHeader>
 
                     <CardContent>
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            {/* Email Field */}
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className="text-gray-700">
-                                    Email
-                                </Label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="admin@evbss.vn"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="pl-10 h-11"
-                                        disabled={isLoading}
-                                    />
+                        <div className="space-y-4">
+                            {/* Google Login Button */}
+                            <div className="flex justify-center">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleLogin}
+                                    onError={handleGoogleError}
+                                    text="signin_with"
+                                    shape="rectangular"
+                                    theme="outline"
+                                    size="large"
+                                    width="350"
+                                    auto_select={false}
+                                />
+                            </div>
+
+                            {isLoading && (
+                                <div className="flex items-center justify-center py-4">
+                                    <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                                    <span className="ml-2 text-sm text-gray-600">Đang xử lý...</span>
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Password Field */}
-                            <div className="space-y-2">
-                                <Label htmlFor="password" className="text-gray-700">
-                                    Mật khẩu
-                                </Label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                    <Input
-                                        id="password"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="pl-10 pr-10 h-11"
-                                        disabled={isLoading}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                                    >
-                                        {showPassword ? (
-                                            <EyeOff className="w-5 h-5" />
-                                        ) : (
-                                            <Eye className="w-5 h-5" />
-                                        )}
-                                    </button>
+                            {/* Info Box */}
+                            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <p className="text-xs font-semibold text-blue-900 mb-2">ℹ️ Lưu ý:</p>
+                                <div className="space-y-1 text-xs text-blue-700">
+                                    <p>• Chỉ hỗ trợ đăng nhập bằng tài khoản Google</p>
+                                    <p>• Nếu chưa có tài khoản, vui lòng đăng ký trước</p>
+                                    <p>• Sau khi đăng ký, cần xác thực email qua OTP</p>
                                 </div>
-                            </div>
-
-                            {/* Forgot Password Link */}
-                            <div className="flex justify-end">
-                                <Link
-                                    to="/forgot-password"
-                                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition"
-                                >
-                                    Quên mật khẩu?
-                                </Link>
-                            </div>
-
-                            {/* Login Button */}
-                            <Button
-                                type="submit"
-                                className="w-full h-11 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        Đăng nhập
-                                        <ArrowRight className="w-5 h-5 ml-2" />
-                                    </>
-                                )}
-                            </Button>
-                        </form>
-
-                        {/* Demo Accounts Info */}
-                        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <p className="text-xs font-semibold text-blue-900 mb-2">🔐 Tài khoản demo:</p>
-                            <div className="space-y-1 text-xs text-blue-700">
-                                <p><strong>Admin:</strong> admin@evbss.vn / admin123</p>
-                                <p><strong>Staff:</strong> staff@evbss.vn / staff123</p>
-                                <p><strong>Driver:</strong> driver@evbss.vn / driver123</p>
                             </div>
                         </div>
                     </CardContent>
@@ -219,7 +177,7 @@ export default function LoginPage() {
                         </Link>
                     </CardFooter>
                 </Card>
-            </motion.div>
+            </div>
         </div>
     );
 }

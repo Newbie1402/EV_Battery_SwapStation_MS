@@ -4,10 +4,17 @@ import { Navigate, Outlet } from "react-router-dom";
 const ProtectedRoute = ({ element, allowedRoles = [] }) => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
+    const status = localStorage.getItem("status");
 
     // Nếu chưa login → chuyển về /login
     if (!token) {
         return <Navigate to="/login" replace />;
+    }
+
+    // Nếu status là PENDING_VERIFICATION → chuyển về /verify-otp
+    // (Chỉ áp dụng cho các route không phải verify-otp)
+    if (status === "PENDING_VERIFICATION" && window.location.pathname !== "/verify-otp") {
+        return <Navigate to="/verify-otp" replace />;
     }
 
     // Nếu login nhưng sai quyền → chuyển về /

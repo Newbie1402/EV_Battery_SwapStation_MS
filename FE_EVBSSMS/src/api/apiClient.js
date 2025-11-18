@@ -6,22 +6,28 @@ import { useAuthStore } from "../store/authStore";
  * Hàm xử lý lỗi chung
  */
 const handleError = (error) => {
-    const status = error?.response?.status;
-    const message =
-        error?.response?.data?.error ||
-        error?.message ||
-        "Đã xảy ra lỗi không xác định";
+    // Error structure từ axiosInstance:
+    // { statusCode, message, data, originalError }
+    const statusCode = error?.statusCode;
+    const message = error?.data || error?.message || "Đã xảy ra lỗi không xác định";
 
-    if(message === "Giỏ hàng trống") {
+    // Không hiển thị toast cho một số trường hợp đặc biệt
+    const skipToastCodes = [404, 409]; // Để component tự xử lý
+
+    if (skipToastCodes.includes(statusCode)) {
         throw error;
     }
-    if (status === 401) {
+
+    // Xử lý 401 - Token hết hạn
+    if (statusCode === 401) {
         const { logout } = useAuthStore.getState();
         logout();
         toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
-    } else {
-        toast.error(message);
+        throw error;
     }
+
+    // Hiển thị message từ backend (ưu tiên data, sau đó message)
+    toast.error(message);
 
     throw error;
 };

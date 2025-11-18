@@ -10,6 +10,7 @@ const ContactPage = lazy(() => import("../pages/ContactPage"));
 const PricingPage = lazy(() => import("../pages/PricingPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
+const VerifyOTPPage = lazy(() => import("../pages/VerifyOTPPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 
 //Layouts
@@ -21,14 +22,20 @@ const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const DriverDashboardPage = lazy(() => import("../pages/driver/DriverDashboard"));
 const DriverStationsPage = lazy(() => import("../pages/driver/StationListPage"));
 const DriverBookingsPage = lazy(() => import("../pages/driver/MyBookingsPage"));
+const DriverProfilePage = lazy(() => import("../pages/driver/DriverProfilePage"));
 const PaymentPackagePage = lazy(() => import("../pages/driver/PaymentPackagePage"));
 const PaymentSuccessPage = lazy(() => import("../pages/driver/PaymentSuccessPage"));
+const MyPackagesPage = lazy(() => import("../pages/driver/MyPackagesPage"));
+
 //Staff Pages
+const StaffDashboardPage = lazy(() => import("../pages/staff/StaffDashboard"));
 
 //Admin Pages
 const AdminDashboardPage = lazy(() => import("../pages/admin/AdminDashboard"));
 const AdminStationManagementPage = lazy(() => import("../pages/admin/StationManagementPage"));
 const AdminPackagePlanManagementPage = lazy(() => import("../pages/admin/PackagePlanManagementPage"));
+const AdminUserManagementPage = lazy(() => import("../pages/admin/UserManagementPage"));
+const AdminVehicleManagementPage = lazy(() => import("../pages/admin/VehicleManagementPage"));
 
 export default function AppRoutes() {
     return (
@@ -49,6 +56,7 @@ export default function AppRoutes() {
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/verify-otp" element={<VerifyOTPPage />} />
 
                     {/* Drivers Routes */}
                     <Route
@@ -61,11 +69,22 @@ export default function AppRoutes() {
                         <Route path="dashboard" element={<DriverDashboardPage />} />
                         <Route path="stations" element={<DriverStationsPage />} />
                         <Route path="bookings" element={<DriverBookingsPage />} />
+                        <Route path="packages" element={<MyPackagesPage />} />
+                        <Route path="profile" element={<DriverProfilePage />} />
                         <Route path="payment-package/:packageId" element={<PaymentPackagePage />} />
                         <Route path="payment-success" element={<PaymentSuccessPage />} />
                     </Route>
 
                     {/* Staff Routes */}
+                    <Route
+                        path="/staff/"
+                        element={
+                            <ProtectedRoute
+                                element={<StaffLayout />}
+                                allowedRoles={["STAFF"]}/>}
+                    >
+                        <Route path="dashboard" element={<StaffDashboardPage />} />
+                    </Route>
 
                     {/* Admin Routes */}
                     <Route
@@ -76,6 +95,8 @@ export default function AppRoutes() {
                                 allowedRoles={["ADMIN"]}/>}
                     >
                         <Route path="dashboard" element={<AdminDashboardPage />} />
+                        <Route path="users" element={<AdminUserManagementPage />} />
+                        <Route path="vehicles" element={<AdminVehicleManagementPage />} />
                         <Route path="stations" element={<AdminStationManagementPage />} />
                         <Route path="packages" element={<AdminPackagePlanManagementPage />} />
                     </Route>

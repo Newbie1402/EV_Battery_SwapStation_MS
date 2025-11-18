@@ -1,10 +1,11 @@
 package com.boilerplate.station.service;
 
+import com.boilerplate.station.exception.AppException;
+import com.boilerplate.station.exception.BusinessException;
 import com.boilerplate.station.model.DTO.StationDTO;
+import com.boilerplate.station.model.createRequest.StationCodeRequest;
 import com.boilerplate.station.model.createRequest.StationRequest;
-import com.boilerplate.station.model.entity.Battery;
 import com.boilerplate.station.model.entity.Station;
-
 import com.boilerplate.station.model.response.ResponseData;
 import com.boilerplate.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class StationService {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
-                new ResponseData<>(HttpStatus.OK.value(), "Fetched all stations successfully", stations)
+                new ResponseData<>(HttpStatus.OK.value(), "Lấy danh sách tất cả trạm thành công", stations)
         );
     }
 
@@ -39,12 +40,12 @@ public class StationService {
         Optional<Station> station = stationRepository.findById(id);
         if (station.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Station not found", null));
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Không tìm thấy trạm", null));
         }
 
         StationDTO dto = StationDTO.fromEntity(station.get());
         return ResponseEntity.ok(
-                new ResponseData<>(HttpStatus.OK.value(), "Station found", dto)
+                new ResponseData<>(HttpStatus.OK.value(), "Tìm trạm thành công", dto)
         );
     }
 
@@ -66,12 +67,12 @@ public class StationService {
             StationDTO dto = StationDTO.fromEntity(saved);
 
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ResponseData<>(HttpStatus.CREATED.value(), "Station created successfully", dto));
+                    .body(new ResponseData<>(HttpStatus.CREATED.value(), "Tạo trạm thành công", dto));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseData<>(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "Lỗi khi tạo trạm, không tìm thấy địa chỉ " + e.getMessage(), null));
+                            "Lỗi khi tạo trạm, không tìm thấy địa chỉ: " + e.getMessage(), null));
         }
     }
 
@@ -80,7 +81,7 @@ public class StationService {
         Optional<Station> existing = stationRepository.findById(id);
         if (existing.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Station not found", null));
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Không tìm thấy trạm", null));
         }
 
         Station station = existing.get();
@@ -105,7 +106,7 @@ public class StationService {
         StationDTO dto = StationDTO.fromEntity(updated);
 
         return ResponseEntity.ok(
-                new ResponseData<>(HttpStatus.OK.value(), "Station updated successfully", dto)
+                new ResponseData<>(HttpStatus.OK.value(), "Cập nhật trạm thành công", dto)
         );
     }
 
@@ -113,15 +114,23 @@ public class StationService {
         Optional<Station> station = stationRepository.findById(id);
         if (station.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Station not found", null));
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Không tìm thấy trạm", null));
         }
 
         stationRepository.deleteById(id);
         return ResponseEntity.ok(
-                new ResponseData<>(HttpStatus.OK.value(), "Station deleted successfully", null)
+                new ResponseData<>(HttpStatus.OK.value(), "Xóa trạm thành công", null)
         );
     }
     //=======================================================================================
 
+    public ResponseEntity<ResponseData<StationDTO>> findStationBycode(StationCodeRequest code) {
+        Station station = stationRepository.findByStationCode(code.getCode())
+                .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
 
+        StationDTO dto = StationDTO.fromEntity(station);
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(), "Tìm trạm theo mã thành công", dto)
+        );
+    }
 }

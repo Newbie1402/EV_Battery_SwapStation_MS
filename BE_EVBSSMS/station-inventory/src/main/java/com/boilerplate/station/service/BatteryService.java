@@ -207,7 +207,7 @@ public class BatteryService {
 
 
     public ResponseEntity<ResponseData<Void>> holdBattery(BatteryHoldEvent event) {
-        Battery battery = batteryRepository.findById(event.getBatteryId())
+        Battery battery = batteryRepository.findByBatteryCode(event.getBatteryCode())
                 .orElseThrow(() -> new BusinessException(AppException.BATTERY_NOT_FOUND));
         if (battery.isHold()) {
             throw new BusinessException(AppException.BATTERY_HELD);
@@ -227,7 +227,7 @@ public class BatteryService {
         BatteryDTO dto = BatteryDTO.fromEntity(battery);
         return ResponseEntity.ok(
                 new ResponseData<>(HttpStatus.OK.value(),
-                        "Fetched batteries for station successfully",
+                        "Lấy pin thành công",
                         dto)
         );
     }
@@ -300,6 +300,7 @@ public class BatteryService {
                 new ResponseData<>(HttpStatus.OK.value(), "Lấy danh sách tất cả log đổi pin thành công", dtos)
         );
     }
+
 
 
 }

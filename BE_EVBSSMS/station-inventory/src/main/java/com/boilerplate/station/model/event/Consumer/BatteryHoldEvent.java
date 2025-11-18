@@ -8,5 +8,5 @@ import lombok.*;
 @Getter
 @Setter
 public class BatteryHoldEvent {
-    private Long batteryId;        // ID pin được giữ
+    private String batteryCode;        // ID pin được giữ
 }

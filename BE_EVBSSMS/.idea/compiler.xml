@@ -43,7 +43,6 @@
         <module name="code (4)" />
         <module name="code (5)" />
         <module name="code (9)" />
-        <module name="billing-service" />
       </profile>
     </annotationProcessing>
   </component>
@@ -54,6 +53,11 @@
       <module name="auth-user-service" options="-parameters" />
       <module name="billing-service" options="-parameters" />
       <module name="booking-service" options="-parameters" />
+      <module name="code (3)" options="-parameters" />
+      <module name="code (4)" options="-parameters" />
+      <module name="code (5)" options="-parameters" />
+      <module name="code (6)" options="-parameters" />
+      <module name="code (9)" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="station-service" options="-parameters" />
     </option>

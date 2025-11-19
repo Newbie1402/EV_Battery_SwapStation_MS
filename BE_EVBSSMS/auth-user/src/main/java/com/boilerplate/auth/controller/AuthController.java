@@ -67,17 +67,22 @@ public class AuthController {
     }
 
     /**
-     * Xác thực OTP
-     * Sau khi admin phê duyệt, user nhận mã OTP qua email
-     * Verify OTP để kích hoạt tài khoản và nhận JWT token
-     * Thông tin xe đã được thêm lúc đăng ký, không cần nhập lại
-     * Sau khi xác thực thành công, user có thể đăng nhập
+     * Xác thực OTP (DEPRECATED - đã chuyển sang verification token qua email)
+     *
+     * LƯUÝ: API này đã lỗi thời. Luồng mới:
+     * 1. Admin approve đơn đăng ký
+     * 2. User nhận email có link xác nhận (hiệu lực 48 giờ)
+     * 3. User click link -> tài khoản được kích hoạt
+     * 4. User có thể đăng nhập
+     *
+     * API này giữ lại để tương thích ngược, nhưng không nên sử dụng cho registration mới
      */
     @PostMapping("/verify-otp")
-    @Operation(summary = "Xác thực OTP",
-               description = "Xác thực mã OTP được gửi qua email sau khi admin phê duyệt. Chỉ cần email và mã OTP (6 chữ số)")
+    @Deprecated
+    @Operation(summary = "[DEPRECATED] Xác thực OTP",
+               description = "API này đã lỗi thời. Vui lòng sử dụng link xác nhận trong email thay vì OTP")
     public ResponseEntity<ResponseData<AuthResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        log.info("Nhận yêu cầu xác thực OTP: email={}", request.getEmail());
+        log.info("Nhận yêu cầu xác thực OTP (DEPRECATED): email={}", request.getEmail());
         AuthResponse response = authService.verifyOtp(request);
 
         return ResponseEntity.ok(
@@ -90,13 +95,17 @@ public class AuthController {
     }
 
     /**
-     * Gửi lại OTP
+     * Gửi lại OTP (DEPRECATED - đã chuyển sang verification token qua email)
+     *
+     * LƯUÝ: API này đã lỗi thời. Nếu user không nhận được email xác nhận,
+     * cần liên hệ admin để được hỗ trợ hoặc admin approve lại để gửi email mới
      */
     @PostMapping("/resend-otp")
-    @Operation(summary = "Gửi lại OTP",
-               description = "Gửi lại mã OTP nếu người dùng chưa nhận được hoặc mã đã hết hạn")
+    @Deprecated
+    @Operation(summary = "[DEPRECATED] Gửi lại OTP",
+               description = "API này đã lỗi thời. Vui lòng liên hệ admin nếu không nhận được email xác nhận")
     public ResponseEntity<ResponseData<Void>> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
-        log.info("Nhận yêu cầu gửi lại OTP: email={}", request.getEmail());
+        log.info("Nhận yêu cầu gửi lại OTP (DEPRECATED): email={}", request.getEmail());
         authService.resendOtp(request);
 
         return ResponseEntity.ok(

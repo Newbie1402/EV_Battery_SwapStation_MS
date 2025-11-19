@@ -22,6 +22,7 @@ import com.boilerplate.auth.repository.VehicleRepository;
 import com.boilerplate.auth.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,10 @@ public class AuthService {
     private final KafkaProducerService kafkaProducerService;
     private final EmailService emailService;
     private final EmployeeIdService employeeIdService;
+    private final VerificationTokenService verificationTokenService;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     /**
      * Đăng ký tài khoản mới qua Google OAuth2
@@ -160,21 +165,21 @@ public class AuthService {
         }
 
         if (request.getApproved()) {
-            // APPROVE - Chuyển sang PENDING_VERIFICATION và gửi OTP
+            // APPROVE - Chuyển sang PENDING_VERIFICATION và tạo token xác nhận
             user.setStatus(UserStatus.PENDING_VERIFICATION);
             userRepository.save(user);
 
-            // Gửi OTP qua email
-            otpService.createAndSendOtp(user, OtpType.REGISTRATION);
+            // Tạo verification token có hiệu lực 2 ngày
+            var verificationToken = verificationTokenService.createVerificationToken(user);
 
-            // Gửi email thông báo được chấp nhận
-            sendApprovalEmailToUser(user);
+            // Gửi email với link xác nhận
+            sendApprovalEmailWithVerificationLink(user, verificationToken.getToken());
 
             log.info("Admin đã phê duyệt đơn đăng ký của user: {}", user.getEmail());
 
             return AuthResponse.builder()
                     .statusCode(200)
-                    .message("Đã phê duyệt đơn đăng ký thành công. OTP đã được gửi đến email của người dùng.")
+                    .message("Đã phê duyệt đơn đăng ký thành công. Email xác nhận đã được gửi đến người dùng.")
                     .user(mapToUserResponse(user))
                     .build();
         } else {
@@ -226,6 +231,7 @@ public class AuthService {
     /**
      * Xác thực OTP sau khi admin approve
      */
+    @Deprecated
     @Transactional
     public AuthResponse verifyOtp(VerifyOtpRequest request) {
         // Xác thực OTP
@@ -369,17 +375,12 @@ public class AuthService {
     /**
      * Gửi lại OTP
      */
+    @Deprecated
     @Transactional
     public void resendOtp(ResendOtpRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với email: " + request.getEmail()));
-
-        if (user.getStatus() == UserStatus.ACTIVE) {
-            throw new IllegalArgumentException("Tài khoản đã được xác thực");
-        }
-
-        otpService.createAndSendOtp(user, OtpType.REGISTRATION);
-        log.info("Đã gửi lại OTP cho user: {}", user.getEmail());
+        log.warn("Deprecated API resendOtp được gọi cho email: {}", request.getEmail());
+        throw new IllegalArgumentException("Tính năng OTP đã được thay thế bằng email xác nhận. " +
+                "Vui lòng kiểm tra email hoặc liên hệ admin nếu cần hỗ trợ.");
     }
 
     /**
@@ -534,17 +535,52 @@ public class AuthService {
 //    }
 
     /**
-     * Gửi email thông báo đơn đăng ký được chấp nhận
+     * Gửi email thông báo đơn đăng ký được chấp nhận kèm link xác nhận
      */
-    private void sendApprovalEmailToUser(User user) {
-        String subject = "Đơn đăng ký của bạn đã được chấp nhận!";
+    private void sendApprovalEmailWithVerificationLink(User user, String token) {
+        String verificationUrl = frontendUrl + "/verify-registration?token=" + token;
+
+        String roleDisplay = user.getRole() == Role.DRIVER ? "Tài xế" :
+                            user.getRole() == Role.STAFF ? "Nhân viên trạm" : "Người dùng";
+
+        String subject = "Chúc mừng! Đơn đăng ký của bạn đã được phê duyệt";
         String body = String.format("""
-            <h2>Chúc mừng %s!</h2>
-            <p>Đơn đăng ký tài khoản <strong>%s</strong> của bạn đã được Admin phê duyệt.</p>
-            <p>Chúng tôi đã gửi mã OTP đến email này. Vui lòng kiểm tra và xác thực để hoàn tất quá trình đăng ký.</p>
-            <p>Mã OTP có hiệu lực trong vòng 5 phút.</p>
-            <p>Trân trọng,<br/>EV Battery Swap Station Team</p>
-            """, user.getFullName(), user.getRole());
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb;">Chúc mừng %s!</h2>
+                <p>Đơn đăng ký tài khoản <strong>%s</strong> của bạn đã được Admin phê duyệt.</p>
+                
+                <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0 0 15px 0;">Để hoàn tất quá trình đăng ký và kích hoạt tài khoản, vui lòng nhấn vào nút bên dưới:</p>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <a href="%s" style="background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                            Xác nhận đăng ký
+                        </a>
+                    </div>
+                    <p style="font-size: 12px; color: #6b7280; margin: 15px 0 0 0;">
+                        Hoặc sao chép và dán đường link sau vào trình duyệt:<br/>
+                        <a href="%s" style="color: #2563eb; word-break: break-all;">%s</a>
+                    </p>
+                </div>
+                
+                <div style="background-color: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+                    <p style="margin: 0; color: #92400e;">
+                        <strong>Lưu ý quan trọng:</strong> Link xác nhận này có hiệu lực trong vòng <strong>48 giờ (2 ngày)</strong> kể từ bây giờ. 
+                        Sau thời gian này, bạn sẽ cần liên hệ với admin để được hỗ trợ.
+                    </p>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 14px;">
+                    Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này hoặc liên hệ với chúng tôi để được hỗ trợ.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+                
+                <p style="color: #6b7280; font-size: 14px;">
+                    Trân trọng,<br/>
+                    <strong>EV Battery Swap Station Team</strong>
+                </p>
+            </div>
+            """, user.getFullName(), roleDisplay, verificationUrl, verificationUrl, verificationUrl);
 
         EmailEvent emailEvent = EmailEvent.builder()
                 .to(user.getEmail())
@@ -552,6 +588,8 @@ public class AuthService {
                 .body(body)
                 .build();
         kafkaProducerService.sendEmailEvent(emailEvent);
+
+        log.info("Đã gửi email xác nhận đăng ký đến: {}", user.getEmail());
     }
 
     /**

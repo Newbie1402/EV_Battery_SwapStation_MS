@@ -96,4 +96,11 @@ public class StationController {
     ) {
         return stationService.addStaffToStation(stationId, request.getStaffCode());
     }
+
+    @PostMapping("/getbycode/{stationId}")
+    public ResponseEntity<ResponseData<StationDTO>> getStationByCode(
+            @PathVariable String stationId) {
+        return stationService.getStation(stationId);
+    }
+
 }

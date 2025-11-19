@@ -1,6 +1,8 @@
 package com.boilerplate.station.controller;
 
+import com.boilerplate.station.model.DTO.BatteryReturnLogDTO;
 import com.boilerplate.station.model.DTO.BatterySwapLogDTO;
+import com.boilerplate.station.model.createRequest.BatteryReturnLogRequest;
 import com.boilerplate.station.model.response.ResponseData;
 import com.boilerplate.station.service.BatteryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ public class SwapLogController {
 
     @Autowired
     private BatteryService batteryService;
+
 
     // ========================= GET BY STATION ID =========================
     @Operation(
@@ -38,5 +41,21 @@ public class SwapLogController {
     @GetMapping("/verhicle-station/getall")
     public ResponseEntity<ResponseData<List<BatterySwapLogDTO>>> getAllSwapLogs() {
         return batteryService.getAllSwapLogs();
+    }
+
+    @PostMapping("/returnlog/{swaplogId}")
+    public ResponseEntity<ResponseData<BatteryReturnLogDTO>> createLog(
+            @PathVariable Long swaplogId,
+            @RequestBody BatteryReturnLogRequest request) {
+        return batteryService.createLog(request, swaplogId);
+    }
+
+    /**
+     * Cập nhật log trả pin
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseData<BatteryReturnLogDTO>> updateLog(@PathVariable Long id,
+                                                                       @RequestBody BatteryReturnLogRequest request) {
+        return batteryService.updateLog(id, request);
     }
 }

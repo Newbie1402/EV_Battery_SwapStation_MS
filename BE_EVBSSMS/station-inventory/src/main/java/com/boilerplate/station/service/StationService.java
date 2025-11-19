@@ -163,4 +163,14 @@ public class StationService {
                         "Thêm nhân viên thành công vào trạm", dto)
         );
     }
+
+    public ResponseEntity<ResponseData<StationDTO>> getStation(String id) {
+        Station station = stationRepository.findByStationCode(id)
+                .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
+        StationDTO dto = StationDTO.fromEntity(station);
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(),
+                        "Thêm nhân viên thành công vào trạm", dto)
+        );
+    }
 }

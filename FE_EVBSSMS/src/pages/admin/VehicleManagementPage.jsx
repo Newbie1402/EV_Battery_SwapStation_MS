@@ -13,7 +13,7 @@ import {
     UserPlus,
     UserMinus,
     Battery,
-    Eye, User2, BatteryIcon, Flashlight, Zap
+    Eye, User2, BatteryIcon, Zap
 } from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import VehicleDetailDialog from "@/components/VehicleDetailDialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 export default function VehicleManagementPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -54,6 +56,7 @@ export default function VehicleManagementPage() {
         employeeId: "",
         status: "ACTIVE",
     });
+    const [confirmState, setConfirmState] = useState({ action: null, vehicleId: null });
 
     // Fetch all vehicles
     const { data: vehiclesData, isLoading, refetch } = useCustomQuery(
@@ -63,15 +66,6 @@ export default function VehicleManagementPage() {
 
     // Fetch drivers for assignment
     const { data: driversData } = useCustomQuery(["drivers"], adminApi.getAllDrivers);
-
-    // Fetch vehicle detail
-    const { data: vehicleDetail, isLoading: isLoadingDetail } = useCustomQuery(
-        ["vehicleDetail", selectedVehicleId],
-        () => adminApi.getVehicleById(selectedVehicleId),
-        {
-            enabled: !!selectedVehicleId && isDetailDialogOpen,
-        }
-    );
 
     // Create vehicle mutation
     const createMutation = useCustomMutation(
@@ -217,16 +211,38 @@ export default function VehicleManagementPage() {
         });
     };
 
-    const handleRevoke = (vehicleId) => {
-        if (confirm("Bạn có chắc chắn muốn thu hồi phương tiện này?")) {
-            revokeMutation.mutate(vehicleId);
+    const openConfirm = (action, vehicleId) => setConfirmState({ action, vehicleId });
+    const closeConfirm = () => setConfirmState({ action: null, vehicleId: null });
+
+    const executeConfirm = () => {
+        if (!confirmState.vehicleId || !confirmState.action) return;
+        switch (confirmState.action) {
+            case "revoke":
+                revokeMutation.mutate(confirmState.vehicleId);
+                break;
+            case "delete":
+                deleteMutation.mutate(confirmState.vehicleId);
+                break;
+            case "deleteImage":
+                deleteImageMutation.mutate(confirmState.vehicleId);
+                break;
+            default:
+                break;
         }
+        closeConfirm();
+    };
+
+    const isPendingConfirm =
+        confirmState.action === "revoke" ? revokeMutation.isPending :
+            confirmState.action === "delete" ? deleteMutation.isPending :
+                confirmState.action === "deleteImage" ? deleteImageMutation.isPending : false;
+
+    const handleRevoke = (vehicleId) => {
+        openConfirm("revoke", vehicleId);
     };
 
     const handleDelete = (vehicleId) => {
-        if (confirm("Bạn có chắc chắn muốn xóa phương tiện này?")) {
-            deleteMutation.mutate(vehicleId);
-        }
+        openConfirm("delete", vehicleId);
     };
 
     const handleUploadImage = (vehicleId, event) => {
@@ -250,9 +266,7 @@ export default function VehicleManagementPage() {
     };
 
     const handleDeleteImage = (vehicleId) => {
-        if (confirm("Bạn có chắc chắn muốn xóa ảnh này?")) {
-            deleteImageMutation.mutate(vehicleId);
-        }
+        openConfirm("deleteImage", vehicleId);
     };
 
     const handleViewDetail = (vehicle) => {
@@ -366,7 +380,7 @@ export default function VehicleManagementPage() {
 
             {/* Search */}
             <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-3">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <Input
@@ -585,7 +599,9 @@ export default function VehicleManagementPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                        <Button
+                            className={"cursor-pointer"}
+                            variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                             Hủy
                         </Button>
                         <Button onClick={handleCreate} disabled={createMutation.isPending}>
@@ -671,129 +687,53 @@ export default function VehicleManagementPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                        <Button
+                            className={"cursor-pointer"}
+                            variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                             Hủy
                         </Button>
-                        <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
+                        <Button
+                            className={"cursor-pointer"}
+                            onClick={handleUpdate} disabled={updateMutation.isPending}>
                             {updateMutation.isPending ? "Đang xử lý..." : "Cập nhật"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* Detail Dialog */}
-            <Dialog open={isDetailDialogOpen} onOpenChange={(open) => {
-                setIsDetailDialogOpen(open);
-                if (!open) setSelectedVehicleId(null);
-            }}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Chi tiết phương tiện</DialogTitle>
-                        <DialogDescription>Thông tin đầy đủ về phương tiện</DialogDescription>
-                    </DialogHeader>
+            {/* Detail Dialog (extracted) */}
+            <VehicleDetailDialog
+                open={isDetailDialogOpen}
+                onOpenChange={(open) => {
+                    setIsDetailDialogOpen(open);
+                    if (!open) setSelectedVehicleId(null);
+                }}
+                vehicleId={selectedVehicleId}
+            />
 
-                    {isLoadingDetail ? (
-                        <div className="space-y-4">
-                            <Skeleton className="h-64 w-full" />
-                            <Skeleton className="h-8 w-full" />
-                            <Skeleton className="h-8 w-full" />
-                        </div>
-                    ) : vehicleDetail ? (
-                        <div className="space-y-6">
-                            {/* Vehicle Image */}
-                            <div className="w-full h-64 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center overflow-hidden">
-                                {vehicleDetail.imageUrl ? (
-                                    <img
-                                        src={vehicleDetail.imageUrl}
-                                        alt={vehicleDetail.model}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <Car className="w-24 h-24 text-white" />
-                                )}
-                            </div>
-
-                            {/* Vehicle Info Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">VIN</p>
-                                    <p className="font-semibold text-slate-900">{vehicleDetail.vin}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Biển số</p>
-                                    <p className="font-semibold text-slate-900">{vehicleDetail.licensePlate}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Model</p>
-                                    <p className="font-semibold text-slate-900">{vehicleDetail.model || "—"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Trạng thái</p>
-                                    <Badge className={`${getStatusBadge(vehicleDetail.status).className} text-white w-fit`}>
-                                        {getStatusBadge(vehicleDetail.status).label}
-                                    </Badge>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Loại pin</p>
-                                    <p className="font-semibold text-slate-900">{vehicleDetail.batteryType || "—"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Dung lượng pin</p>
-                                    <p className="font-semibold text-slate-900">
-                                        {vehicleDetail.batteryCapacity ? `${vehicleDetail.batteryCapacity} kWh` : "—"}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Mã nhân viên</p>
-                                    <p className="font-semibold text-slate-900">{vehicleDetail.employeeId || "Chưa cấp phát"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Tài xế</p>
-                                    <p className="font-semibold text-emerald-600">{vehicleDetail.driverName || "—"}</p>
-                                </div>
-                                <div className="space-y-1 col-span-2">
-                                    <p className="text-sm text-slate-500">Ghi chú</p>
-                                    <p className="font-semibold text-slate-900">{vehicleDetail.notes || "—"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Ngày tạo</p>
-                                    <p className="font-semibold text-slate-900">
-                                        {new Date(vehicleDetail.createdAt).toLocaleDateString("vi-VN", {
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm text-slate-500">Cập nhật lần cuối</p>
-                                    <p className="font-semibold text-slate-900">
-                                        {new Date(vehicleDetail.updatedAt).toLocaleDateString("vi-VN", {
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 text-slate-500">
-                            Không tìm thấy thông tin phương tiện
-                        </div>
-                    )}
-
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-                            Đóng
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Alert Dialog xác nhận */}
+            <AlertDialog open={!!confirmState.action} onOpenChange={(open) => { if (!open) closeConfirm(); }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {confirmState.action === "revoke" && "Xác nhận thu hồi phương tiện"}
+                            {confirmState.action === "delete" && "Xác nhận xóa phương tiện"}
+                            {confirmState.action === "deleteImage" && "Xác nhận xóa ảnh phương tiện"}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {confirmState.action === "revoke" && "Bạn có chắc chắn muốn thu hồi phương tiện này? Hành động sẽ gỡ khỏi tài xế."}
+                            {confirmState.action === "delete" && "Bạn có chắc chắn muốn xóa phương tiện này? Hành động không thể hoàn tác."}
+                            {confirmState.action === "deleteImage" && "Bạn có chắc chắn muốn xóa ảnh của phương tiện này?"}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={closeConfirm} className="cursor-pointer">Hủy</AlertDialogCancel>
+                        <AlertDialogAction onClick={executeConfirm} disabled={isPendingConfirm} className="bg-red-600 hover:bg-red-700 cursor-pointer">
+                            {isPendingConfirm ? "Đang xử lý..." : "Xác nhận"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

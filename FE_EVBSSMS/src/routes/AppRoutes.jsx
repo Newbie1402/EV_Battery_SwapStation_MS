@@ -10,8 +10,8 @@ const ContactPage = lazy(() => import("../pages/ContactPage"));
 const PricingPage = lazy(() => import("../pages/PricingPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
-const VerifyOTPPage = lazy(() => import("../pages/VerifyOTPPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
+const VerifyRegistrationPage = lazy(() => import("../pages/VerifyRegistrationPage"));
 
 //Layouts
 const DriverLayout = lazy(() => import("../layouts/DriverLayout"));
@@ -36,6 +36,7 @@ const AdminStationManagementPage = lazy(() => import("../pages/admin/StationMana
 const AdminPackagePlanManagementPage = lazy(() => import("../pages/admin/PackagePlanManagementPage"));
 const AdminUserManagementPage = lazy(() => import("../pages/admin/UserManagementPage"));
 const AdminVehicleManagementPage = lazy(() => import("../pages/admin/VehicleManagementPage"));
+const AdminBatteryManagementPage = lazy(() => import("../pages/admin/BatteryManagementPage"));
 
 export default function AppRoutes() {
     return (
@@ -56,7 +57,7 @@ export default function AppRoutes() {
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/verify-otp" element={<VerifyOTPPage />} />
+                    <Route path="/verify-registration" element={<VerifyRegistrationPage />} />
 
                     {/* Drivers Routes */}
                     <Route
@@ -99,6 +100,7 @@ export default function AppRoutes() {
                         <Route path="vehicles" element={<AdminVehicleManagementPage />} />
                         <Route path="stations" element={<AdminStationManagementPage />} />
                         <Route path="packages" element={<AdminPackagePlanManagementPage />} />
+                        <Route path="batteries" element={<AdminBatteryManagementPage />} />
                     </Route>
 
                     {/* 404 Not Found */}

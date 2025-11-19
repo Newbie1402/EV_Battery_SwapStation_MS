@@ -52,6 +52,22 @@ export default function PaymentSuccessPage() {
             }
 
             try {
+                // Kiểm tra xem có phải là gia hạn không
+                const extendInfoStr = localStorage.getItem('extendInfo');
+                let extendInfo = null;
+
+                if (extendInfoStr) {
+                    try {
+                        extendInfo = JSON.parse(extendInfoStr);
+                        // Kiểm tra xem paymentId có khớp không
+                        if (extendInfo.paymentId !== paymentId) {
+                            extendInfo = null; // Không khớp, bỏ qua
+                        }
+                    } catch (e) {
+                        console.error("Error parsing extendInfo:", e);
+                    }
+                }
+
                 // Bước 1: Lấy thông tin payment để có packageId
                 const paymentData = await paymentApi.getPaymentPackageById(paymentId);
 
@@ -65,22 +81,43 @@ export default function PaymentSuccessPage() {
                 const packageData = await packagePlanApi.getPackagePlanById(packageId);
                 setPackageInfo(packageData);
 
-                // Bước 3: Thêm user vào gói subscription
-                const subscriptionData = {
-                    userId: userId,
-                    packagePlanId: packageId
-                };
+                // Bước 3: Xử lý theo trường hợp
+                if (extendInfo && extendInfo.subscriptionId) {
+                    // Trường hợp gia hạn
+                    console.log("Extending subscription:", extendInfo);
 
-                await subscriptionPackageApi.subscriptionUserPackage(subscriptionData);
+                    // Gọi API gia hạn
+                    await subscriptionPackageApi.extendSubscription(
+                        extendInfo.subscriptionId,
+                        extendInfo.extendPeriods || 1
+                    );
+
+                    // Xóa thông tin gia hạn khỏi localStorage
+                    localStorage.removeItem('extendInfo');
+
+                    toast.success("Gia hạn gói thành công!");
+                } else {
+                    // Trường hợp đăng ký mới
+                    const subscriptionData = {
+                        userId: userId,
+                        packagePlanId: packageId
+                    };
+
+                    await subscriptionPackageApi.createSubscription(subscriptionData);
+
+                    toast.success("Đăng ký gói thành công!");
+                }
 
                 // Thành công
                 setStatus("success");
-                toast.success("Đăng ký gói thành công!");
             } catch (error) {
                 console.error("Subscription error:", error);
                 setStatus("error");
                 setErrorMessage(error.message || "Có lỗi xảy ra khi kích hoạt gói!");
                 toast.error("Có lỗi xảy ra khi kích hoạt gói!");
+
+                // Xóa extendInfo nếu có lỗi
+                localStorage.removeItem('extendInfo');
             } finally {
                 setIsProcessing(false);
             }
@@ -192,7 +229,7 @@ export default function PaymentSuccessPage() {
                                     Về trang chủ
                                 </Button>
                                 <Button
-                                    onClick={() => navigate("/driver/packages")}
+                                    onClick={() => navigate("/driver/my-packages")}
                                     variant="outline"
                                     className="flex-1"
                                 >

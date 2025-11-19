@@ -2,10 +2,10 @@ import { apiClient } from "./apiClient";
 
 /**
  * Booking API
- * Base URL: /api/v1/bookings
+ * Base URL: /api/bookings
  */
 
-const BASE_URL = "/v1/bookings";
+const BASE_URL = "/bookings";
 
 /**
  * 1. Lấy tất cả bookings với phân trang
@@ -46,22 +46,6 @@ export const getBookingsByDriver = async (driverId, page = 0, size = 10) => {
  */
 export const getBookingsByStation = async (stationId, page = 0, size = 10) => {
     return await apiClient.get(`${BASE_URL}/station/${stationId}?page=${page}&size=${size}`);
-};
-
-/**
- * 5. Lấy danh sách bookings quá hạn (Admin)
- * @returns {Promise<Array>}
- */
-export const getOverdueBookings = async () => {
-    return await apiClient.get(`${BASE_URL}/overdue`);
-};
-
-/**
- * 6. Lấy danh sách bookings sắp tới (Admin)
- * @returns {Promise<Array>}
- */
-export const getUpcomingBookings = async () => {
-    return await apiClient.get(`${BASE_URL}/upcoming`);
 };
 
 /**
@@ -166,8 +150,6 @@ export const bookingApi = {
     getBookingById,
     getBookingsByDriver,
     getBookingsByStation,
-    getOverdueBookings,
-    getUpcomingBookings,
     searchBookings,
     getBookingStatistics,
     createBooking,

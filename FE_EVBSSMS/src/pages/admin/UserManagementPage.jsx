@@ -11,7 +11,7 @@ import {
     UserX,
     Eye,
     Car,
-    Shield, Mail, Phone, IdCardIcon
+    Shield, Mail, Phone, IdCardIcon, UserPlus, ShieldCheck, ShieldX
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,19 +20,18 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import Id from "zod/v4/locales/id.js";
+import UserDetailDialog from "@/components/UserDetailDialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 export default function UserManagementPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedUser, setSelectedUser] = useState(null);
     const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+    const [confirmState, setConfirmState] = useState({ action: null, userId: null });
+    // State cho tab đăng ký chờ duyệt
+    const [registrationRoleFilter, setRegistrationRoleFilter] = useState("ALL");
+    const [rejectDialog, setRejectDialog] = useState({ open: false, userId: null, reason: "" });
+    const [approveTarget, setApproveTarget] = useState(null);
 
     // Fetch drivers
     const { data: driversData, isLoading: isLoadingDrivers, refetch: refetchDrivers } = useCustomQuery(
@@ -44,6 +43,12 @@ export default function UserManagementPage() {
     const { data: staffData, isLoading: isLoadingStaff, refetch: refetchStaff } = useCustomQuery(
         ["staff"],
         adminApi.getAllStaff
+    );
+
+    // Fetch pending registrations
+    const { data: pendingRegistrationsData, isLoading: isLoadingPending, refetch: refetchPending } = useCustomQuery(
+        ["pendingRegistrations", registrationRoleFilter],
+        () => adminApi.getPendingRegistrations(registrationRoleFilter === "ALL" ? undefined : registrationRoleFilter)
     );
 
     // Activate user mutation
@@ -72,6 +77,40 @@ export default function UserManagementPage() {
         }
     );
 
+    // Approve/Reject registration mutation
+    const approveMutation = useCustomMutation(
+        (payload) => adminApi.approveRegistration(payload),
+        null,
+        {
+            onSuccess: () => {
+                toast.success("Đã xử lý đăng ký!");
+                setApproveTarget(null);
+                setRejectDialog({ open: false, userId: null, reason: "" });
+                refetchPending();
+            },
+        }
+    );
+
+    const openConfirm = (action, userId) => setConfirmState({ action, userId });
+    const closeConfirm = () => setConfirmState({ action: null, userId: null });
+
+    const executeConfirm = () => {
+        if (!confirmState.userId || !confirmState.action) return;
+        switch (confirmState.action) {
+            case "activate":
+                activateMutation.mutate(confirmState.userId);
+                break;
+            case "deactivate":
+                deactivateMutation.mutate(confirmState.userId);
+                break;
+            default:
+                break;
+        }
+        closeConfirm();
+    };
+
+    const isPendingConfirm = confirmState.action === "activate" ? activateMutation.isPending : confirmState.action === "deactivate" ? deactivateMutation.isPending : false;
+
     const getStatusBadge = (status) => {
         const statusMap = {
             ACTIVE: { label: "Hoạt động", className: "bg-green-500" },
@@ -97,15 +136,11 @@ export default function UserManagementPage() {
     };
 
     const handleActivate = (userId) => {
-        if (confirm("Bạn có chắc chắn muốn kích hoạt tài khoản này?")) {
-            activateMutation.mutate(userId);
-        }
+        openConfirm("activate", userId);
     };
 
     const handleDeactivate = (userId) => {
-        if (confirm("Bạn có chắc chắn muốn vô hiệu hóa tài khoản này?")) {
-            deactivateMutation.mutate(userId);
-        }
+        openConfirm("deactivate", userId);
     };
 
     const filterUsers = (users) => {
@@ -205,7 +240,7 @@ export default function UserManagementPage() {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                                             onClick={() => handleDeactivate(user.id)}
                                         >
                                             <UserX className="w-4 h-4 mr-1" />
@@ -222,6 +257,77 @@ export default function UserManagementPage() {
                                             Kích hoạt
                                         </Button>
                                     )}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
+
+    // Helper: render danh sách đăng ký chờ duyệt
+    const renderPendingRegistrations = () => {
+        const regs = pendingRegistrationsData || [];
+        const filtered = !searchQuery ? regs : regs.filter(r => {
+            const q = searchQuery.toLowerCase();
+            return (r.fullName || "").toLowerCase().includes(q)
+                || (r.email || "").toLowerCase().includes(q)
+                || (r.identityCard || "").toLowerCase().includes(q);
+        });
+
+        if (isLoadingPending) {
+            return (
+                <div className="space-y-4">
+                    {[1,2,3].map(i => <Skeleton key={i} className="h-28 w-full" />)}
+                </div>
+            );
+        }
+
+        if (filtered.length === 0) {
+            return (
+                <Card>
+                    <CardContent className="py-12 text-center">
+                        <UserPlus className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                        <p className="text-slate-500">Không có đăng ký nào đang chờ phê duyệt</p>
+                    </CardContent>
+                </Card>
+            );
+        }
+
+        return (
+            <div className="space-y-4">
+                {filtered.map(reg => (
+                    <Card key={reg.id || reg.userId} className="hover:shadow-md transition">
+                        <CardContent className="p-5 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-semibold text-slate-900">{reg.fullName || reg.email || "Người dùng"}</h3>
+                                    <p className="text-sm text-slate-600">{reg.email}</p>
+                                    <div className="flex gap-2 flex-wrap">
+                                        <Badge variant="outline" className="border-slate-300">{reg.role}</Badge>
+                                        {reg.identityCard && <Badge variant="outline" className="border-emerald-300">CCCD: {reg.identityCard}</Badge>}
+                                        <Badge className="bg-blue-500 text-white">Chờ phê duyệt</Badge>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                                        disabled={approveMutation.isPending && approveTarget === (reg.id || reg.userId)}
+                                        onClick={() => { setApproveTarget(reg.id || reg.userId); approveMutation.mutate({ userId: reg.id || reg.userId, approved: true }); }}
+                                    >
+                                        {approveMutation.isPending && approveTarget === (reg.id || reg.userId) ? "Đang xử lý..." : <><ShieldCheck className="w-4 h-4 mr-1" /> Duyệt</>}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-red-600 hover:text-red-700 cursor-pointer"
+                                        disabled={approveMutation.isPending}
+                                        onClick={() => setRejectDialog({ open: true, userId: reg.id || reg.userId, reason: "" })}
+                                    >
+                                        <ShieldX className="w-4 h-4 mr-1" /> Từ chối
+                                    </Button>
                                 </div>
                             </div>
                         </CardContent>
@@ -312,7 +418,7 @@ export default function UserManagementPage() {
 
             {/* Search & Filter */}
             <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-3">
                     <div className="flex gap-4">
                         <div className="flex-1 relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -333,9 +439,10 @@ export default function UserManagementPage() {
 
             {/* User Tables */}
             <Tabs defaultValue="drivers" className="space-y-6">
-                <TabsList className="grid w-full max-w-md grid-cols-2">
-                    <TabsTrigger value="drivers">Tài xế</TabsTrigger>
-                    <TabsTrigger value="staff">Nhân viên</TabsTrigger>
+                <TabsList className="grid w-full max-w-md grid-cols-3">
+                    <TabsTrigger value="drivers" className={"cursor-pointer"}>Tài xế</TabsTrigger>
+                    <TabsTrigger value="staff" className={"cursor-pointer"}>Nhân viên</TabsTrigger>
+                    <TabsTrigger value="registrations" className={"cursor-pointer"}>Đăng ký chờ duyệt</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="drivers">
@@ -345,105 +452,86 @@ export default function UserManagementPage() {
                 <TabsContent value="staff">
                     {renderUserTable(staffData, isLoadingStaff)}
                 </TabsContent>
+
+                <TabsContent value="registrations">
+                    <div className="space-y-4">
+                        {/* Bộ lọc vai trò cho pending */}
+                        <Tabs value={registrationRoleFilter} onValueChange={setRegistrationRoleFilter} className="w-full">
+                            <TabsList className="grid grid-cols-3 w-full max-w-md">
+                                <TabsTrigger value="ALL" className="cursor-pointer">Tất cả</TabsTrigger>
+                                <TabsTrigger value="DRIVER" className="cursor-pointer">Tài xế</TabsTrigger>
+                                <TabsTrigger value="STAFF" className="cursor-pointer">Nhân viên</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                        {renderPendingRegistrations()}
+                    </div>
+                </TabsContent>
             </Tabs>
 
             {/* User Detail Dialog */}
-            <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Chi tiết người dùng</DialogTitle>
-                        <DialogDescription>Thông tin chi tiết về người dùng</DialogDescription>
-                    </DialogHeader>
-                    {selectedUser && (
-                        <div className="space-y-6">
-                            {/* Avatar & Basic Info */}
-                            <div className="flex items-center gap-4">
-                                <Avatar className="w-24 h-24">
-                                    {selectedUser.avatar && (
-                                        <AvatarImage src={selectedUser.avatar} alt={selectedUser.fullName} />
-                                    )}
-                                    <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-cyan-500 text-white text-2xl">
-                                        {getUserInitials(selectedUser.fullName)}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <h3 className="text-xl font-bold text-slate-900">{selectedUser.fullName}</h3>
-                                    <p className="text-slate-500">{selectedUser.email}</p>
-                                    <div className="flex gap-2 mt-2">
-                                        <Badge className={`${getStatusBadge(selectedUser.status).className} text-white`}>
-                                            {getStatusBadge(selectedUser.status).label}
-                                        </Badge>
-                                        <Badge variant="outline">{selectedUser.role}</Badge>
-                                    </div>
-                                </div>
-                            </div>
+            <UserDetailDialog
+                open={isDetailDialogOpen}
+                onOpenChange={setIsDetailDialogOpen}
+                user={selectedUser}
+                getStatusBadge={getStatusBadge}
+                getUserInitials={getUserInitials}
+            />
 
-                            {/* Detailed Info */}
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <p className="text-slate-500">Số điện thoại</p>
-                                    <p className="font-semibold text-slate-900">{selectedUser.phone}</p>
-                                </div>
-                                <div>
-                                    <p className="text-slate-500">Ngày sinh</p>
-                                    <p className="font-semibold text-slate-900">
-                                        {selectedUser.birthday
-                                            ? new Date(selectedUser.birthday).toLocaleDateString("vi-VN")
-                                            : "Chưa cập nhật"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-slate-500">CCCD</p>
-                                    <p className="font-semibold text-slate-900">{selectedUser.identityCard}</p>
-                                </div>
-                                <div>
-                                    <p className="text-slate-500">Mã nhân viên</p>
-                                    <p className="font-semibold text-slate-900">{selectedUser.employeeId}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <p className="text-slate-500">Địa chỉ</p>
-                                    <p className="font-semibold text-slate-900">
-                                        {selectedUser.address || "Chưa cập nhật"}
-                                    </p>
-                                </div>
-                            </div>
+            {/* AlertDialog xác nhận kích hoạt / vô hiệu hóa */}
+            <AlertDialog open={!!confirmState.action} onOpenChange={(open) => { if (!open) closeConfirm(); }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {confirmState.action === "activate" && "Xác nhận kích hoạt tài khoản"}
+                            {confirmState.action === "deactivate" && "Xác nhận vô hiệu hóa tài khoản"}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {confirmState.action === "activate" && "Bạn có chắc chắn muốn kích hoạt tài khoản này?"}
+                            {confirmState.action === "deactivate" && "Bạn có chắc chắn muốn vô hiệu hóa tài khoản này? Người dùng sẽ không thể đăng nhập."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={closeConfirm} className="cursor-pointer">Hủy</AlertDialogCancel>
+                        <AlertDialogAction onClick={executeConfirm} disabled={isPendingConfirm} className="bg-red-600 hover:bg-red-700 cursor-pointer">
+                            {isPendingConfirm ? "Đang xử lý..." : "Xác nhận"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
-                            {/* Vehicles */}
-                            {selectedUser.vehicles && selectedUser.vehicles.length > 0 && (
-                                <div>
-                                    <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                                        <Car className="w-5 h-5" />
-                                        Phương tiện ({selectedUser.vehicles.length})
-                                    </h4>
-                                    <div className="space-y-3">
-                                        {selectedUser.vehicles.map((vehicle) => (
-                                            <div
-                                                key={vehicle.vehicleId}
-                                                className="p-3 border rounded-lg space-y-1"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <p className="font-semibold">{vehicle.model || "Xe điện"}</p>
-                                                    <Badge>{vehicle.status}</Badge>
-                                                </div>
-                                                <p className="text-sm text-slate-600">
-                                                    Biển số: {vehicle.licensePlate}
-                                                </p>
-                                                <p className="text-sm text-slate-600">VIN: {vehicle.vin}</p>
-                                                {vehicle.batteryCapacity && (
-                                                    <p className="text-sm text-slate-600">
-                                                        Pin: {vehicle.batteryCapacity} kWh
-                                                    </p>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+            {/* AlertDialog từ chối đăng ký */}
+            <AlertDialog open={rejectDialog.open} onOpenChange={(open) => { if (!open) setRejectDialog({ open: false, userId: null, reason: "" }); }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Từ chối đăng ký</AlertDialogTitle>
+                        <AlertDialogDescription>Nhập lý do từ chối để gửi thông báo tới người dùng.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2">
+                        <Input
+                            placeholder="Lý do từ chối"
+                            value={rejectDialog.reason}
+                            onChange={(e) => setRejectDialog(r => ({ ...r, reason: e.target.value }))}
+                            disabled={approveMutation.isPending}
+                        />
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="cursor-pointer" disabled={approveMutation.isPending}>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-600 hover:bg-red-700 cursor-pointer"
+                            disabled={approveMutation.isPending}
+                            onClick={() => {
+                                if (!rejectDialog.reason.trim()) {
+                                    toast.error("Vui lòng nhập lý do từ chối!");
+                                    return;
+                                }
+                                approveMutation.mutate({ userId: rejectDialog.userId, approved: false, rejectionReason: rejectDialog.reason.trim() });
+                            }}
+                        >
+                            {approveMutation.isPending ? "Đang xử lý..." : "Xác nhận"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
-

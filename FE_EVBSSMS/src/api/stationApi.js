@@ -5,7 +5,7 @@ import { apiClient } from "./apiClient";
  * Base URL: /api/stations
  */
 
-const BASE_URL = "/stations";
+const BASE_URL = "/station/api/stations";
 
 /**
  * Lấy tất cả stations
@@ -66,6 +66,19 @@ export const findNearestStations = async (latitude, longitude) => {
     return { data, message };
 };
 
+/**
+ * Thêm nhân viên vào trạm (Admin/Manager)
+ * POST /station/api/stations/staffs/{stationId}
+ * @param {number|string} stationId
+ * @param {{ staffCode: string }} payload
+ * @returns {Promise<Object>} Thông tin trạm sau khi thêm nhân viên, bao gồm batteries và staffCode
+ */
+export const addStaffToStation = async (stationId, payload) => {
+    // payload: { staffCode }
+    const res = await apiClient.post(`${BASE_URL}/staffs/${stationId}`, payload);
+    return res?.data || res || null;
+};
+
 /** Station Status Enum */
 export const STATION_STATUS = {
     ACTIVE: "ACTIVE",
@@ -80,5 +93,6 @@ export const stationApi = {
     updateStation,
     deleteStation,
     findNearestStations,
+    addStaffToStation,
     STATION_STATUS,
 };

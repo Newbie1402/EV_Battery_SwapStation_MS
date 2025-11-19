@@ -11,10 +11,10 @@ const ProtectedRoute = ({ element, allowedRoles = [] }) => {
         return <Navigate to="/login" replace />;
     }
 
-    // Nếu status là PENDING_VERIFICATION → chuyển về /verify-otp
-    // (Chỉ áp dụng cho các route không phải verify-otp)
-    if (status === "PENDING_VERIFICATION" && window.location.pathname !== "/verify-otp") {
-        return <Navigate to="/verify-otp" replace />;
+    // Nếu status là PENDING_VERIFICATION → chuyển về /verify-registration
+    // (Chỉ áp dụng cho các route không phải verify-registration)
+    if (status === "PENDING_VERIFICATION" && window.location.pathname !== "/verify-registration") {
+        return <Navigate to="/verify-registration" replace />;
     }
 
     // Nếu login nhưng sai quyền → chuyển về /

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Calendar, Clock, Battery, FileText } from "lucide-react";
 import useCustomMutation from "@/hooks/useCustomMutation";
 import useCustomQuery from "@/hooks/useCustomQuery";
-import { bookingApi, batteryModelApi } from "@/api";
+import { bookingApi, batteriesApi } from "@/api";
 import { useAuthStore } from "@/store/authStore";
 import {
     Dialog,
@@ -30,7 +30,7 @@ export default function BookingDialog({ open, onOpenChange, station }) {
     // Fetch battery models
     const { data: batteryModelsData } = useCustomQuery(
         ["batteryModels"],
-        () => batteryModelApi.getAllBatteryModels(0, 100)
+        () => batteriesApi.getAllBatteryModels(0, 100)
     );
 
     const batteryModels = batteryModelsData?.content || [];

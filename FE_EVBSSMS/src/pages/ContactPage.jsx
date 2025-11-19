@@ -1,5 +1,6 @@
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle, Zap } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Facebook, Instagram, MessageCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Home, Info, DollarSign } from "lucide-react";
@@ -9,13 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
-        phone: "",
         subject: "",
         message: "",
     });
@@ -24,7 +23,7 @@ export default function ContactPage() {
     const publicMenuItems = [
         { label: "Trang chủ", path: "/", icon: Home },
         { label: "Giới thiệu", path: "/about", icon: Info },
-        { label: "Trạm đổi pin", path: "/stations", icon: MapPin },
+        { label: "Trạm đổi pin", path: "/driver/stations", icon: MapPin },
         { label: "Bảng giá", path: "/pricing", icon: DollarSign },
         { label: "Liên hệ", path: "/contact", icon: Phone },
     ];
@@ -33,37 +32,6 @@ export default function ContactPage() {
         hidden: { opacity: 0, y: 40 },
         visible: { opacity: 1, y: 0 },
     };
-
-    const contactInfo = [
-        {
-            icon: Phone,
-            title: "Điện thoại",
-            details: ["Hotline: 1900 1234", "Hỗ trợ: 024 1234 5678"],
-            color: "from-emerald-500 to-green-500",
-            bgColor: "bg-emerald-50"
-        },
-        {
-            icon: Mail,
-            title: "Email",
-            details: ["support@evbss.vn", "info@evbss.vn"],
-            color: "from-blue-500 to-cyan-500",
-            bgColor: "bg-blue-50"
-        },
-        {
-            icon: MapPin,
-            title: "Địa chỉ",
-            details: ["123 Đường ABC, Quận XYZ", "Hà Nội, Việt Nam"],
-            color: "from-purple-500 to-pink-500",
-            bgColor: "bg-purple-50"
-        },
-        {
-            icon: Clock,
-            title: "Giờ làm việc",
-            details: ["Thứ 2 - Thứ 6: 8:00 - 18:00", "Thứ 7 - CN: 9:00 - 17:00"],
-            color: "from-orange-500 to-red-500",
-            bgColor: "bg-orange-50"
-        },
-    ];
 
     const handleChange = (e) => {
         setFormData({
@@ -74,289 +42,271 @@ export default function ContactPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Validation
-        if (!formData.name || !formData.email || !formData.phone || !formData.subject || !formData.message) {
+        if (!formData.name || !formData.email || !formData.subject || !formData.message) {
             toast.error("Vui lòng điền đầy đủ thông tin!");
             return;
         }
-
         setIsSubmitting(true);
-
-        // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1500));
-
-        toast.success("Gửi tin nhắn thành công! Chúng tôi sẽ liên hệ lại với bạn sớm.");
-
-        // Reset form
-        setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            subject: "",
-            message: "",
-        });
-
+        toast.success("Gửi tin nhắn thành công! Chúng tôi sẽ liên hệ lại sớm.");
+        setFormData({ name: "", email: "", subject: "", message: "" });
         setIsSubmitting(false);
     };
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50">
+        <div className="w-full min-h-screen bg-slate-50 text-gray-900">
             <Header menuItems={publicMenuItems} role="" />
 
-            {/* Hero Section */}
-            <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-300/30 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-300/30 rounded-full blur-3xl animate-pulse delay-1000" />
-                </div>
+            {/* Main Content */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+                {/* Page Header */}
+                <motion.div
+                    className="text-center mb-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                        Liên Hệ Với Chúng Tôi
+                    </h1>
+                    <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+                        Chúng tôi luôn sẵn sàng lắng nghe. Hãy để lại lời nhắn cho chúng tôi hoặc liên hệ trực tiếp qua các thông tin bên dưới.
+                    </p>
+                </motion.div>
 
-                <div className="max-w-7xl mx-auto relative z-10">
+                {/* Grid Layout: Form (3 cols) + Sidebar (2 cols) */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16 pt-10">
+                    {/* Contact Form - 3 columns */}
                     <motion.div
-                        className="text-center mb-16"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
+                        className="lg:col-span-3 bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm"
+                        variants={fadeVariants}
+                        initial="hidden"
+                        animate="visible"
+                        transition={{ duration: 0.6 }}
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 rounded-full mb-6">
-                            <MessageCircle className="w-4 h-4 text-emerald-600" />
-                            <span className="text-sm font-medium text-emerald-700">Liên hệ với chúng tôi</span>
-                        </div>
-                        <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">
-                            <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
-                                Kết nối
-                            </span>
-                            <br />
-                            <span className="text-gray-800">Cùng chúng tôi</span>
-                        </h1>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                            Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn.
-                            Hãy để lại thông tin hoặc liên hệ trực tiếp với chúng tôi.
-                        </p>
-                    </motion.div>
-                </div>
-            </section>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                            Gửi tin nhắn cho chúng tôi
+                        </h2>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Name & Email Row */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name" className="text-base font-medium text-gray-900">
+                                        Họ và tên
+                                    </Label>
+                                    <Input
+                                        id="name"
+                                        name="name"
+                                        type="text"
+                                        placeholder="Nhập họ và tên của bạn"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        disabled={isSubmitting}
+                                        className="h-14 text-base border-slate-300 focus:border-[#135bec] focus:ring-[#135bec]/20"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email" className="text-base font-medium text-gray-900">
+                                        Email
+                                    </Label>
+                                    <Input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        placeholder="Nhập địa chỉ email của bạn"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        disabled={isSubmitting}
+                                        className="h-14 text-base border-slate-300 focus:border-[#135bec] focus:ring-[#135bec]/20"
+                                    />
+                                </div>
+                            </div>
 
-            {/* Contact Info Cards */}
-            <section className="py-12 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid md:grid-cols-4 gap-6">
-                        {contactInfo.map((item, idx) => (
-                            <motion.div
-                                key={idx}
-                                className={`${item.bgColor} rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all`}
-                                variants={fadeVariants}
-                                initial="hidden"
-                                whileInView="visible"
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                                whileHover={{ y: -5 }}
+                            {/* Subject */}
+                            <div className="space-y-2">
+                                <Label htmlFor="subject" className="text-base font-medium text-gray-900">
+                                    Chủ đề
+                                </Label>
+                                <Input
+                                    id="subject"
+                                    name="subject"
+                                    type="text"
+                                    placeholder="Nhập chủ đề tin nhắn"
+                                    value={formData.subject}
+                                    onChange={handleChange}
+                                    disabled={isSubmitting}
+                                    className="h-14 text-base border-slate-300 focus:border-[#135bec] focus:ring-[#135bec]/20"
+                                />
+                            </div>
+
+                            {/* Message */}
+                            <div className="space-y-2">
+                                <Label htmlFor="message" className="text-base font-medium text-gray-900">
+                                    Nội dung tin nhắn
+                                </Label>
+                                <Textarea
+                                    id="message"
+                                    name="message"
+                                    placeholder="Viết tin nhắn của bạn ở đây..."
+                                    value={formData.message}
+                                    onChange={handleChange}
+                                    disabled={isSubmitting}
+                                    rows={5}
+                                    className="resize-y text-base border-slate-300 focus:border-[#135bec] focus:ring-[#135bec]/20"
+                                />
+                            </div>
+
+                            {/* Submit Button */}
+                            <Button
+                                type="submit"
+                                className="w-full sm:w-auto h-12 px-6 bg-[#135bec] hover:bg-[#0e4ab8] text-white font-bold text-base"
+                                disabled={isSubmitting}
                             >
-                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4`}>
-                                    <item.icon className="w-6 h-6 text-white" />
-                                </div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-3">{item.title}</h3>
-                                {item.details.map((detail, i) => (
-                                    <p key={i} className="text-sm text-gray-600 mb-1">{detail}</p>
-                                ))}
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Đang gửi...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="w-5 h-5 mr-2" />
+                                        Gửi tin nhắn
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </motion.div>
 
-            {/* Contact Form & Map Section */}
-            <section className="py-24 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid md:grid-cols-2 gap-12">
-                        {/* Contact Form */}
+                    {/* Sidebar - 2 columns */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Contact Info Card */}
                         <motion.div
+                            className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"
                             variants={fadeVariants}
                             initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true }}
+                            animate="visible"
+                            transition={{ duration: 0.6, delay: 0.1 }}
                         >
-                            <Card className="shadow-xl border-0">
-                                <CardHeader>
-                                    <CardTitle className="text-2xl font-bold text-gray-900">
-                                        Gửi tin nhắn cho chúng tôi
-                                    </CardTitle>
-                                    <CardDescription className="text-gray-600">
-                                        Điền thông tin bên dưới và chúng tôi sẽ liên hệ lại với bạn sớm nhất.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <form onSubmit={handleSubmit} className="space-y-4">
-                                        {/* Name */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="name" className="text-gray-700">
-                                                Họ và tên <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Input
-                                                id="name"
-                                                name="name"
-                                                type="text"
-                                                placeholder="Nguyễn Văn A"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                disabled={isSubmitting}
-                                                className="h-11"
-                                            />
-                                        </div>
-
-                                        {/* Email */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-gray-700">
-                                                Email <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Input
-                                                id="email"
-                                                name="email"
-                                                type="email"
-                                                placeholder="email@example.com"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                disabled={isSubmitting}
-                                                className="h-11"
-                                            />
-                                        </div>
-
-                                        {/* Phone */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="phone" className="text-gray-700">
-                                                Số điện thoại <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Input
-                                                id="phone"
-                                                name="phone"
-                                                type="tel"
-                                                placeholder="0987654321"
-                                                value={formData.phone}
-                                                onChange={handleChange}
-                                                disabled={isSubmitting}
-                                                className="h-11"
-                                            />
-                                        </div>
-
-                                        {/* Subject */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="subject" className="text-gray-700">
-                                                Chủ đề <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Input
-                                                id="subject"
-                                                name="subject"
-                                                type="text"
-                                                placeholder="Tôi muốn hỏi về..."
-                                                value={formData.subject}
-                                                onChange={handleChange}
-                                                disabled={isSubmitting}
-                                                className="h-11"
-                                            />
-                                        </div>
-
-                                        {/* Message */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="message" className="text-gray-700">
-                                                Nội dung <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Textarea
-                                                id="message"
-                                                name="message"
-                                                placeholder="Nhập nội dung tin nhắn của bạn..."
-                                                value={formData.message}
-                                                onChange={handleChange}
-                                                disabled={isSubmitting}
-                                                rows={5}
-                                                className="resize-none"
-                                            />
-                                        </div>
-
-                                        {/* Submit Button */}
-                                        <Button
-                                            type="submit"
-                                            className="w-full h-11 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold"
-                                            disabled={isSubmitting}
-                                        >
-                                            {isSubmitting ? (
-                                                <>
-                                                    <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                    Đang gửi...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Send className="w-5 h-5 mr-2" />
-                                                    Gửi tin nhắn
-                                                </>
-                                            )}
-                                        </Button>
-                                    </form>
-                                </CardContent>
-                            </Card>
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">Thông tin liên hệ</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-[#135bec]/10 text-[#135bec] p-2 rounded-full mt-1 flex-shrink-0">
+                                        <Phone className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">Hotline</p>
+                                        <a href="tel:19001234" className="text-gray-600 hover:text-[#135bec] transition-colors">
+                                            1900 1234
+                                        </a>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-[#135bec]/10 text-[#135bec] p-2 rounded-full mt-1 flex-shrink-0">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">Email hỗ trợ</p>
+                                        <a href="mailto:support@evbss.vn" className="text-gray-600 hover:text-[#135bec] transition-colors">
+                                            support@evbss.vn
+                                        </a>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-[#135bec]/10 text-[#135bec] p-2 rounded-full mt-1 flex-shrink-0">
+                                        <MapPin className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">Địa chỉ văn phòng</p>
+                                        <p className="text-gray-600">123 Đường ABC, Quận 1, TP. Hồ Chí Minh</p>
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
 
-                        {/* Map & Additional Info */}
+                        {/* Working Hours Card */}
                         <motion.div
-                            className="space-y-6"
+                            className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"
                             variants={fadeVariants}
                             initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true }}
+                            animate="visible"
+                            transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            {/* Map Placeholder */}
-                            <Card className="shadow-xl border-0 overflow-hidden">
-                                <div className="h-80 bg-gradient-to-br from-emerald-100 to-cyan-100 flex items-center justify-center relative">
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <MapPin className="w-24 h-24 text-emerald-500/50" strokeWidth={1} />
-                                    </div>
-                                    <div className="relative z-10 text-center">
-                                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-4">
-                                            <MapPin className="w-8 h-8 text-white" />
-                                        </div>
-                                        <p className="text-lg font-semibold text-gray-800">Trụ sở chính</p>
-                                        <p className="text-sm text-gray-600">123 Đường ABC, Quận XYZ, Hà Nội</p>
-                                    </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">Giờ làm việc</h3>
+                            <div className="space-y-2 text-gray-600">
+                                <div className="flex justify-between">
+                                    <span>Thứ Hai - Thứ Sáu:</span>
+                                    <span className="font-medium text-gray-900">8:00 - 18:00</span>
                                 </div>
-                            </Card>
+                                <div className="flex justify-between">
+                                    <span>Thứ Bảy:</span>
+                                    <span className="font-medium text-gray-900">9:00 - 17:00</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Chủ Nhật:</span>
+                                    <span className="font-medium text-gray-900">Đóng cửa</span>
+                                </div>
+                            </div>
+                        </motion.div>
 
-                            {/* Quick Contact */}
-                            <Card className="shadow-xl border-0 bg-gradient-to-br from-emerald-500 via-cyan-500 to-blue-500 text-white">
-                                <CardHeader>
-                                    <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                                        <Zap className="w-6 h-6" />
-                                        Liên hệ nhanh
-                                    </CardTitle>
-                                    <CardDescription className="text-white/90">
-                                        Cần hỗ trợ ngay? Gọi hotline của chúng tôi
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <a
-                                        href="tel:19001234"
-                                        className="flex items-center gap-3 p-4 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition"
-                                    >
-                                        <Phone className="w-6 h-6" />
-                                        <div>
-                                            <p className="font-semibold">Hotline 24/7</p>
-                                            <p className="text-lg font-bold">1900 1234</p>
-                                        </div>
-                                    </a>
-                                    <a
-                                        href="mailto:support@evbss.vn"
-                                        className="flex items-center gap-3 p-4 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition"
-                                    >
-                                        <Mail className="w-6 h-6" />
-                                        <div>
-                                            <p className="font-semibold">Email hỗ trợ</p>
-                                            <p className="text-lg font-bold">support@evbss.vn</p>
-                                        </div>
-                                    </a>
-                                </CardContent>
-                            </Card>
+                        {/* Social Media Card */}
+                        <motion.div
+                            className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"
+                            variants={fadeVariants}
+                            initial="hidden"
+                            animate="visible"
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                        >
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">Theo dõi chúng tôi</h3>
+                            <div className="flex items-center gap-4">
+                                <a
+                                    href="#"
+                                    className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-gray-600 hover:bg-[#135bec] hover:text-white transition-colors"
+                                    aria-label="Facebook"
+                                >
+                                    <Facebook className="w-5 h-5" />
+                                </a>
+                                <a
+                                    href="#"
+                                    className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-gray-600 hover:bg-[#135bec] hover:text-white transition-colors"
+                                    aria-label="Instagram"
+                                >
+                                    <Instagram className="w-5 h-5" />
+                                </a>
+                                <a
+                                    href="#"
+                                    className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-gray-600 hover:bg-[#135bec] hover:text-white transition-colors"
+                                    aria-label="Zalo"
+                                >
+                                    <MessageCircle className="w-5 h-5" />
+                                </a>
+                            </div>
                         </motion.div>
                     </div>
                 </div>
-            </section>
+
+                {/* Google Map Section */}
+                <motion.div
+                    className="mt-16 lg:mt-24 rounded-xl overflow-hidden border border-slate-200 shadow-sm"
+                    variants={fadeVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <div className="aspect-w-16 aspect-h-9">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.447913364969!2d106.69539361528657!3d10.776982292320857!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f38f9ed856b%3A0x38d4dc5894328a6e!2zQml0ZXhjbyBGaW5hbmNpYWwgVG93ZXIsIDIxIFR1biBUaGnhur9wLCBC4bq_biBOZ2jDqSwgUXXhuq1uIDEsIFRow6BuaCBwaOG7kSBI4buTIENow60gTWluaCwgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1678886555432!5m2!1svi!2s"
+                            width="100%"
+                            height="450"
+                            style={{ border: 0 }}
+                            allowFullScreen=""
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title="EV Swap Office Location"
+                        />
+                    </div>
+                </motion.div>
+            </main>
 
             <Footer />
         </div>

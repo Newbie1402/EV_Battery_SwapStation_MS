@@ -22,12 +22,8 @@ public class BatterySwapStationLog {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "verhice_battery_id")
-    private Battery oldStationBattery;
-
-    @ManyToOne
     @JoinColumn(name = "old_battery_id")
-    private Battery newStationBattery;
+    private Battery Battery;
 
     private String oldStationId;
 

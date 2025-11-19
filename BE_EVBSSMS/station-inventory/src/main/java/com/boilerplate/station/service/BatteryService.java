@@ -5,13 +5,11 @@ import com.boilerplate.station.enums.OwnerType;
 import com.boilerplate.station.exception.AppException;
 import com.boilerplate.station.exception.BusinessException;
 import com.boilerplate.station.model.DTO.BatteryDTO;
+import com.boilerplate.station.model.DTO.BatteryReturnLogDTO;
 import com.boilerplate.station.model.DTO.BatterySwapLogDTO;
 import com.boilerplate.station.model.createRequest.*;
-import com.boilerplate.station.model.entity.Battery;
+import com.boilerplate.station.model.entity.*;
 
-import com.boilerplate.station.model.entity.BatterySwapLog;
-import com.boilerplate.station.model.entity.BatterySwapStationLog;
-import com.boilerplate.station.model.entity.Station;
 import com.boilerplate.station.model.event.Consumer.BatteryHoldEvent;
 import com.boilerplate.station.model.event.Consumer.BatterySwapEvent;
 import com.boilerplate.station.model.event.Consumer.BatterySwapStation;
@@ -137,21 +135,24 @@ public class BatteryService {
 
     public ResponseEntity<ResponseData<Void>> handleBatterySwap(BatterySwapEvent event) {
         // Pin Xe -> Trạm - Pin A
-        Battery oldBattery = batteryRepository.findById(event.getOldBatteryId())
+        Battery oldBattery = batteryRepository.findByBatteryCode(event.getOldBatteryId())
                 .orElseThrow(() -> new RuntimeException("Old battery not found"));
+        Station station = stationRepository.findByStationCode(event.getStationId())
+                .orElseThrow(() -> new RuntimeException("Station not found"));
         oldBattery.setOwnerType(OwnerType.STATION);
         oldBattery.setReferenceId(event.getStationId());
-        oldBattery.setStatus(BatteryStatus.CHARGING);
-        oldBattery.setReferenceId(event.getStationId());
-
+        oldBattery.setStatus(BatteryStatus.IN_STOCK);
+        oldBattery.setStation(station);
+        station.getBatteries().add(oldBattery);
         // Pin mới -> Xe
         // Pin tram -> Xe - Pin B
-        Battery newBattery = batteryRepository.findById(event.getNewBatteryId())
+        Battery newBattery = batteryRepository.findByBatteryCode(event.getNewBatteryId())
                 .orElseThrow(() -> new RuntimeException("New battery not found"));
         newBattery.setOwnerType(OwnerType.VEHICLE);
         newBattery.setReferenceId(event.getVerhiceId());
-        newBattery.setReferenceId(event.getVerhiceId());
-        newBattery.setStatus(BatteryStatus.IN_USE);
+        newBattery.setStatus(BatteryStatus.IN_CAR);
+        station.getBatteries().removeIf(b -> b.getBatteryCode().equals(oldBattery.getBatteryCode()));
+        newBattery.setStation(null);
 
         batteryRepository.save(oldBattery);
         batteryRepository.save(newBattery);
@@ -166,28 +167,32 @@ public class BatteryService {
     }
 
 
-
     public ResponseEntity<ResponseData<Void>> handleBatterySwapStation(BatterySwapStation event) {
         // Pin cũ - chuyển từ trạm cũ sang trạm mới
-        Battery oldBattery = batteryRepository.findByBatteryCode(event.getOldBatteryId())
+        Battery oldBattery = batteryRepository.findByBatteryCode(event.getBatteryId())
                 .orElseThrow(() -> new BusinessException(AppException.BATTERY_NOT_FOUND));
         oldBattery.setOwnerType(OwnerType.STATION);
         oldBattery.setReferenceId(event.getNewstationId());
         oldBattery.setStatus(BatteryStatus.IN_STOCK);
 
-        // Pin mới - được cấp từ trạm mới
-        Battery newBattery = batteryRepository.findByBatteryCode(event.getNewBatteryId())
-                .orElseThrow(() -> new BusinessException(AppException.BATTERY_NOT_FOUND));
-        newBattery.setOwnerType(OwnerType.STATION);
-        newBattery.setReferenceId(event.getNewstationId());
-        oldBattery.setStatus(BatteryStatus.IN_STOCK);
+
+        Station newstation = stationRepository.findByStationCode(event.getNewstationId())
+                .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
+        Station oldstation = stationRepository.findByStationCode(event.getNewstationId())
+                .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
+
+        oldstation.getBatteries().removeIf(b -> b.getBatteryCode().equals(oldBattery.getBatteryCode()));;
+
+        newstation.getBatteries().add(oldBattery);
+
+        oldBattery.setStation(newstation);
 
         batteryRepository.save(oldBattery);
-        batteryRepository.save(newBattery);
+        stationRepository.save(newstation);
+        stationRepository.save(oldstation);
 
         createSwapStationLog(new BatterySwapStationLogRequest(
                 oldBattery.getBatteryCode(),
-                newBattery.getBatteryCode(),
                 event.getOldstationId(),
                 event.getNewstationId()
         ));
@@ -231,14 +236,11 @@ public class BatteryService {
 
 
     public BatterySwapStationLog createSwapStationLog(BatterySwapStationLogRequest request) {
-        Battery oldBattery = batteryRepository.findByBatteryCode(request.getOldStationBatteryCode())
-                .orElseThrow(() -> new BusinessException(AppException.BATTERY_NOT_FOUND));
-        Battery newBattery = batteryRepository.findByBatteryCode(request.getNewStationBatteryCode())
+        Battery oldBattery = batteryRepository.findByBatteryCode(request.getBatteryCode())
                 .orElseThrow(() -> new BusinessException(AppException.BATTERY_NOT_FOUND));
 
         BatterySwapStationLog log = new BatterySwapStationLog();
-        log.setOldStationBattery(oldBattery);
-        log.setNewStationBattery(newBattery);
+        log.setBattery(oldBattery);
         log.setOldStationId(request.getOldStationCode());
         log.setNewStationId(request.getNewStationCode());
         log.setSwapTime(LocalDateTime.now());
@@ -301,26 +303,90 @@ public class BatteryService {
     public ResponseEntity<ResponseData<BatteryDTO>> addBattery(AddBatteryRequest request) {
         Station station = stationRepository.findByStationCode(request.getStationCode())
                 .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
-        
-        Battery battery = new Battery();
-        battery.setBatteryCode(request.getBatteryCode());
+        Battery battery = batteryRepository.findByBatteryCode(request.getBatteryCode())
+                .orElseThrow(() -> new BusinessException(AppException.BATTERY_NOT_FOUND));
+        if (battery.getStation() != null &&
+                !battery.getStation().getStationCode().equals(request.getStationCode())) {
+            throw new RuntimeException(("Pin đang thuộc trạm khác!"));
+        }
         battery.setStation(station);
-        battery.setStatus(BatteryStatus.IN_USE);
-
-        Battery savedBattery = batteryRepository.save(battery);
-
-        // update slots count
-        station.setTotalSlots(station.getTotalSlots() + 1);
-        station.setAvailableSlots(station.getAvailableSlots() + 1);
+        Battery saved = batteryRepository.save(battery);
+        station.getBatteries().add(saved);
         stationRepository.save(station);
-
-        BatteryDTO batteryDTO = BatteryDTO.fromEntity(savedBattery);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ResponseData<>(HttpStatus.CREATED.value(),
+        BatteryDTO dto = BatteryDTO.fromEntity(saved);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseData<>(
+                        HttpStatus.OK.value(),
                         "Thêm pin vào trạm thành công",
-                        batteryDTO));
+                        dto
+                ));
     }
 
+
+
+    public ResponseEntity<ResponseData<BatteryReturnLogDTO>> createLog(BatteryReturnLogRequest request, Long Id) {
+        Optional<Battery> batteryOpt = batteryRepository.findById(request.getBatteryId());
+        if (batteryOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Battery không tồn tại", null));
+        }
+
+        BatterySwapLog swapLog = batterySwapLogRepository.findById(Id)
+                .orElseThrow(() -> new BusinessException(AppException.NOT_FOUND));
+
+
+        BatteryReturnLog log = BatteryReturnLog.builder()
+                .bookingId(request.getBookingId())
+                .customerId(request.getCustomerId())
+                .stationId(request.getStationId())
+                .battery(batteryOpt.get())
+                .condition(request.getCondition())
+                .Description(request.getDescription())
+                .note(request.getNote())
+                .returnTime(request.getReturnTime())
+                .build();
+
+        BatteryReturnLog saved = batteryReturnLogRepository.save(log);
+
+        BatterySwapLog swap = new BatterySwapLog();
+        swap.setBatteryReturnLog(saved);
+
+        batterySwapLogRepository.save(swap);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ResponseData<>(HttpStatus.CREATED.value(), "Tạo log trả pin thành công", BatteryReturnLogDTO.fromEntity(saved)));
+    }
+
+    public ResponseEntity<ResponseData<BatteryReturnLogDTO>> updateLog(Long id, BatteryReturnLogRequest request) {
+        Optional<BatteryReturnLog> logOpt = batteryReturnLogRepository.findById(id);
+        if (logOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Log trả pin không tồn tại", null));
+        }
+
+        BatteryReturnLog log = logOpt.get();
+
+        if (request.getBatteryId() != null) {
+            Optional<Battery> batteryOpt = batteryRepository.findById(request.getBatteryId());
+            if (batteryOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Battery không tồn tại", null));
+            }
+            log.setBattery(batteryOpt.get());
+        }
+
+        log.setBookingId(request.getBookingId());
+        log.setCustomerId(request.getCustomerId());
+        log.setStationId(request.getStationId());
+        log.setCondition(request.getCondition());
+        log.setDescription(request.getDescription());
+        log.setNote(request.getNote());
+        log.setReturnTime(request.getReturnTime());
+
+        BatteryReturnLog updated = batteryReturnLogRepository.save(log);
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(), "Cập nhật log trả pin thành công", BatteryReturnLogDTO.fromEntity(updated))
+        );
+    }
 
 }

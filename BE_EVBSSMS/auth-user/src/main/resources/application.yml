@@ -58,7 +58,8 @@ otp:
 # Application Configuration
 app:
   name: "EV Battery Swap Station Management System"
-  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  verification-token-expiration-hours: ${VERIFICATION_TOKEN_EXPIRATION_HOURS:48}
   kafka:
     topics:
       support-ticket-created: support.ticket.created

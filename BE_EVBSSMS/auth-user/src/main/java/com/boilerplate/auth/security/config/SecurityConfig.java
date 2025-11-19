@@ -82,6 +82,9 @@ public class SecurityConfig {
                                 "/api/auth/logout"
                         ).permitAll()
 
+                        // Verification endpoints (Public)
+                        .requestMatchers("/api/verification/**").permitAll()
+
                         // Admin endpoints (Chỉ ADMIN)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 

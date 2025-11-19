@@ -4,6 +4,7 @@ import com.boilerplate.billing.enums.PaymentMethod;
 import com.boilerplate.billing.enums.PaymentStatus;
 import com.boilerplate.billing.model.entity.PackagePayment;
 import com.boilerplate.billing.model.entity.SingleSwapPayment;
+import com.boilerplate.billing.model.event.consumer.DTO.DriverDTO;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class PackagePaymentDTO {
     private Long id;
-    private Long customerId;
+    private DriverDTO customerId;
     private Double totalAmount;
     private Double baseAmount;
     private Double discountAmount;
@@ -36,7 +37,7 @@ public class PackagePaymentDTO {
     public static PackagePaymentDTO fromEntity(PackagePayment entity) {
         return PackagePaymentDTO.builder()
                 .id(entity.getId())
-                .customerId(entity.getCustomerId())
+                .customerId(DriverDTO.fromEntity(entity.getCustomerId()))
                 .totalAmount(entity.getTotalAmount())
                 .baseAmount(entity.getBaseAmount())
                 .discountAmount(entity.getDiscountAmount())
@@ -52,4 +53,6 @@ public class PackagePaymentDTO {
                 .endDate(entity.getEndDate())
                 .build();
     }
+
+
 }

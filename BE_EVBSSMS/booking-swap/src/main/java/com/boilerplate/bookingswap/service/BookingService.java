@@ -1,6 +1,8 @@
 package com.boilerplate.bookingswap.service;
 
 import com.boilerplate.bookingswap.enums.BookingStatus;
+import com.boilerplate.bookingswap.exception.BookingException;
+import com.boilerplate.bookingswap.exception.BusinessException;
 import com.boilerplate.bookingswap.exception.NotFoundException;
 import com.boilerplate.bookingswap.model.entity.Booking;
 import com.boilerplate.bookingswap.model.dto.request.BookingRequest;
@@ -8,6 +10,7 @@ import com.boilerplate.bookingswap.model.dto.request.BookingSearchRequest;
 import com.boilerplate.bookingswap.model.dto.request.BookingUpdateRequest;
 import com.boilerplate.bookingswap.model.dto.respone.BookingResponse;
 import com.boilerplate.bookingswap.model.dto.respone.BookingStatisticsResponse;
+import com.boilerplate.bookingswap.model.response.ResponseData;
 import com.boilerplate.bookingswap.repository.BookingRepository;
 import com.boilerplate.bookingswap.service.mapper.BookingMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -216,7 +220,6 @@ public class BookingService {
         }
 
         booking.setBookingStatus(BookingStatus.SUCCESS);
-        booking.setTransactionId(transactionId);
         booking.setUpdatedAt(LocalDateTime.now());
 
         Booking completedBooking = bookingRepository.save(booking);
@@ -339,6 +342,21 @@ public class BookingService {
         bookingRepository.deleteById(id);
 
         log.info("Đã xóa booking ID: {}", id);
+    }
+
+    public ResponseEntity<ResponseData<Void>> confirmIsPaid(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BusinessException(BookingException.BOOKING_NOT_FOUND));
+
+        booking.setPaid(true);
+        bookingRepository.save(booking);
+        return ResponseEntity.ok(
+                new ResponseData<>(
+                        200,
+                        "Xác nhận thanh toán thành công",
+                        null
+                )
+        );
     }
 }
 

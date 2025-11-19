@@ -32,7 +32,7 @@ public class UserPackageSubscriptionController {
     @PostMapping
     public ResponseEntity<ResponseData<UserPackageSubscriptionResponse>> createSubscription(
             @Valid @RequestBody UserPackageSubscriptionRequest requestDTO) {
-        log.info("REST request to create subscription for user: {}", requestDTO.getUserId());
+
 
         UserPackageSubscriptionResponse response = subscriptionService.createSubscription(requestDTO);
 

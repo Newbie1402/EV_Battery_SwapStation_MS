@@ -2,6 +2,7 @@ package com.boilerplate.station.controller;
 
 import com.boilerplate.station.model.DTO.BatteryDTO;
 import com.boilerplate.station.model.DTO.BatterySwapLogDTO;
+import com.boilerplate.station.model.createRequest.AddBatteryRequest;
 import com.boilerplate.station.model.createRequest.BatteryCodeRequest;
 import com.boilerplate.station.model.createRequest.BatteryRequest;
 import com.boilerplate.station.model.event.Consumer.BatteryHoldEvent;
@@ -104,5 +105,10 @@ public class BatteryController {
     @PostMapping("/get/batterycode")
     public ResponseEntity<ResponseData<BatteryDTO>> getBatteryCode(@RequestBody BatteryCodeRequest request) {
         return batteryService.getBatteriesByBatteryCode(request);
+    }
+
+    @PostMapping("/add-battery")
+    public ResponseEntity<ResponseData<BatteryDTO>> addBattery(@RequestBody AddBatteryRequest request) {
+        return batteryService.addBattery(request);
     }
 }

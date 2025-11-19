@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class PackagePaymentRequest {
-    private Long customerId;
+    private String customerId;
     private Double totalAmount;
     private Double baseAmount;
     private Double discountAmount;

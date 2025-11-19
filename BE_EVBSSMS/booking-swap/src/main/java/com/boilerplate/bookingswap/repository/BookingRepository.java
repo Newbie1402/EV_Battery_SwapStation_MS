@@ -39,7 +39,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @param stationId ID của trạm
      * @return Danh sách booking
      */
-    List<Booking> findByStationId(String stationId);
 
     /**
      * Tìm tất cả booking tại một trạm với phân trang

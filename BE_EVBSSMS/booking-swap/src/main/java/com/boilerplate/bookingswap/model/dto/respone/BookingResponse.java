@@ -54,6 +54,8 @@ public class BookingResponse {
     /** Thời gian tạo */
     private LocalDateTime createdAt;
 
+    private boolean IsPaid;
+
     /** Thời gian cập nhật */
     private LocalDateTime updatedAt;
 }

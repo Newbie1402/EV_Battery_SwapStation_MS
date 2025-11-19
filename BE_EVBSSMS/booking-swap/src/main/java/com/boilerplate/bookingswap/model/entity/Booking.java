@@ -30,9 +30,11 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
-    private String transactionId;
+    private boolean isPaid = false;
 
     private String notes;
+
+    private String transactionId;
 
     private String packageId; // liên kết gói thuê pin nếu có
 

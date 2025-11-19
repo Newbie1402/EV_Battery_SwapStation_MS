@@ -3,6 +3,7 @@ package com.boilerplate.billing.model.entity;
 import com.boilerplate.billing.enums.PaymentMethod;
 import com.boilerplate.billing.enums.PaymentStatus;
 
+import com.boilerplate.billing.model.event.consumer.entity.Driver;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -21,7 +22,9 @@ public abstract class BasePayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long customerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Driver customerId;
 
     private Double totalAmount;
     private Double baseAmount;

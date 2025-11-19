@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class SingleSwapPaymentRequest {
-    private Long customerId;
+    private String customerId;
     private Double totalAmount;
     private Double baseAmount;
     private Double discountAmount;

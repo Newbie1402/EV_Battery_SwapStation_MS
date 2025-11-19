@@ -6,10 +6,7 @@ import com.boilerplate.station.exception.AppException;
 import com.boilerplate.station.exception.BusinessException;
 import com.boilerplate.station.model.DTO.BatteryDTO;
 import com.boilerplate.station.model.DTO.BatterySwapLogDTO;
-import com.boilerplate.station.model.createRequest.BatteryCodeRequest;
-import com.boilerplate.station.model.createRequest.BatteryRequest;
-import com.boilerplate.station.model.createRequest.BatterySwapLogRequest;
-import com.boilerplate.station.model.createRequest.BatterySwapStationLogRequest;
+import com.boilerplate.station.model.createRequest.*;
 import com.boilerplate.station.model.entity.Battery;
 
 import com.boilerplate.station.model.entity.BatterySwapLog;
@@ -301,6 +298,29 @@ public class BatteryService {
         );
     }
 
+    public ResponseEntity<ResponseData<BatteryDTO>> addBattery(AddBatteryRequest request) {
+        Station station = stationRepository.findByStationCode(request.getStationCode())
+                .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
+        
+        Battery battery = new Battery();
+        battery.setBatteryCode(request.getBatteryCode());
+        battery.setStation(station);
+        battery.setStatus(BatteryStatus.IN_USE);
+
+        Battery savedBattery = batteryRepository.save(battery);
+
+        // update slots count
+        station.setTotalSlots(station.getTotalSlots() + 1);
+        station.setAvailableSlots(station.getAvailableSlots() + 1);
+        stationRepository.save(station);
+
+        BatteryDTO batteryDTO = BatteryDTO.fromEntity(savedBattery);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ResponseData<>(HttpStatus.CREATED.value(),
+                        "Thêm pin vào trạm thành công",
+                        batteryDTO));
+    }
 
 
 }

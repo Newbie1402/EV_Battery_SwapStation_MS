@@ -8,10 +8,12 @@ import com.boilerplate.station.model.createRequest.StationRequest;
 import com.boilerplate.station.model.entity.Station;
 import com.boilerplate.station.model.response.ResponseData;
 import com.boilerplate.station.repository.StationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -131,6 +133,34 @@ public class StationService {
         StationDTO dto = StationDTO.fromEntity(station);
         return ResponseEntity.ok(
                 new ResponseData<>(HttpStatus.OK.value(), "Tìm trạm theo mã thành công", dto)
+        );
+    }
+
+    @Transactional
+    public ResponseEntity<ResponseData<StationDTO>> addStaffToStation(Long stationId, String staffName) {
+        Optional<Station> optionalStation = stationRepository.findById(stationId);
+        if (optionalStation.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(),
+                            "Không tìm thấy trạm với id: " + stationId, null));
+        }
+
+        Station station = optionalStation.get();
+
+        if (station.getStaffs() == null) {
+            station.setStaffs(new ArrayList<>());
+        }
+
+        if (!station.getStaffs().contains(staffName)) {
+            station.getStaffs().add(staffName);
+        }
+
+        Station updated = stationRepository.save(station);
+        StationDTO dto = StationDTO.fromEntity(updated);
+
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(),
+                        "Thêm nhân viên thành công vào trạm", dto)
         );
     }
 }

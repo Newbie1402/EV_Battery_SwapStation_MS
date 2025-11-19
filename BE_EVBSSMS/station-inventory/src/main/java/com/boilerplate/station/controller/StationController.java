@@ -2,6 +2,7 @@ package com.boilerplate.station.controller;
 
 import com.boilerplate.station.model.DTO.NearestStationDTO;
 import com.boilerplate.station.model.DTO.StationDTO;
+import com.boilerplate.station.model.createRequest.AddStaffRequest;
 import com.boilerplate.station.model.createRequest.NearestStationRequest;
 import com.boilerplate.station.model.createRequest.StationRequest;
 import com.boilerplate.station.model.response.ResponseData;
@@ -86,5 +87,13 @@ public class StationController {
     public ResponseEntity<ResponseData<List<NearestStationDTO>>> getNearestStations(
             @RequestBody NearestStationRequest request) {
         return openStreetMapService.findNearestStations(request.getLatitude(), request.getLongitude());
+    }
+
+    @PostMapping("/staffs/{stationId}")
+    public ResponseEntity<ResponseData<StationDTO>> addStaffToStation(
+            @PathVariable Long stationId,
+            @RequestBody AddStaffRequest request
+    ) {
+        return stationService.addStaffToStation(stationId, request.getStaffCode());
     }
 }

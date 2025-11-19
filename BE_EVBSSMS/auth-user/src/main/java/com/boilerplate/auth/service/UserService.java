@@ -185,6 +185,8 @@ public class UserService {
                 .role(user.getRole())
                 .address(user.getAddress())
                 .identityCard(user.getIdentityCard())
+                .isVerified(user.getIsVerified())
+                .isActive(user.getIsActive())
                 .status(user.getStatus())
                 .vehicles(vehicles)
                 .employeeId(user.getEmployeeId())

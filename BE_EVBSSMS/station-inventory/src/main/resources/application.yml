@@ -56,7 +56,7 @@ springdoc:
       - name: "Station Service (Direct)"
         url: "/v3/api-docs"
       - name: "Station Service (Via Gateway)"
-        url: "http://localhost:8080/station/v3/api-docs"
+        url: "http://localhost:9000/station/v3/api-docs"
   show-actuator: false
 
 logging:

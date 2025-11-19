@@ -17,7 +17,7 @@ spring:
         - id: auth-user-api
           uri: lb://auth-user
           predicates:
-            - Path=/api/auth/**,/api/users/**,/api/admin/**,/api/staff/**,/oauth2/**
+            - Path=/api/auth/**,/api/users/**,/api/admin/**,/api/staff/**,/oauth2/**, /api/driver/**
 
         - id: auth-user-swagger-ui
           uri: lb://auth-user
@@ -37,7 +37,9 @@ spring:
         - id: station-api
           uri: lb://station-service
           predicates:
-            - Path=/api/stations/**,/api/batteries/**,/api/geo/**
+            - Path=/station/api/**
+          filters:
+            - RewritePath=/station/(?<segment>.*), /${segment}
 
         - id: station-swagger-ui
           uri: lb://station-service
@@ -57,7 +59,9 @@ spring:
         - id: booking-api
           uri: lb://booking-service
           predicates:
-            - Path=/api/bookings/**,/api/swaps/**,/api/support/**,/api/notifications/**, /api/package-plans/**, /api/subscriptions/**, /api/transactions/**
+            - Path=/booking/api/**
+          filters:
+            - RewritePath=/booking/(?<segment>.*), /${segment}
 
         - id: booking-swagger-ui
           uri: lb://booking-service
@@ -77,7 +81,9 @@ spring:
         - id: billing-api
           uri: lb://billing-service
           predicates:
-            - Path=/api/payments/**,/api/invoices/**,/api/reports/**,/api/analytics/**, /api/vnpay/**
+            - Path=/billing/api/**
+          filters:
+            - RewritePath=/billing/(?<segment>.*), /${segment}
 
         - id: billing-swagger-ui
           uri: lb://billing-service

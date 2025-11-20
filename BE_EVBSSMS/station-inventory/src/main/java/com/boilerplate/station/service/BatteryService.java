@@ -310,8 +310,11 @@ public class BatteryService {
             throw new RuntimeException(("Pin đang thuộc trạm khác!"));
         }
         battery.setStation(station);
+        battery.setReferenceId(station.getStationCode());
+        battery.setStatus(BatteryStatus.IN_USE);
         Battery saved = batteryRepository.save(battery);
         station.getBatteries().add(saved);
+
         stationRepository.save(station);
         BatteryDTO dto = BatteryDTO.fromEntity(saved);
         return ResponseEntity.status(HttpStatus.OK)

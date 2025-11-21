@@ -113,6 +113,8 @@ public class UserPackageSubscriptionService {
         return UserSubscriptionStatsResponse.builder()
                 .userId(userId)
                 .subscriptionId(activeSubscription.getId())
+                .packagePlanId(packagePlan.getId())
+                .packagePlanPrice(packagePlan.getPrice())
                 .packageName(packagePlan.getName())
                 .maxSwapPerMonth(packagePlan.getMaxSwapPerMonth())
                 .usedSwaps(activeSubscription.getUsedSwaps())

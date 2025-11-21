@@ -34,7 +34,7 @@ public class Booking {
 
     private String notes;
 
-    private String transactionId;
+    private Long paymentId;
 
     private String packageId; // liên kết gói thuê pin nếu có
 

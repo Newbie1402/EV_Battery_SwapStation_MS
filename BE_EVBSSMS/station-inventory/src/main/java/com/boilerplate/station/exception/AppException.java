@@ -53,6 +53,8 @@ public enum AppException {
     STAFF_NOT_FOUND("STF_001", "Không tìm thấy nhân viên trạm", HttpStatus.NOT_FOUND),
     STAFF_UNAVAILABLE("STF_002", "Nhân viên hiện không khả dụng", HttpStatus.BAD_REQUEST),
     STAFF_ALREADY_EXISTS("STF_003", "Nhân viên đã tồn tại", HttpStatus.CONFLICT),
+    STAFF_ALREADY_ASSIGNED("STF_004", "Nhân viên đã được gán cho một trạm khác", HttpStatus.CONFLICT),
+    STAFF_NOT_IN_STATION("STF_005", "Nhân viên không thuộc trạm này", HttpStatus.BAD_REQUEST),
 
     // ================== SWAP / TRANSACTION ==================
     SWAP_NOT_FOUND("SWP_001", "Không tìm thấy lịch sử đổi pin", HttpStatus.NOT_FOUND),

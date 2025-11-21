@@ -56,6 +56,8 @@ public class UserPackageSubscriptionMapper {
                 .userId(entity.getUserId())
                 .packagePlanId(entity.getPackagePlan().getId())
                 .packagePlanName(entity.getPackagePlan().getName())
+                .packageMaxSwapPerMonth(entity.getPackagePlan().getMaxSwapPerMonth())
+                .packagePlanType(entity.getPackagePlan().getPackageType())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
                 .usedSwaps(entity.getUsedSwaps())

@@ -2,6 +2,7 @@ package com.boilerplate.billing.service;
 
 import com.boilerplate.billing.client.AuthUserClient;
 import com.boilerplate.billing.enums.PaymentStatus;
+import com.boilerplate.billing.model.DTO.CustomerPaymentsDTO;
 import com.boilerplate.billing.model.DTO.PackagePaymentDTO;
 import com.boilerplate.billing.model.entity.PackagePayment;
 import com.boilerplate.billing.model.entity.SingleSwapPayment;
@@ -95,6 +96,9 @@ public class PaymentService {
         payment.setBookingId(request.getBookingId());
         payment.setDescription(request.getDescription());
         payment.setPaymentTime(request.getPaymentTime());
+        payment.setPackageId(request.getPackageId());
+        payment.setStartDate(request.getStartDate());
+        payment.setEndDate(request.getEndDate());
         // 7. Lưu payment
 
         PackagePayment saved = packagePaymentRepository.save(payment);
@@ -213,5 +217,47 @@ public class PaymentService {
         return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(), "Single swap payment deleted successfully", null));
     }
 
+    public ResponseEntity<ResponseData<CustomerPaymentsDTO>> getAllPaymentsByCustomerId(String employeeId) {
+        // Tìm driver theo employeeId
+        Driver driver = driverRepository.findByEmployeeId(employeeId)
+                .orElseThrow(() -> new RuntimeException("Customer không tồn tại"));
+
+        // Lấy tất cả swap payments của customer
+        List<SingleSwapPayment> swapPayments = singleSwapPaymentRepository.findByCustomerId(driver);
+        List<SingleSwapPaymentDTO> swapPaymentDTOs = swapPayments.stream()
+                .map(SingleSwapPaymentDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        // Lấy tất cả package payments của customer
+        List<PackagePayment> packagePayments = packagePaymentRepository.findByCustomerId(driver);
+        List<PackagePaymentDTO> packagePaymentDTOs = packagePayments.stream()
+                .map(PackagePaymentDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        // Tính tổng amount
+        Double totalAmount = swapPayments.stream()
+                .mapToDouble(p -> p.getTotalAmount() != null ? p.getTotalAmount() : 0.0)
+                .sum() +
+                packagePayments.stream()
+                        .mapToDouble(p -> p.getTotalAmount() != null ? p.getTotalAmount() : 0.0)
+                        .sum();
+
+        // Build response DTO
+        CustomerPaymentsDTO responseDTO = CustomerPaymentsDTO.builder()
+                .customerId(driver.getEmployeeId())
+                .customerName(driver.getFullName())
+                .swapPayments(swapPaymentDTOs)
+                .packagePayments(packagePaymentDTOs)
+                .totalSwapPayments(swapPaymentDTOs.size())
+                .totalPackagePayments(packagePaymentDTOs.size())
+                .totalAmount(totalAmount)
+                .build();
+
+        return ResponseEntity.ok(new ResponseData<>(
+                HttpStatus.OK.value(),
+                "Lấy tất cả thanh toán của customer thành công",
+                responseDTO
+        ));
+    }
 
 }

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -41,7 +42,10 @@ public class Station {
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL)
     private List<Battery> batteries;
 
-    private List<String> staffs;
+    // Danh sách mã nhân viên thuộc trạm. Dùng ElementCollection vì lưu List<String> đơn giản
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "station_staffs", joinColumns = @JoinColumn(name = "station_id"))
+    @Column(name = "staff_code", length = 64)
+    private List<String> staffs = new ArrayList<>();
 
 }
-

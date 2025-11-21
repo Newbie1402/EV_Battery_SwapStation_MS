@@ -139,4 +139,42 @@ public class RatingController {
                         .build()
         );
     }
+
+    /**
+     * Cập nhật đánh giá theo ID (chỉ sửa score & comment)
+     */
+    @PatchMapping("/{id}")
+    public ResponseEntity<ResponseData<RatingResponse>> updateRating(
+            @PathVariable Long id,
+            @Valid @RequestBody RatingRequest requestDTO) {
+        log.info("REST request to update rating: {}", id);
+
+        RatingResponse response = ratingService.updateRating(id, requestDTO);
+
+        return ResponseEntity.ok(
+                ResponseData.<RatingResponse>builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Cập nhật đánh giá thành công")
+                        .data(response)
+                        .build()
+        );
+    }
+
+    /**
+     * Lấy đánh giá theo bookingId
+     */
+    @GetMapping("/booking/{bookingId}")
+    public ResponseEntity<ResponseData<RatingResponse>> getRatingByBookingId(@PathVariable String bookingId) {
+        log.info("REST request to get rating by bookingId: {}", bookingId);
+
+        RatingResponse response = ratingService.getRatingByBookingId(bookingId);
+
+        return ResponseEntity.ok(
+                ResponseData.<RatingResponse>builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Lấy đánh giá theo bookingId thành công")
+                        .data(response)
+                        .build()
+        );
+    }
 }

@@ -1,12 +1,14 @@
 package com.boilerplate.billing.controller;
 
 
+import com.boilerplate.billing.model.DTO.CustomerPaymentsDTO;
 import com.boilerplate.billing.model.DTO.PackagePaymentDTO;
 import com.boilerplate.billing.model.DTO.SingleSwapPaymentDTO;
 import com.boilerplate.billing.model.request.PackagePaymentRequest;
 import com.boilerplate.billing.model.request.SingleSwapPaymentRequest;
 import com.boilerplate.billing.model.response.ResponseData;
 import com.boilerplate.billing.service.PaymentService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,6 +75,16 @@ public class PaymentController {
     @PostMapping("/package/confirm/{id}")
     public ResponseEntity<ResponseData<Void>> confirmPackagePayment(@PathVariable Long id) {
         return paymentService.confirmCashPackeagePayment(id);
+    }
+
+    //================ Get All Payments By Customer =================
+    @Operation(
+            summary = "Lấy tất cả thanh toán theo Customer ID",
+            description = "API trả về danh sách tất cả thanh toán (bao gồm cả swap và package) của một khách hàng dựa trên employeeId (customerId)"
+    )
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<ResponseData<CustomerPaymentsDTO>> getAllPaymentsByCustomerId(@PathVariable String customerId) {
+        return paymentService.getAllPaymentsByCustomerId(customerId);
     }
 
 }

@@ -24,8 +24,8 @@ public class BookingUpdateRequest {
     /** Loại thanh toán */
     private PaymentType paymentType;
 
-    /** Id giao dịch */
-    private String transactionId;
+    /** Id thanh toán */
+    private Long paymentId;
 
     /** Ghi chú */
     private String notes;

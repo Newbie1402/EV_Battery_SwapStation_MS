@@ -40,7 +40,7 @@ public class BookingResponse {
     private PaymentType paymentType;
 
     /** Id giao dịch */
-    private String transactionId;
+    private Long paymentId;
 
     /** Ghi chú */
     private String notes;

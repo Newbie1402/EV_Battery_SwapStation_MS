@@ -17,6 +17,8 @@ public class BatteryDTO {
     private Double soh;      // State of Health (%)
     private Double soc;      // State of Charge (%)
     private BatteryStatus status;
+    private boolean isHold;
+
 
     private OwnerType ownerType;
     private String referenceId;
@@ -34,6 +36,7 @@ public class BatteryDTO {
                 .status(battery.getStatus())
                 .ownerType(battery.getOwnerType())
                 .referenceId(battery.getReferenceId())
+                .isHold(battery.isHold())
                 .build();
     }
 }

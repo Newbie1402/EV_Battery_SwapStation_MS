@@ -58,6 +58,7 @@ public class BookingMapper {
                 .bookingTime(entity.getBookingTime())
                 .scheduledTime(entity.getScheduledTime())
                 .paymentType(entity.getPaymentType())
+                .paymentId(entity.getPaymentId())
                 .IsPaid(entity.isPaid())
                 .notes(entity.getNotes())
                 .packageId(entity.getPackageId())
@@ -85,6 +86,9 @@ public class BookingMapper {
             entity.setPaymentType(dto.getPaymentType());
         }
 
+        if (dto.getPaymentId() != null) {
+            entity.setPaymentId(dto.getPaymentId());
+        }
 
         if (dto.getNotes() != null) {
             entity.setNotes(dto.getNotes());

@@ -53,13 +53,13 @@ public class BatteryController {
 
     @Operation(
             summary = "Cập nhật thông tin pin",
-            description = "API cập nhật thông tin của một pin dựa trên ID, bao gồm trạng thái, dung lượng hoặc các thuộc tính khác."
+            description = "API cập nhật thông tin của một pin dựa trên batteryCode, bao gồm trạng thái, dung lượng hoặc các thuộc tính khác."
     )
-    @PutMapping("/update/{id}")
+    @PutMapping("/update/{batteryCode}")
     public ResponseEntity<ResponseData<BatteryDTO>> updateBattery(
-            @PathVariable Long id,
+            @PathVariable String batteryCode,
             @RequestBody BatteryRequest request) {
-        return batteryService.updateBattery(id, request);
+        return batteryService.updateBattery(batteryCode, request);
     }
 
     @Operation(

@@ -1,6 +1,7 @@
 package com.boilerplate.bookingswap.controller;
 
 import com.boilerplate.bookingswap.model.dto.request.BookingCancelRequest;
+import com.boilerplate.bookingswap.model.dto.request.BookingCompleteRequest;
 import com.boilerplate.bookingswap.model.dto.request.BookingRequest;
 import com.boilerplate.bookingswap.model.dto.request.BookingSearchRequest;
 import com.boilerplate.bookingswap.model.dto.request.BookingUpdateRequest;
@@ -212,10 +213,10 @@ public class BookingController {
     @PostMapping("/{id}/complete")
     public ResponseEntity<ResponseData<BookingResponse>> completeBooking(
             @PathVariable Long id,
-            @RequestParam String transactionId) {
+            @Valid @RequestBody BookingCompleteRequest request) {
         log.info("REST request to complete booking: {}", id);
 
-        BookingResponse response = bookingService.completeBooking(id, transactionId);
+        BookingResponse response = bookingService.completeBooking(id, request.getPaymentId());
 
         return ResponseEntity.ok(
                 ResponseData.<BookingResponse>builder()

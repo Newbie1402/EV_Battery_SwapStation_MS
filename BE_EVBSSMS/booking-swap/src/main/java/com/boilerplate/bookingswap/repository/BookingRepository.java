@@ -120,11 +120,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
 
     /**
-     * Tìm booking theo ID giao dịch
-     * @param transactionId ID giao dịch
+     * Tìm booking theo ID thanh toán
+     * @param paymentId ID thanh toán
      * @return Optional booking
      */
-    Optional<Booking> findByTransactionId(String transactionId);
+    Optional<Booking> findByPaymentId(Integer paymentId);
 
     /**
      * Tìm booking theo ID gói thuê

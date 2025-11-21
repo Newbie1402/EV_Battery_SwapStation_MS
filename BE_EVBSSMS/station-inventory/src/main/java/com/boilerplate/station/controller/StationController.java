@@ -1,5 +1,6 @@
 package com.boilerplate.station.controller;
 
+import com.boilerplate.station.model.DTO.BatteryDTO;
 import com.boilerplate.station.model.DTO.NearestStationDTO;
 import com.boilerplate.station.model.DTO.StationDTO;
 import com.boilerplate.station.model.createRequest.AddStaffRequest;
@@ -101,6 +102,31 @@ public class StationController {
     public ResponseEntity<ResponseData<StationDTO>> getStationByCode(
             @PathVariable String stationId) {
         return stationService.getStation(stationId);
+    }
+
+    @Operation(
+            summary = "Tìm trạm theo mã nhân viên",
+            description = "API tìm trạm dựa trên mã nhân viên đang làm việc tại trạm đó."
+    )
+    @GetMapping("/staff/{staffCode}")
+    public ResponseEntity<ResponseData<StationDTO>> findStationByStaffCode(
+            @PathVariable String staffCode) {
+        return stationService.findStationByStaffCode(staffCode);
+    }
+
+    @DeleteMapping("/staffs/{stationId}/{staffCode}")
+    @Operation(summary = "Xóa nhân viên khỏi trạm", description = "Xóa một nhân viên ra khỏi danh sách nhân viên của trạm.")
+    public ResponseEntity<ResponseData<StationDTO>> removeStaffFromStation(
+            @PathVariable Long stationId,
+            @PathVariable String staffCode) {
+        return stationService.removeStaffFromStation(stationId, staffCode);
+    }
+
+    @GetMapping("/code/{stationCode}/batteries")
+    @Operation(summary = "Lấy danh sách pin theo trạm", description = "API lấy toàn bộ danh sách pin thuộc một trạm cụ thể theo mã trạm.")
+    public ResponseEntity<ResponseData<List<BatteryDTO>>> getListBatteryByStation(
+            @PathVariable String stationCode) {
+        return stationService.getListBatteryByStationCode(stationCode);
     }
 
 }

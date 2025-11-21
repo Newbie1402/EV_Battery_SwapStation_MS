@@ -26,6 +26,7 @@ public class SingleSwapPaymentDTO {
     private PaymentStatus status;
     private String description;
     private Long bookingId;
+    private Long packageId;
     private LocalDateTime paymentTime;
     private LocalDateTime createdAt;
     private String stationId;
@@ -47,6 +48,7 @@ public class SingleSwapPaymentDTO {
                 .status(payment.getStatus())
                 .description(payment.getDescription())
                 .bookingId(payment.getBookingId())
+                .packageId(payment.getPackageId())
                 .paymentTime(payment.getPaymentTime())
                 .createdAt(payment.getCreatedAt())
                 .stationId(payment.getStationId())

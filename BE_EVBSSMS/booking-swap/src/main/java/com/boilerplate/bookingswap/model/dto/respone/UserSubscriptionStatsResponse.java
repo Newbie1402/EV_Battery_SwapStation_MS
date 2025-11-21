@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -21,6 +22,10 @@ public class UserSubscriptionStatsResponse {
 
     /** Id đăng ký gói */
     private Long subscriptionId;
+
+    private Long packagePlanId;
+
+    private BigDecimal packagePlanPrice;
 
     /** Tên gói */
     private String packageName;

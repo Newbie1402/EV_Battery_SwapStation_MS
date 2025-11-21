@@ -205,11 +205,11 @@ public class BookingService {
     /**
      * Hoàn thành booking
      * @param id ID booking
-     * @param transactionId ID giao dịch
+     * @param paymentId ID thanh toán
      * @return Booking đã hoàn thành
      */
     @Transactional
-    public BookingResponse completeBooking(Long id, String transactionId) {
+    public BookingResponse completeBooking(Long id, Long paymentId) {
         log.info("Hoàn thành booking ID: {}", id);
 
         Booking booking = bookingRepository.findById(id)
@@ -220,6 +220,7 @@ public class BookingService {
         }
 
         booking.setBookingStatus(BookingStatus.SUCCESS);
+        booking.setPaymentId(paymentId);
         booking.setUpdatedAt(LocalDateTime.now());
 
         Booking completedBooking = bookingRepository.save(booking);

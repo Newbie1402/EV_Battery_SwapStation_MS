@@ -94,11 +94,11 @@ public class BatteryService {
                 .body(new ResponseData<>(HttpStatus.CREATED.value(), "Battery created successfully", dto));
     }
 
-    public ResponseEntity<ResponseData<BatteryDTO>> updateBattery(Long id, BatteryRequest request) {
-        Optional<Battery> existing = batteryRepository.findById(id);
+    public ResponseEntity<ResponseData<BatteryDTO>> updateBattery(String batteryCode, BatteryRequest request) {
+        Optional<Battery> existing = batteryRepository.findByBatteryCode(batteryCode);
         if (existing.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Battery not found", null));
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Battery không tồn tại", null));
         }
 
         Battery battery = existing.get();
@@ -114,7 +114,7 @@ public class BatteryService {
         BatteryDTO dto = BatteryDTO.fromEntity(updated);
 
         return ResponseEntity.ok(
-                new ResponseData<>(HttpStatus.OK.value(), "Battery updated successfully", dto)
+                new ResponseData<>(HttpStatus.OK.value(), "Cập nhật pin thành công", dto)
         );
     }
 
@@ -149,7 +149,7 @@ public class BatteryService {
         Battery newBattery = batteryRepository.findByBatteryCode(event.getNewBatteryId())
                 .orElseThrow(() -> new RuntimeException("New battery not found"));
         newBattery.setOwnerType(OwnerType.VEHICLE);
-        newBattery.setReferenceId(event.getVerhiceId());
+        newBattery.setReferenceId(event.getVehicleId());
         newBattery.setStatus(BatteryStatus.IN_CAR);
         station.getBatteries().removeIf(b -> b.getBatteryCode().equals(oldBattery.getBatteryCode()));
         newBattery.setStation(null);
@@ -157,8 +157,12 @@ public class BatteryService {
         batteryRepository.save(oldBattery);
         batteryRepository.save(newBattery);
 
+        // Mapping event -> request (không để null)
         createSwapLog(new BatterySwapLogRequest(
-
+                event.getOldBatteryId(),   // verhicleBatteryCode: pin của xe (đem đến)
+                event.getNewBatteryId(),   // stationBatteryCode: pin của trạm (cấp cho xe)
+                event.getStationId(),      // stationCode
+                event.getVehicleId()       // verhicleCode (ID xe)
         ));
 
         return ResponseEntity.ok(

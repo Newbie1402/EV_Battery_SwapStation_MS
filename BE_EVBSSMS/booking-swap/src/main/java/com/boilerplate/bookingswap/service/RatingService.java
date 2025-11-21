@@ -119,4 +119,36 @@ public class RatingService {
 
         log.info("Đã xóa đánh giá ID: {}", id);
     }
+
+    /**
+     * Cập nhật đánh giá (chỉ cho phép sửa score và comment)
+     */
+    @Transactional
+    public RatingResponse updateRating(Long id, RatingRequest requestDTO) {
+        log.info("Cập nhật đánh giá ID: {}", id);
+
+        Rating rating = ratingRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đánh giá với ID: " + id));
+
+        // Chỉ cập nhật score & comment nếu có trong request
+        if (requestDTO.getScore() != null) {
+            rating.setScore(requestDTO.getScore());
+        }
+        if (requestDTO.getComment() != null) {
+            rating.setComment(requestDTO.getComment());
+        }
+
+        Rating saved = ratingRepository.save(rating);
+        return ratingMapper.toResponseDTO(saved);
+    }
+
+    /**
+     * Lấy đánh giá theo bookingId
+     */
+    public RatingResponse getRatingByBookingId(String bookingId) {
+        log.debug("Lấy đánh giá theo bookingId: {}", bookingId);
+        Rating rating = ratingRepository.findByBookingId(bookingId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy đánh giá cho bookingId: " + bookingId));
+        return ratingMapper.toResponseDTO(rating);
+    }
 }

@@ -2,11 +2,14 @@ package com.boilerplate.station.service;
 
 import com.boilerplate.station.exception.AppException;
 import com.boilerplate.station.exception.BusinessException;
+import com.boilerplate.station.model.DTO.BatteryDTO;
 import com.boilerplate.station.model.DTO.StationDTO;
 import com.boilerplate.station.model.createRequest.StationCodeRequest;
 import com.boilerplate.station.model.createRequest.StationRequest;
+import com.boilerplate.station.model.entity.Battery;
 import com.boilerplate.station.model.entity.Station;
 import com.boilerplate.station.model.response.ResponseData;
+import com.boilerplate.station.repository.BatteryRepository;
 import com.boilerplate.station.repository.StationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class StationService {
 
     private final StationRepository stationRepository;
+    private final BatteryRepository batteryRepository;
     private final OpenStreetMapService openStreetMapService;
     private static BatteryCodeGenerator batteryCodeGenerator;
 
@@ -145,16 +149,21 @@ public class StationService {
                             "Không tìm thấy trạm với id: " + stationId, null));
         }
 
-        Station station = optionalStation.get();
+        // Kiểm tra staff đã thuộc trạm khác chưa
+        if (stationRepository.existsStaffInOtherStation(staffName, stationId)) {
+            throw new BusinessException(AppException.STAFF_ALREADY_ASSIGNED);
+        }
 
+        Station station = optionalStation.get();
         if (station.getStaffs() == null) {
             station.setStaffs(new ArrayList<>());
         }
 
-        if (!station.getStaffs().contains(staffName)) {
-            station.getStaffs().add(staffName);
+        if (station.getStaffs().contains(staffName)) {
+            throw new BusinessException(AppException.STAFF_ALREADY_EXISTS);
         }
 
+        station.getStaffs().add(staffName);
         Station updated = stationRepository.save(station);
         StationDTO dto = StationDTO.fromEntity(updated);
 
@@ -164,13 +173,57 @@ public class StationService {
         );
     }
 
+    @Transactional
+    public ResponseEntity<ResponseData<StationDTO>> removeStaffFromStation(Long stationId, String staffCode) {
+        Optional<Station> optionalStation = stationRepository.findById(stationId);
+        if (optionalStation.isEmpty()) {
+            throw new BusinessException(AppException.STATION_NOT_FOUND);
+        }
+        Station station = optionalStation.get();
+        if (station.getStaffs() == null || !station.getStaffs().contains(staffCode)) {
+            throw new BusinessException(AppException.STAFF_NOT_IN_STATION);
+        }
+        station.getStaffs().remove(staffCode);
+        Station updated = stationRepository.save(station);
+        StationDTO dto = StationDTO.fromEntity(updated);
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(), "Xóa nhân viên khỏi trạm thành công", dto)
+        );
+    }
+
     public ResponseEntity<ResponseData<StationDTO>> getStation(String id) {
         Station station = stationRepository.findByStationCode(id)
                 .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
         StationDTO dto = StationDTO.fromEntity(station);
         return ResponseEntity.ok(
                 new ResponseData<>(HttpStatus.OK.value(),
-                        "Thêm nhân viên thành công vào trạm", dto)
+                        "Lấy trạm theo mã thành công", dto)
+        );
+    }
+
+    public ResponseEntity<ResponseData<StationDTO>> findStationByStaffCode(String staffCode) {
+        Station station = stationRepository.findByStaffCode(staffCode)
+                .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
+
+        StationDTO dto = StationDTO.fromEntity(station);
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(),
+                        "Tìm trạm theo mã nhân viên thành công", dto)
+        );
+    }
+
+    public ResponseEntity<ResponseData<List<BatteryDTO>>> getListBatteryByStationCode(String stationCode) {
+        Station station = stationRepository.findByStationCode(stationCode)
+                .orElseThrow(() -> new BusinessException(AppException.STATION_NOT_FOUND));
+
+        List<Battery> batteries = batteryRepository.findByStationId(station.getId());
+        List<BatteryDTO> batteryDTOs = batteries.stream()
+                .map(BatteryDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(),
+                        "Lấy danh sách pin theo mã trạm thành công", batteryDTOs)
         );
     }
 }

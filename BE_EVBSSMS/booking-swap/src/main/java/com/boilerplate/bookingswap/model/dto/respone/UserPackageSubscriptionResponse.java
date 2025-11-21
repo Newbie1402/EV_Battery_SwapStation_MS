@@ -1,5 +1,6 @@
 package com.boilerplate.bookingswap.model.dto.respone;
 
+import com.boilerplate.bookingswap.enums.PackageType;
 import com.boilerplate.bookingswap.enums.SubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,12 @@ public class UserPackageSubscriptionResponse {
 
     /** Tên gói thuê pin */
     private String packagePlanName;
+
+    /** Số lần đổi pin tối đa mỗi tháng của gói */
+    private Integer packageMaxSwapPerMonth;
+
+    /** Loại gói thuê pin */
+    private PackageType packagePlanType;
 
     /** Thời gian bắt đầu */
     private LocalDateTime startDate;

@@ -23,6 +23,6 @@ public class SingleSwapPaymentRequest {
     private String description;
     private LocalDateTime paymentTime;
     private Long bookingId;
-    private Long stationId;
+    private String stationId;
     private Long swapLogId;
 }

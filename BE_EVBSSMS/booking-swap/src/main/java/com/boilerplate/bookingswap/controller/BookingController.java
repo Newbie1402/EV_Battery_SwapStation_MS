@@ -34,7 +34,7 @@ public class BookingController {
     /**
      * Tạo booking mới
      */
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ResponseData<BookingResponse>> createBooking(
             @Valid @RequestBody BookingRequest requestDTO) {
         log.info("REST request to create booking for driver: {}", requestDTO.getDriverId());
@@ -53,7 +53,7 @@ public class BookingController {
     /**
      * Lấy tất cả booking với phân trang
      */
-    @GetMapping
+    @GetMapping("/getall")
     public ResponseEntity<ResponseData<Page<BookingResponse>>> getAllBookings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

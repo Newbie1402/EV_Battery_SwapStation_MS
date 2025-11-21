@@ -28,7 +28,7 @@ public class SingleSwapPaymentDTO {
     private Long bookingId;
     private LocalDateTime paymentTime;
     private LocalDateTime createdAt;
-    private Long stationId;
+    private String stationId;
 
     // ===============================
     //       MAPPER STATIC

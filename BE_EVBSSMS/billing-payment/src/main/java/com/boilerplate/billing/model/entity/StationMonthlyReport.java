@@ -1,5 +1,6 @@
 package com.boilerplate.billing.model.entity;
 
+import com.boilerplate.billing.model.event.consumer.entity.Station;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,7 +18,7 @@ public class StationMonthlyReport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long stationId;
+    private String stationId;
 
     private int year;
     private int month;

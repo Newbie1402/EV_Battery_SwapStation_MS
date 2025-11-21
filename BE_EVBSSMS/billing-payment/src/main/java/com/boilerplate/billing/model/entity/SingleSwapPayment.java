@@ -15,6 +15,6 @@ import lombok.*;
 @Builder
 public class SingleSwapPayment extends BasePayment {
 
-    private Long stationId;
+    private String stationId;
 
 }

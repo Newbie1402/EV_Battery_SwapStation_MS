@@ -12,7 +12,7 @@ const handleError = (error) => {
     const message = error?.data || error?.message || "Đã xảy ra lỗi không xác định";
 
     // Không hiển thị toast cho một số trường hợp đặc biệt
-    const skipToastCodes = [404, 409]; // Để component tự xử lý
+    const skipToastCodes = [404, 409, 500]; // Để component tự xử lý
 
     if (skipToastCodes.includes(statusCode)) {
         throw error;

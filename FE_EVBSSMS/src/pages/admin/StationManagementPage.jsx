@@ -54,6 +54,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import StationMapView from "./StationMapView";
+import StationDetailDialog from "@/components/StationDetailDialog";
 
 export default function StationManagementPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -711,93 +712,12 @@ export default function StationManagementPage() {
             </Dialog>
 
             {/* Detail Dialog */}
-            <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Chi tiết trạm</DialogTitle>
-                        <DialogDescription>
-                            Thông tin chi tiết về trạm đổi pin
-                        </DialogDescription>
-                    </DialogHeader>
-                    {selectedStation && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Tên trạm</p>
-                                    <p className="font-semibold">{selectedStation.stationName}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Mã trạm</p>
-                                    <p className="font-semibold">{selectedStation.stationCode || "N/A"}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <p className="text-sm text-slate-500 mb-1">Địa chỉ</p>
-                                    <p className="font-semibold">{selectedStation.address}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Số điện thoại</p>
-                                    <p className="font-semibold">{selectedStation.phoneNumber || "Chưa có"}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Trạng thái</p>
-                                    <Badge className={`${getStatusBadge(selectedStation.status).className} text-white`}>
-                                        {getStatusBadge(selectedStation.status).label}
-                                    </Badge>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Tổng slots</p>
-                                    <p className="font-semibold">{selectedStation.totalSlots || 0}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Slots khả dụng</p>
-                                    <p className="font-semibold text-green-600">{selectedStation.availableSlots || 0}</p>
-                                </div>
-                            </div>
-                            {/* New fields */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Số lượng pin</p>
-                                    <p className="font-semibold">{selectedStation.batteries?.length ?? 0}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Số lượng nhân viên</p>
-                                    <p className="font-semibold">{selectedStation.staffCode?.length ?? 0}</p>
-                                </div>
-                                {/* Danh sách nhân viên */}
-                                {Array.isArray(selectedStation.staffCode) && selectedStation.staffCode.length > 0 && (
-                                    <div className="flex flex-col gap-2">
-                                        <p className="text-sm text-slate-500 mb-1">Danh sách mã nhân viên</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {selectedStation.staffCode.map((code, idx) => (
-                                                <Badge key={idx} variant="secondary">{code}</Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Danh sách pin */}
-                                {Array.isArray(selectedStation.batteries) && selectedStation.batteries.length > 0 && (
-                                    <div className="flex flex-col gap-2">
-                                        <p className="text-sm text-slate-500 mb-1">Danh sách mã pin</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {selectedStation.batteries.map((battery, idx) => (
-                                                <Badge key={battery.id || idx} variant="secondary">
-                                                    {battery.batteryCode} - {battery.model}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-                            Đóng
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <StationDetailDialog
+                isOpen={isDetailDialogOpen}
+                onClose={() => setIsDetailDialogOpen(false)}
+                station={selectedStation}
+                onStaffRemoved={() => refetch()}
+            />
 
             {/* Add Staff Dialog */}
             <Dialog open={isAddStaffDialogOpen} onOpenChange={setIsAddStaffDialogOpen}>

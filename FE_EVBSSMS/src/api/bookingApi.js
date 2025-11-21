@@ -5,7 +5,7 @@ import { apiClient } from "./apiClient";
  * Base URL: /api/bookings
  */
 
-const BASE_URL = "/bookings";
+const BASE_URL = "booking/api/bookings";
 
 /**
  * 1. Lấy tất cả bookings với phân trang
@@ -92,7 +92,7 @@ export const getBookingStatistics = async (date) => {
  * @returns {Promise<Object>}
  */
 export const createBooking = async (data) => {
-    return await apiClient.post(BASE_URL, data);
+    return await apiClient.post(`${BASE_URL}/create`, data);
 };
 
 /**
@@ -107,10 +107,11 @@ export const confirmBooking = async (id) => {
 /**
  * 11. Hoàn thành booking
  * @param {number} id - Booking ID
+ * @param {number} paymentId - Payment ID
  * @returns {Promise<Object>}
  */
-export const completeBooking = async (id) => {
-    return await apiClient.post(`${BASE_URL}/${id}/complete`, {});
+export const completeBooking = async (id, paymentId) => {
+    return await apiClient.post(`${BASE_URL}/${id}/complete`, {paymentId});
 };
 
 /**

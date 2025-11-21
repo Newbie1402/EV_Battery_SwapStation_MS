@@ -1,434 +1,453 @@
-import { useState } from "react";
-import { Calendar, MapPin, Battery, Clock, Search, CheckCircle, XCircle, Home, Sparkles } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+    Calendar, Search, Eye, XCircle, CreditCard, Star,
+    ChevronLeft, ChevronRight, Download
+} from "lucide-react";
 import { motion } from "framer-motion";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useCustomQuery from "@/hooks/useCustomQuery";
 import useCustomMutation from "@/hooks/useCustomMutation";
 import { bookingApi } from "@/api";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-hot-toast";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-
-const getStatusBadge = (status) => {
-    const statusConfig = {
-        PENDING: { label: "Đang chờ xác nhận", variant: "warning", className: "bg-yellow-100 text-yellow-800" },
-        CONFIRM: { label: "Đã xác nhận", variant: "info", className: "bg-blue-100 text-blue-800" },
-        SUCCESS: { label: "Hoàn thành giao dịch", variant: "success", className: "bg-green-100 text-green-800" },
-        CANCEL: { label: "Đã hủy", variant: "destructive", className: "bg-red-100 text-red-800" },
-    };
-    const config = statusConfig[status] || statusConfig.PENDING;
-    return <Badge variant={config.variant} className={config.className}>{config.label}</Badge>;
-};
-
-const getPaymentTypeBadge = (type) => {
-    return type === "PER_SWAP" ? (
-        <Badge variant="outline">Trả theo lần</Badge>
-    ) : (
-        <Badge variant="outline" className="bg-purple-50 text-purple-700">Gói tháng</Badge>
-    );
-};
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import BookingPaymentDialog from "@/components/BookingPaymentDialog";
+import RatingDialog from "@/components/RatingDialog";
+import { Badge } from "@/components/ui/badge";
 
 export default function MyBookingsPage() {
-    const { userId, role } = useAuthStore();
-    const [activeTab, setActiveTab] = useState("all");
+    const { employeeId } = useAuthStore();
     const [searchQuery, setSearchQuery] = useState("");
     const [page, setPage] = useState(0);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
+    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [paymentFilter, setPaymentFilter] = useState("ALL");
+    const [dateFilter, setDateFilter] = useState("");
+    const [detailBooking, setDetailBooking] = useState(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [paymentDialog, setPaymentDialog] = useState({ open: false, booking: null });
+    const [ratingDialog, setRatingDialog] = useState({ open: false, booking: null });
 
-    const fadeVariants = {
-        hidden: { opacity: 0, y: 40 },
-        visible: { opacity: 1, y: 0 },
-    };
+    const pageSize = 10;
 
-    // Fetch bookings của driver
     const { data, isLoading, refetch } = useCustomQuery(
-        ["myBookings", userId, page],
-        () => bookingApi.getBookingsByDriver(userId, page, 10),
-        { enabled: !!userId }
+        ["myBookings", employeeId],
+        () => bookingApi.getBookingsByDriver(employeeId, 0, 200),
+        { enabled: !!employeeId }
     );
 
-    const bookings = data?.content || [];
-    const totalPages = data?.totalPages || 0;
+    const bookings = useMemo(() => data?.content || [], [data]);
 
-    // Cancel booking mutation
+    const formatDateTime = (dateString) => {
+        try { return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi }); } catch { return dateString; }
+    };
+
+    const renderStatusBadge = (status) => {
+        const config = {
+            SUCCESS: { label: "Hoàn thành", className: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+            CONFIRM: { label: "Đã xác nhận", className: "bg-blue-100 text-blue-700 border-blue-200" },
+            PENDING: { label: "Chờ xác nhận", className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+            CANCEL: { label: "Đã hủy", className: "bg-red-100 text-red-700 border-red-200" }
+        };
+        const style = config[status] || config.PENDING;
+        return (
+            <Badge variant="outline" className={`${style.className} border font-medium`}>
+                {style.label}
+            </Badge>
+        );
+    };
+
+    const renderPaymentBadge = (booking) => {
+        const isPaid = booking.isPaid;
+        return (
+            <Badge variant="outline" className={`${isPaid ? "bg-green-100 text-green-700 border-green-200" : "bg-amber-100 text-amber-700 border-amber-200"} border font-medium`}>
+                {isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
+            </Badge>
+        );
+    };
+
+    // Filter Logic
+    const filteredBookings = useMemo(() => {
+        return bookings.filter(b => {
+            const matchesSearch = !searchQuery ||
+                b.station?.stationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                b.station?.stationCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                b.id?.toString().includes(searchQuery);
+            const matchesStatus = statusFilter === 'ALL' || b.bookingStatus === statusFilter;
+            const matchesPayment = paymentFilter === 'ALL' || b.paymentType === paymentFilter;
+            const matchesDate = !dateFilter || (b.scheduledTime && b.scheduledTime.startsWith(dateFilter));
+            return matchesSearch && matchesStatus && matchesPayment && matchesDate;
+        });
+    }, [bookings, searchQuery, statusFilter, paymentFilter, dateFilter]);
+
+    // Pagination Logic
+    const totalItems = filteredBookings.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const startIndex = totalItems === 0 ? 0 : page * pageSize + 1;
+    const endIndex = Math.min((page + 1) * pageSize, totalItems);
+    const paginated = filteredBookings.slice(page * pageSize, page * pageSize + pageSize);
+
     const cancelBookingMutation = useCustomMutation(
         ({ id, cancelData }) => bookingApi.cancelBooking(id, cancelData),
         null,
-        {
-            onSuccess: () => {
-                toast.success("Đã hủy booking thành công!");
-                setIsCancelDialogOpen(false);
-                setSelectedBooking(null);
-                setCancelReason("");
-                refetch();
-            },
-        }
+        { onSuccess: () => { toast.success("Đã hủy booking thành công!"); setIsCancelDialogOpen(false); setSelectedBooking(null); setCancelReason(""); refetch(); } }
     );
 
-    // Filter bookings theo tab và search
-    const filteredBookings = bookings.filter(booking => {
-        const matchesSearch = 
-            booking.station?.stationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            booking.id?.toString().includes(searchQuery);
-        
-        const matchesTab = 
-            activeTab === "all" ||
-            (activeTab === "upcoming" && ["PENDING", "CONFIRM"].includes(booking.bookingStatus)) ||
-            (activeTab === "completed" && booking.bookingStatus === "SUCCESS") ||
-            (activeTab === "cancelled" && booking.bookingStatus === "CANCEL");
-
-        return matchesSearch && matchesTab;
-    });
-
-    const handleCancelBooking = (booking) => {
-        setSelectedBooking(booking);
-        setIsCancelDialogOpen(true);
-    };
-
+    const handleCancelBooking = (booking) => { setSelectedBooking(booking); setIsCancelDialogOpen(true); };
     const confirmCancelBooking = () => {
-        if (!cancelReason.trim()) {
-            toast.error("Vui lòng nhập lý do hủy");
-            return;
-        }
-
-        cancelBookingMutation.mutate({
-            id: selectedBooking.id,
-            cancelData: {
-                cancelReason,
-                cancelledBy: "DRIVER",
-            },
-        });
+        if (!cancelReason.trim()) { toast.error("Vui lòng nhập lý do hủy"); return; }
+        cancelBookingMutation.mutate({ id: selectedBooking.id, cancelData: { cancelReason, cancelledBy: "DRIVER" } });
     };
 
-    const formatDateTime = (dateString) => {
-        try {
-            return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
-        } catch {
-            return dateString;
-        }
+    const handleViewDetail = (booking) => { setDetailBooking(booking); setIsDetailOpen(true); };
+    const closeDetail = () => { setIsDetailOpen(false); setDetailBooking(null); };
+    const openPaymentDialog = (e, booking) => {
+        e.stopPropagation(); // Ngăn click row
+        setPaymentDialog({ open: true, booking });
+    };
+    const closePaymentDialog = () => { setPaymentDialog({ open: false, booking: null }); };
+    const openRatingDialog = (e, booking) => {
+        e.stopPropagation(); // Ngăn click row
+        setRatingDialog({ open: true, booking });
+    };
+    const closeRatingDialog = () => { setRatingDialog({ open: false, booking: null }); };
+    const handleRatingSubmitted = () => {
+        // Có thể refetch hoặc invalidate query nếu cần
+        refetch();
     };
 
-    const driverMenuItems = [
-        { label: "Trang chủ", path: "/driver/dashboard", icon: Home },
-        { label: "Trạm đổi pin", path: "/driver/stations", icon: MapPin },
-        { label: "Lịch của tôi", path: "/driver/bookings", icon: Calendar },
-    ];
+    const fadeVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 },
+    };
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50 text-gray-900 overflow-x-hidden">
-            <Header menuItems={driverMenuItems} role={role || "DRIVER"} />
-            <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                    {/* Header */}
-                    <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        variants={fadeVariants}
-                        transition={{ duration: 0.8 }}
-                        className="mb-8"
-                    >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-4">
-                            <Sparkles className="w-4 h-4 text-purple-600" />
-                            <span className="text-sm font-medium text-purple-700">Quản lý lịch hẹn</span>
-                        </div>
-                        <h1 className="text-4xl md:text-5xl font-extrabold mb-3 leading-tight">
-                            <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                                Lịch đặt của tôi
-                            </span>
-                        </h1>
-                        <p className="text-lg text-gray-600">Quản lý tất cả các lịch đổi pin của bạn</p>
-                    </motion.div>
+        <div className="w-full bg-slate-50 text-slate-900 min-h-full">
+            <div className="px-4 md:px-10 lg:px-20 xl:px-40 py-8 max-w-7xl mx-auto">
+                <motion.div initial="hidden" animate="visible" variants={fadeVariants} transition={{ duration: 0.5 }}>
 
-                    {/* Search */}
-                    <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        variants={fadeVariants}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="mb-6"
-                    >
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                            <Input
-                                type="text"
-                                placeholder="Tìm kiếm theo ID hoặc tên trạm..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 h-12 rounded-xl border-gray-200 shadow-sm"
-                            />
+                    {/* Page Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Lịch Sử Đặt Lịch</h1>
+                            <p className="text-slate-500 mt-1">Quản lý các lịch hẹn đổi pin sắp tới và lịch sử giao dịch.</p>
                         </div>
-                    </motion.div>
+                        <Button variant="outline" className="bg-white hover:bg-slate-50 border-slate-200 text-slate-700 gap-2 shadow-sm cursor-pointer">
+                            <Download className="w-4 h-4" /> Xuất dữ liệu
+                        </Button>
+                    </div>
 
-                    {/* Tabs */}
-                    <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        variants={fadeVariants}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                    >
-                        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-                            <TabsList className="grid w-full grid-cols-4 h-12 rounded-xl bg-white shadow-sm">
-                                <TabsTrigger value="all" className="rounded-lg">Tất cả</TabsTrigger>
-                                <TabsTrigger value="upcoming" className="rounded-lg">Sắp tới</TabsTrigger>
-                                <TabsTrigger value="completed" className="rounded-lg">Hoàn thành</TabsTrigger>
-                                <TabsTrigger value="cancelled" className="rounded-lg">Đã hủy</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </motion.div>
+                    {/* Main Content Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
 
-                    {/* Bookings List */}
-                    {isLoading ? (
-                        <div className="space-y-4">
-                            {[...Array(3)].map((_, i) => (
-                                <Card key={i}>
-                                    <CardHeader>
-                                        <Skeleton className="h-6 w-3/4 mb-2" />
-                                        <Skeleton className="h-4 w-full" />
-                                    </CardHeader>
-                                    <CardContent>
-                                        <Skeleton className="h-20 w-full" />
-                                    </CardContent>
-                                </Card>
-                            ))}
+                        {/* Filters Toolbar */}
+                        <div className="p-5 border-b border-slate-100 space-y-4">
+                            <div className="flex flex-col lg:flex-row gap-4">
+                                {/* Search */}
+                                <div className="flex-grow relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <Input
+                                        value={searchQuery}
+                                        onChange={(e)=>{setSearchQuery(e.target.value); setPage(0);}}
+                                        placeholder="Tìm kiếm tên trạm, mã trạm hoặc ID..."
+                                        className="pl-9 h-10 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                                    />
+                                </div>
+
+                                {/* Filters Group */}
+                                <div className="flex flex-wrap gap-3">
+                                    <Select value={statusFilter} onValueChange={(v)=>{setStatusFilter(v); setPage(0);}}>
+                                        <SelectTrigger className="h-10 w-[160px] bg-slate-50 border-slate-200 cursor-pointer">
+                                            <SelectValue placeholder="Trạng thái" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="ALL" className="cursor-pointer">Tất cả trạng thái</SelectItem>
+                                            <SelectItem value="PENDING" className="cursor-pointer">Chờ xác nhận</SelectItem>
+                                            <SelectItem value="CONFIRM" className="cursor-pointer">Đã xác nhận</SelectItem>
+                                            <SelectItem value="SUCCESS" className="cursor-pointer">Hoàn thành</SelectItem>
+                                            <SelectItem value="CANCEL" className="cursor-pointer">Đã hủy</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Select value={paymentFilter} onValueChange={(v)=>{setPaymentFilter(v); setPage(0);}}>
+                                        <SelectTrigger className="h-10 w-[160px] bg-slate-50 border-slate-200 cursor-pointer">
+                                            <SelectValue placeholder="Thanh toán" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="ALL" className="cursor-pointer">Tất cả P.Thức</SelectItem>
+                                            <SelectItem value="PER_SWAP" className="cursor-pointer">Trả theo lần</SelectItem>
+                                            <SelectItem value="PACKAGE" className="cursor-pointer">Gói tháng</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <div className="relative">
+                                        <input
+                                            type="date"
+                                            value={dateFilter}
+                                            onChange={(e)=>{setDateFilter(e.target.value); setPage(0);}}
+                                            className="h-10 px-3 rounded-md border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    ) : filteredBookings.length === 0 ? (
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            variants={fadeVariants}
-                            transition={{ duration: 0.8 }}
-                            className="text-center py-16 bg-white rounded-3xl shadow-lg"
-                        >
-                            <Calendar className="h-20 w-20 text-gray-300 mx-auto mb-6" />
-                            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                                Không có lịch đặt nào
-                            </h3>
-                            <p className="text-gray-500 mb-6 text-lg">
-                                {searchQuery ? "Không tìm thấy kết quả phù hợp" : "Bạn chưa có lịch đặt nào"}
-                            </p>
-                            <Button
-                                onClick={() => window.location.href = "/driver/stations"}
-                                className="h-12 px-8 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:shadow-lg font-semibold"
-                            >
-                                Đặt lịch ngay
-                            </Button>
-                        </motion.div>
-                    ) : (
-                        <>
-                            <div className="space-y-6">
-                                {filteredBookings.map((booking, idx) => (
-                                    <motion.div
-                                        key={booking.id}
-                                        initial="hidden"
-                                        animate="visible"
-                                        variants={fadeVariants}
-                                        transition={{ duration: 0.6, delay: 0.4 + idx * 0.1 }}
-                                    >
-                                        <Card className="hover:shadow-xl transition-all transform hover:-translate-y-1 border-gray-100 rounded-3xl overflow-hidden bg-white">
-                                            <CardHeader className="pb-4">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <CardTitle className="text-xl mb-2 text-gray-800">
-                                                            {booking.station?.stationName || "Trạm đổi pin"}
-                                                        </CardTitle>
-                                                        <CardDescription className="flex items-center gap-1.5">
-                                                            <MapPin className="h-3.5 w-3.5 text-gray-400" />
-                                                            <span className="text-gray-600">{booking.station?.address}</span>
-                                                        </CardDescription>
-                                                    </div>
-                                                    {getStatusBadge(booking.bookingStatus)}
+
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-slate-50/80">
+                                    <TableRow className="border-slate-100 hover:bg-transparent">
+                                        <TableHead className="px-6 py-3 font-semibold text-slate-700">Mã Trạm</TableHead>
+                                        <TableHead className="px-6 py-3 font-semibold text-slate-700">Thời Gian Hẹn</TableHead>
+                                        <TableHead className="px-6 py-3 font-semibold text-slate-700">Trạng Thái</TableHead>
+                                        <TableHead className="px-6 py-3 font-semibold text-slate-700">Thanh Toán</TableHead>
+                                        <TableHead className="px-6 py-3 font-semibold text-slate-700">Model Pin</TableHead>
+                                        <TableHead className="px-6 py-3 text-right font-semibold text-slate-700">Hành động</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {isLoading && (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="py-12 text-center text-slate-500">Đang tải dữ liệu...</TableCell>
+                                        </TableRow>
+                                    )}
+                                    {!isLoading && paginated.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="py-12 text-center">
+                                                <div className="flex flex-col items-center justify-center text-slate-500">
+                                                    <Calendar className="w-10 h-10 mb-2 text-slate-300" />
+                                                    <p>Không tìm thấy lịch đặt nào</p>
                                                 </div>
-                                            </CardHeader>
-
-                                            <CardContent className="space-y-4 pb-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="flex items-center gap-3 text-sm bg-blue-50 p-3 rounded-xl">
-                                                        <Calendar className="h-5 w-5 text-blue-500" />
-                                                        <div>
-                                                            <span className="text-gray-600 block text-xs mb-0.5">Thời gian:</span>
-                                                            <span className="font-semibold text-gray-800">
-                                                                {formatDateTime(booking.scheduledTime)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-3 text-sm bg-emerald-50 p-3 rounded-xl">
-                                                        <Battery className="h-5 w-5 text-emerald-500" />
-                                                        <div>
-                                                            <span className="text-gray-600 block text-xs mb-0.5">Loại pin:</span>
-                                                            <span className="font-semibold text-gray-800">
-                                                                {booking.batteryModel?.modelName || "N/A"}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-3 text-sm bg-purple-50 p-3 rounded-xl">
-                                                        <Clock className="h-5 w-5 text-purple-500" />
-                                                        <div>
-                                                            <span className="text-gray-600 block text-xs mb-0.5">Đặt lúc:</span>
-                                                            <span className="font-semibold text-gray-800">
-                                                                {formatDateTime(booking.createdAt)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2 text-sm p-3">
-                                                        {getPaymentTypeBadge(booking.paymentType)}
-                                                    </div>
-                                                </div>
-
-                                                {booking.notes && (
-                                                    <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-4 rounded-xl text-sm border border-gray-100">
-                                                        <span className="font-semibold text-gray-700">Ghi chú: </span>
-                                                        <span className="text-gray-600">{booking.notes}</span>
-                                                    </div>
-                                                )}
-
-                                                {booking.bookingStatus === "CANCEL" && booking.cancelReason && (
-                                                    <div className="bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-xl text-sm border border-red-100">
-                                                        <span className="font-semibold text-red-700">Lý do hủy: </span>
-                                                        <span className="text-red-600">{booking.cancelReason}</span>
-                                                    </div>
-                                                )}
-                                            </CardContent>
-
-                                            <CardFooter className="gap-2 bg-gray-50 pt-4">
-                                                {booking.bookingStatus === "PENDING" && (
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                    {!isLoading && paginated.map(b => (
+                                        <TableRow
+                                            key={b.id}
+                                            className="hover:bg-slate-50 transition-colors cursor-pointer border-slate-100 group"
+                                            onClick={() => handleViewDetail(b)}
+                                        >
+                                            <TableCell className="px-6 py-4 text-sm font-medium text-slate-700">
+                                                {b.station?.stationCode || b.stationId || 'N/A'}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-sm text-slate-600">
+                                                {formatDateTime(b.scheduledTime)}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                {renderStatusBadge(b.bookingStatus)}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                {renderPaymentBadge(b)}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-sm text-slate-600">
+                                                {b.batteryModelId || "Mặc định"}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                                                     <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={() => handleCancelBooking(booking)}
-                                                        className="rounded-xl"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleViewDetail(b)}
+                                                        className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50 cursor-pointer"
                                                     >
-                                                        <XCircle className="h-4 w-4 mr-1.5" />
-                                                        Hủy lịch
+                                                        <Eye className="w-4 h-4" />
                                                     </Button>
-                                                )}
-                                                {booking.bookingStatus === "CONFIRM" && (
-                                                    <>
-                                                        <Badge variant="outline" className="bg-blue-50 text-blue-700 px-4 py-2">
-                                                            <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                                                            Đã xác nhận - Vui lòng đến đúng giờ
-                                                        </Badge>
+
+                                                    {!b.isPaid && b.paymentId && b.bookingStatus !== 'CANCEL' && (
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={(e) => openPaymentDialog(e, b)}
+                                                            className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-xs cursor-pointer gap-1"
+                                                        >
+                                                            <CreditCard className="w-3 h-3" /> Thanh toán
+                                                        </Button>
+                                                    )}
+
+                                                    {b.bookingStatus === 'SUCCESS' && (
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={(e) => openRatingDialog(e, b)}
+                                                            className="h-8 px-3 bg-yellow-500 hover:bg-yellow-600 text-white text-xs cursor-pointer gap-1"
+                                                        >
+                                                            <Star className="w-3 h-3" />
+                                                        </Button>
+                                                    )}
+
+                                                    {b.bookingStatus === 'PENDING' && (
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => handleCancelBooking(booking)}
-                                                            className="rounded-xl"
+                                                            onClick={() => handleCancelBooking(b)}
+                                                            className="h-8 px-3 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 text-xs cursor-pointer gap-1"
                                                         >
-                                                            <XCircle className="h-4 w-4 mr-1.5" />
-                                                            Hủy
+                                                            <XCircle className="w-3 h-3" /> Hủy
                                                         </Button>
-                                                    </>
-                                                )}
-                                                {booking.bookingStatus === "SUCCESS" && (
-                                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 px-4 py-2">
-                                                        <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                                                        Đã hoàn thành
-                                                    </Badge>
-                                                )}
-                                            </CardFooter>
-                                        </Card>
-                                    </motion.div>
-                                ))}
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        {/* Pagination Footer */}
+                        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                            <span className="text-sm text-slate-500">
+                                Hiển thị <span className="font-semibold text-slate-900">{startIndex} - {endIndex}</span> trên <span className="font-semibold text-slate-900">{totalItems}</span> kết quả
+                            </span>
+                            <div className="inline-flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className="h-8 px-3 gap-1 cursor-pointer bg-white hover:bg-slate-100"
+                                >
+                                    <ChevronLeft className="w-4 h-4" /> Trước
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                    className="h-8 px-3 gap-1 cursor-pointer bg-white hover:bg-slate-100"
+                                >
+                                    Sau <ChevronRight className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Detail Dialog */}
+            <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+                <DialogContent className="max-w-xl bg-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl">Chi tiết lịch đặt</DialogTitle>
+                        <DialogDescription>Thông tin chi tiết về giao dịch đổi pin #{detailBooking?.id}</DialogDescription>
+                    </DialogHeader>
+                    {detailBooking && (
+                        <div className="space-y-5 py-2 text-sm">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-1">
+                                    <p className="text-slate-500">Mã trạm</p>
+                                    <p className="font-semibold text-base text-slate-900">{detailBooking?.stationId || 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-slate-500">Mã Thanh Toán</p>
+                                    <p className="font-medium font-mono">{detailBooking?.paymentId || 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-slate-500">Thời gian lên lịch</p>
+                                    <p className="font-medium">{formatDateTime(detailBooking.scheduledTime)}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-slate-500">Ngày tạo</p>
+                                    <p className="font-medium">{formatDateTime(detailBooking.createdAt)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-slate-500 mb-1">Trạng thái</p>
+                                    {renderStatusBadge(detailBooking.bookingStatus)}
+                                </div>
+                                <div>
+                                    <p className="text-slate-500 mb-1">Thanh toán</p>
+                                    {renderPaymentBadge(detailBooking)}
+                                </div>
                             </div>
 
-                            {/* Pagination */}
-                            {totalPages > 1 && (
-                                <motion.div
-                                    initial="hidden"
-                                    animate="visible"
-                                    variants={fadeVariants}
-                                    transition={{ duration: 0.8 }}
-                                    className="mt-12 flex justify-center gap-3"
-                                >
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setPage(p => Math.max(0, p - 1))}
-                                        disabled={page === 0}
-                                        className="h-12 px-6 rounded-xl border-gray-200 shadow-sm font-medium"
-                                    >
-                                        ← Trang trước
-                                    </Button>
-                                    <div className="flex items-center px-6 py-3 text-sm text-gray-700 bg-white rounded-xl border border-gray-200 shadow-sm font-medium">
-                                        Trang <span className="mx-1.5 font-bold text-purple-600">{page + 1}</span> / {totalPages}
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                                        disabled={page >= totalPages - 1}
-                                        className="h-12 px-6 rounded-xl border-gray-200 shadow-sm font-medium"
-                                    >
-                                        Trang sau →
-                                    </Button>
-                                </motion.div>
+                            {detailBooking.notes && (
+                                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                    <p className="text-slate-600">
+                                        <span className="font-semibold text-slate-700 block mb-1">Ghi chú:</span>
+                                        {detailBooking.notes}
+                                    </p>
+                                </div>
                             )}
-                        </>
+
+                            {detailBooking.cancelReason && detailBooking.bookingStatus === 'CANCEL' && (
+                                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                                    <p className="text-red-700">
+                                        <span className="font-semibold block mb-1">Lý do hủy:</span>
+                                        {detailBooking.cancelReason}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     )}
-                </div>
-            </div>
-            <Footer />
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        {detailBooking && detailBooking.bookingStatus === 'PENDING' && (
+                            <Button
+                                variant="destructive"
+                                onClick={() => handleCancelBooking(detailBooking)}
+                                className="cursor-pointer"
+                            >
+                                <XCircle className="w-4 h-4 mr-2" /> Hủy lịch
+                            </Button>
+                        )}
+                        <Button variant="outline" onClick={closeDetail} className="cursor-pointer">Đóng</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Cancel Dialog */}
             <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-white">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận hủy lịch</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bạn có chắc chắn muốn hủy lịch đặt này không?
+                            Bạn có chắc chắn muốn hủy lịch đặt này không? Hành động này không thể hoàn tác.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-
                     <div className="space-y-2 py-4">
-                        <label className="text-sm font-medium">
-                            Lý do hủy <span className="text-red-500">*</span>
-                        </label>
+                        <label className="text-sm font-medium text-slate-700">Lý do hủy <span className="text-red-500">*</span></label>
                         <Textarea
                             placeholder="Nhập lý do hủy lịch..."
                             value={cancelReason}
                             onChange={(e) => setCancelReason(e.target.value)}
                             rows={3}
+                            className="bg-slate-50 border-slate-200 focus:bg-white"
                         />
                     </div>
-
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => {
-                            setIsCancelDialogOpen(false);
-                            setCancelReason("");
-                        }}>
-                            Đóng
-                        </AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => { setIsCancelDialogOpen(false); setCancelReason(""); }} className="cursor-pointer">Đóng</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmCancelBooking}
                             disabled={cancelBookingMutation.isLoading}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-red-600 hover:bg-red-700 cursor-pointer"
                         >
                             {cancelBookingMutation.isLoading ? "Đang hủy..." : "Xác nhận hủy"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Payment Dialog */}
+            <BookingPaymentDialog
+                open={paymentDialog.open}
+                onOpenChange={closePaymentDialog}
+                booking={paymentDialog.booking}
+                onSuccess={() => { toast.success("Thanh toán thành công!"); closePaymentDialog(); refetch(); }}
+            />
+
+            {/* Rating Dialog */}
+            <RatingDialog
+                open={ratingDialog.open}
+                onOpenChange={closeRatingDialog}
+                booking={ratingDialog.booking}
+                driverId={employeeId}
+                onRatingSubmitted={handleRatingSubmitted}
+            />
         </div>
     );
 }

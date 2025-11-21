@@ -27,7 +27,7 @@ export default function PaymentPackagePage() {
     const { packageId: packageIdParam } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const { userId } = useAuthStore();
+    const { employeeId } = useAuthStore();
     const [paymentMethod, setPaymentMethod] = useState("VNPAY");
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -37,6 +37,7 @@ export default function PaymentPackagePage() {
 
     // Sử dụng packageId từ state (nếu là extend) hoặc từ params (nếu là đăng ký mới)
     const packageId = packagePlanId || packageIdParam;
+    console.log("PaymentPackagePage packageId:", packageId);
 
     // Lấy thông tin gói từ API
     const { data: packageData, isLoading, error } = useCustomQuery(
@@ -70,7 +71,7 @@ export default function PaymentPackagePage() {
 
             // Bước 1: Tạo payment
             const paymentData = {
-                customerId: userId,
+                customerId: employeeId,
                 totalAmount: totalAmount,
                 method: paymentMethod,
                 status: "PENDING",

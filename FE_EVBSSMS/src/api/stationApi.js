@@ -56,7 +56,7 @@ export const deleteStation = async (id) => {
 /**
  * Tìm trạm gần nhất
  * POST /api/stations/nearest
- * @returns {Promise<Array>} Array các trạm gần nhất, mỗi item có distanceKm
+ * @returns {Promise<{data: Array, message: string}>} Array các trạm gần nhất, mỗi item có distanceKm
  */
 export const findNearestStations = async (latitude, longitude) => {
     const response = await apiClient.post(`${BASE_URL}/nearest`, { latitude, longitude });
@@ -68,7 +68,7 @@ export const findNearestStations = async (latitude, longitude) => {
 
 /**
  * Thêm nhân viên vào trạm (Admin/Manager)
- * POST /station/api/stations/staffs/{stationId}
+ * POST /api/stations/staffs/{stationId}
  * @param {number|string} stationId
  * @param {{ staffCode: string }} payload
  * @returns {Promise<Object>} Thông tin trạm sau khi thêm nhân viên, bao gồm batteries và staffCode
@@ -77,6 +77,40 @@ export const addStaffToStation = async (stationId, payload) => {
     // payload: { staffCode }
     const res = await apiClient.post(`${BASE_URL}/staffs/${stationId}`, payload);
     return res?.data || res || null;
+};
+
+/**
+ * Lấy thông tin trạm theo mã nhân viên
+ * GET /api/stations/staff/{staffCode}
+ * @param {string} staffCode
+ * @returns {Promise<Object|null>} Thông tin trạm chứa staffCode nếu tồn tại
+ */
+export const getStationByStaffCode = async (staffCode) => {
+    const res = await apiClient.get(`${BASE_URL}/staff/${encodeURIComponent(staffCode)}`);
+    return res?.data || res || null;
+};
+
+/**
+ * Xóa nhân viên khỏi trạm
+ * DELETE /api/stations/staffs/{stationId}/{staffCode}
+ * @param {number|string} stationId
+ * @param {string} staffCode
+ * @returns {Promise<Object|null>} Thông tin trạm sau khi cập nhật (bỏ nhân viên)
+ */
+export const removeStaffFromStation = async (stationId, staffCode) => {
+    const res = await apiClient.delete(`${BASE_URL}/staffs/${stationId}/${encodeURIComponent(staffCode)}`);
+    return res?.data || res || null;
+};
+
+/**
+ * Lấy danh sách pin của trạm theo mã trạm
+ * GET /api/stations/{stationCode}/batteries
+ * @param {string} stationCode - Mã trạm
+ * @returns {Promise<Array>} Danh sách pin của trạm
+ */
+export const getBatteriesByStationCode = async (stationCode) => {
+    const res = await apiClient.get(`${BASE_URL}/code/${encodeURIComponent(stationCode)}/batteries`);
+    return res?.data || res || [];
 };
 
 /** Station Status Enum */
@@ -94,5 +128,8 @@ export const stationApi = {
     deleteStation,
     findNearestStations,
     addStaffToStation,
+    getStationByStaffCode,
+    removeStaffFromStation,
+    getBatteriesByStationCode,
     STATION_STATUS,
 };

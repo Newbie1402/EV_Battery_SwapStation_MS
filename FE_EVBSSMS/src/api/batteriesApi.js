@@ -67,20 +67,17 @@ export const holdBattery = async (batteryCode) => {
 };
 
 /**
- * Xử lý sự kiện hoán đổi pin từ xe sang trạm
- * POST /station/api/batteries/event/swapverhice-to-station
+ * Xử lý sự kiện hoán đổi pin từ trạm sang trạm
+ * POST /station/api/batteries/event/swapstation-to-station
  * @param {Object} data - Swap event data
- * @param {number} data.bookingId
- * @param {number} data.oldBatteryId
- * @param {number} data.newBatteryId
- * @param {string} data.verhiceId
- * @param {string} data.stationId
+ * @param {string} data.batteryId
+ * @param {string} data.oldStationId
+ * @param {string} data.newStationId
  * @param {string} data.swapStatus
- * @param {number} data.soC
  * @returns {Promise<Object>}
  */
-export const swapVehicleToStation = async (data) => {
-    return await apiClient.post(`${BASE_URL}/event/swapverhice-to-station`, data);
+export const swapStationToStation = async (data) => {
+    return await apiClient.post(`${BASE_URL}/event/swapstation-to-station`, data);
 };
 
 /**
@@ -113,9 +110,23 @@ export const addBatteryToStation = async (data) => {
 };
 
 /**
+ * Xử lý sự kiện hoán đổi pin từ xe sang trạm
+ * POST /station/api/batteries/event/swapverhice-to-station
+ * @param {Object} data - Swap event data
+ * @param {string} data.oldBatteryId
+ * @param {string} data.newBatteryId
+ * @param {string} data.verhiceId
+ * @param {string} data.stationId
+ * @returns {Promise<Object>}
+ */
+export const swapStationToVehicle = async (data) => {
+    return await apiClient.post(`${BASE_URL}/event/swapverhice-to-station`, data);
+}
+
+/**
  * Cập nhật battery (Admin only)
  * PUT /station/api/batteries/update/{id}
- * @param {number} id - Battery ID
+ * @param {string} batteryCode
  * @param {Object} data - Dữ liệu cập nhật
  * @param {string} data.model
  * @param {number} data.capacity
@@ -126,8 +137,8 @@ export const addBatteryToStation = async (data) => {
  * @param {string} data.referenceId
  * @returns {Promise<Object>}
  */
-export const updateBattery = async (id, data) => {
-    return await apiClient.put(`${BASE_URL}/update/${id}`, data);
+export const updateBattery = async (batteryCode, data) => {
+    return await apiClient.put(`${BASE_URL}/update/${batteryCode}`, data);
 };
 
 /**
@@ -150,7 +161,8 @@ export const batteriesApi = {
 
     // Event operations
     holdBattery,
-    swapVehicleToStation,
+    swapStationToStation,
+    swapStationToVehicle,
 
     // CRUD operations
     createBattery,
@@ -162,4 +174,3 @@ export const batteriesApi = {
     BATTERY_STATUS,
     BATTERY_OWNER_TYPE,
 };
-

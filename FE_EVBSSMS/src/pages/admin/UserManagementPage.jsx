@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { adminApi } from "@/api/adminApi";
+import { stationApi } from "@/api/stationApi";
 import useCustomQuery from "@/hooks/useCustomQuery";
 import useCustomMutation from "@/hooks/useCustomMutation";
 import toast from "react-hot-toast";
@@ -11,7 +12,7 @@ import {
     UserX,
     Eye,
     Car,
-    Shield, Mail, Phone, IdCardIcon, UserPlus, ShieldCheck, ShieldX
+    Shield, Mail, Phone, IdCardIcon, UserPlus, ShieldCheck, ShieldX, MapPin
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,8 @@ export default function UserManagementPage() {
     const [registrationRoleFilter, setRegistrationRoleFilter] = useState("ALL");
     const [rejectDialog, setRejectDialog] = useState({ open: false, userId: null, reason: "" });
     const [approveTarget, setApproveTarget] = useState(null);
+    // State cho station info của staff
+    const [staffStations, setStaffStations] = useState({}); // { employeeId: stationData }
 
     // Fetch drivers
     const { data: driversData, isLoading: isLoadingDrivers, refetch: refetchDrivers } = useCustomQuery(
@@ -90,6 +93,33 @@ export default function UserManagementPage() {
             },
         }
     );
+
+    // Fetch station info cho staff
+    useEffect(() => {
+        if (!staffData || staffData.length === 0) return;
+
+        const fetchStaffStations = async () => {
+            const stationMap = {};
+            await Promise.all(
+                staffData.map(async (staff) => {
+                    if (staff.employeeId) {
+                        try {
+                            const stationInfo = await stationApi.getStationByStaffCode(staff.employeeId);
+                            if (stationInfo?.data || stationInfo) {
+                                stationMap[staff.employeeId] = stationInfo?.data || stationInfo;
+                            }
+                        } catch {
+                            // Staff chưa được phân công trạm
+                            stationMap[staff.employeeId] = null;
+                        }
+                    }
+                })
+            );
+            setStaffStations(stationMap);
+        };
+
+        fetchStaffStations();
+    }, [staffData]);
 
     const openConfirm = (action, userId) => setConfirmState({ action, userId });
     const closeConfirm = () => setConfirmState({ action: null, userId: null });
@@ -192,7 +222,7 @@ export default function UserManagementPage() {
 
                                 {/* User Info */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                                         <h3 className="text-lg font-semibold text-slate-900">
                                             {user.fullName}
                                         </h3>
@@ -204,6 +234,20 @@ export default function UserManagementPage() {
                                                 <Shield className="w-3 h-3 mr-1" />
                                                 Đã xác thực
                                             </Badge>
+                                        )}
+                                        {/* Station Badge cho STAFF */}
+                                        {user.role === "STAFF" && (
+                                            staffStations[user.employeeId] ? (
+                                                <Badge variant="outline" className="text-blue-600 border-blue-600">
+                                                    <MapPin className="w-3 h-3 mr-1" />
+                                                    {staffStations[user.employeeId]?.stationName} - {staffStations[user.employeeId]?.stationCode}
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="text-gray-500 border-gray-400">
+                                                    <MapPin className="w-3 h-3 mr-1" />
+                                                    Chưa được phân công
+                                                </Badge>
+                                            )
                                         )}
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 text-sm text-slate-600">
@@ -475,6 +519,7 @@ export default function UserManagementPage() {
                 user={selectedUser}
                 getStatusBadge={getStatusBadge}
                 getUserInitials={getUserInitials}
+                stationInfo={selectedUser?.role === "STAFF" && selectedUser?.employeeId ? staffStations[selectedUser.employeeId] : null}
             />
 
             {/* AlertDialog xác nhận kích hoạt / vô hiệu hóa */}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MapPin, Search, Navigation, Navigation2 } from "lucide-react";
+import { MapPin, Search, Navigation, Navigation2, Filter } from "lucide-react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -9,6 +9,16 @@ import useCustomQuery from "@/hooks/useCustomQuery";
 import { stationApi, STATION_STATUS } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import BookingDialog from "./BookingDialog";
 import { toast } from "react-hot-toast";
 import useCustomMutation from "@/hooks/useCustomMutation";
@@ -22,8 +32,10 @@ export default function StationListPage() {
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationError, setLocationError] = useState(null);
     const [closestStationId, setClosestStationId] = useState(null);
-    const [statusFilter, setStatusFilter] = useState("ALL");
-    const [slotFilter, setSlotFilter] = useState("ALL");
+    const [batteryModelFilter, setBatteryModelFilter] = useState("ALL");
+    const [batteryCapacityFilter, setBatteryCapacityFilter] = useState("ALL");
+    const [showFilterAlert, setShowFilterAlert] = useState(false);
+    const [pendingStation, setPendingStation] = useState(null);
 
     // Quản lý map instance (giữ cho nút +/-)
     const [mapInstance, setMapInstance] = useState(null);
@@ -79,6 +91,15 @@ export default function StationListPage() {
     const stationsData = stationsWrapper?.data || stationsWrapper || [];
     const stations = Array.isArray(stationsData) ? stationsData : [];
 
+    // Lấy tất cả batteries từ stations để extract unique models và capacities
+    const allBatteriesFromStations = stations.flatMap(station => station.batteries || []);
+
+    // Lấy danh sách unique models (loại bỏ trùng lặp)
+    const uniqueModels = [...new Set(allBatteriesFromStations.map(b => b.model).filter(Boolean))].sort();
+
+    // Lấy danh sách unique capacities (loại bỏ trùng lặp)
+    const uniqueCapacities = [...new Set(allBatteriesFromStations.map(b => b.capacity).filter(Boolean))].sort((a, b) => a - b);
+
     // Client-side pagination
     // const itemsPerPage = 1000; // lấy nhiều cho sidebar list
     // const paginatedStations = stations.slice(0, itemsPerPage);
@@ -86,26 +107,65 @@ export default function StationListPage() {
     // Nguồn dữ liệu gốc: ưu tiên nearestStations nếu có
     const baseStations = nearestStations.length > 0 ? nearestStations : stations;
 
-    // Áp dụng bộ lọc tìm kiếm + trạng thái + số chỗ
+    // Áp dụng bộ lọc tìm kiếm + trạng thái ACTIVE + batteries
     const filteredStations = baseStations.filter((station) => {
         const matchSearch = (
             station.stationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             station.address?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        const matchStatus = statusFilter === 'ALL' ? true : String(station.status) === String(statusFilter);
-        let matchSlot = true;
-        const avail = (station.availableSlots ?? 0);
-        if (slotFilter === 'AVAIL') matchSlot = avail > 0;
-        if (slotFilter === 'EMPTY') matchSlot = avail <= 0;
-        return matchSearch && matchStatus && matchSlot;
+
+        // Chỉ hiển thị trạm ACTIVE
+        const matchStatus = String(station.status) === String(STATION_STATUS.ACTIVE);
+
+        // Kiểm tra batteries theo model và capacity
+        let matchBattery;
+        if (batteryModelFilter !== 'ALL' || batteryCapacityFilter !== 'ALL') {
+            const batteries = station.batteries || [];
+            // Lọc batteries có SOC = 100, SOH = 100 và status = IN_USE
+            const qualifiedBatteries = batteries.filter(b =>
+                b.soc === 100 &&
+                b.soh === 100 &&
+                b.status === 'IN_USE'
+            );
+
+            matchBattery = qualifiedBatteries.some(battery => {
+                const modelMatch = batteryModelFilter === 'ALL' || battery.model === batteryModelFilter;
+                const capacityMatch = batteryCapacityFilter === 'ALL' || String(battery.capacity) === String(batteryCapacityFilter);
+                return modelMatch && capacityMatch;
+            });
+        } else {
+            // Nếu không filter, chỉ kiểm tra có ít nhất 1 battery đạt chuẩn (IN_USE)
+            const batteries = station.batteries || [];
+            matchBattery = batteries.some(b => b.soc === 100 && b.soh === 100 && b.status === 'IN_USE');
+        }
+
+        return matchSearch && matchStatus && matchBattery;
     });
 
     // Giới hạn số phần tử cho danh sách bên trái
     const listStations = filteredStations.slice(0, 50);
 
     const handleBookNow = (station) => {
-        setSelectedStation(station);
+        // Kiểm tra nếu cả model và capacity đều chưa được filter
+        if (batteryModelFilter === 'ALL' && batteryCapacityFilter === 'ALL') {
+            setPendingStation(station);
+            setShowFilterAlert(true);
+        } else {
+            setSelectedStation(station);
+            setIsBookingDialogOpen(true);
+        }
+    };
+
+    const handleContinueWithoutFilter = () => {
+        setSelectedStation(pendingStation);
+        setShowFilterAlert(false);
         setIsBookingDialogOpen(true);
+        setPendingStation(null);
+    };
+
+    const handleBackToFilter = () => {
+        setShowFilterAlert(false);
+        setPendingStation(null);
     };
 
     // Lấy vị trí người dùng
@@ -235,7 +295,7 @@ export default function StationListPage() {
                             )}
                         </motion.div>
 
-                        {/* Bộ lọc đơn giản (placeholder) */}
+                        {/* Bộ lọc theo pin */}
                         <motion.div
                             initial="hidden"
                             animate="visible"
@@ -243,32 +303,52 @@ export default function StationListPage() {
                             transition={{ duration: 0.6, delay: 0.1 }}
                             className="space-y-4 rounded-xl bg-white p-4 border border-slate-200"
                         >
-                            <h3 className="text-lg font-bold leading-tight tracking-tight text-slate-900">Bộ lọc</h3>
+                            <h3 className="text-lg font-bold leading-tight tracking-tight text-slate-900">Bộ lọc pin</h3>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+                                <p className="font-semibold mb-1">📌 Lưu ý:</p>
+                                <p>Chỉ hiển thị trạm có pin đạt chuẩn: SOC = 100% & SOH = 100%</p>
+                            </div>
                             <div className="space-y-3">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700" htmlFor="status-filter">Trạng thái</label>
-                                    <select id="status-filter" value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="w-full rounded-lg border-slate-300 bg-white text-slate-800 focus:border-blue-600 focus:ring-blue-600 text-sm h-10">
-                                        <option value="ALL">Tất cả</option>
-                                        <option value="ACTIVE">Hoạt động</option>
-                                        <option value="OFFLINE">Tạm đóng</option>
-                                        <option value="MAINTENANCE">Bảo trì</option>
+                                    <label className="text-sm font-medium text-slate-700" htmlFor="model-filter">Model pin</label>
+                                    <select
+                                        id="model-filter"
+                                        value={batteryModelFilter}
+                                        onChange={(e)=>setBatteryModelFilter(e.target.value)}
+                                        className="w-full rounded-lg border-slate-300 bg-white text-slate-800 focus:border-blue-600 focus:ring-blue-600 text-sm h-10"
+                                    >
+                                        <option value="ALL">Tất cả model</option>
+                                        {uniqueModels.map((model) => (
+                                            <option key={model} value={model}>{model}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700" htmlFor="slot-filter">Còn chỗ</label>
-                                    <select id="slot-filter" value={slotFilter} onChange={(e)=>setSlotFilter(e.target.value)} className="w-full rounded-lg border-slate-300 bg-white text-slate-800 focus:border-blue-600 focus:ring-blue-600 text-sm h-10">
-                                        <option value="ALL">Tất cả</option>
-                                        <option value="AVAIL">Còn chỗ</option>
-                                        <option value="EMPTY">Hết chỗ</option>
+                                    <label className="text-sm font-medium text-slate-700" htmlFor="capacity-filter">Dung lượng (kWh)</label>
+                                    <select
+                                        id="capacity-filter"
+                                        value={batteryCapacityFilter}
+                                        onChange={(e)=>setBatteryCapacityFilter(e.target.value)}
+                                        className="w-full rounded-lg border-slate-300 bg-white text-slate-800 focus:border-blue-600 focus:ring-blue-600 text-sm h-10"
+                                    >
+                                        <option value="ALL">Tất cả dung lượng</option>
+                                        {uniqueCapacities.map((capacity) => (
+                                            <option key={capacity} value={capacity}>{capacity} kWh</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="flex gap-3 pt-1">
-                                    <Button className="w-full rounded-full h-10 px-4 bg-blue-600 text-white text-sm font-bold shadow-sm hover:bg-blue-700" onClick={()=>{ /* lọc áp dụng tức thời */ }}>
-                                        Áp dụng
+                                    <Button
+                                        variant="outline"
+                                        className="w-full rounded-full h-10 px-4 text-sm font-bold"
+                                        onClick={()=>{
+                                            setSearchQuery('');
+                                            setBatteryModelFilter('ALL');
+                                            setBatteryCapacityFilter('ALL');
+                                        }}
+                                    >
+                                        Đặt lại bộ lọc
                                     </Button>
-                                    {/*<Button variant="outline" className="w-full rounded-full h-10 px-4 text-sm font-bold" onClick={()=>{ setSearchQuery(''); setStatusFilter('ALL'); setSlotFilter('ALL'); }}>*/}
-                                    {/*    Đặt lại*/}
-                                    {/*</Button>*/}
                                 </div>
                             </div>
                         </motion.div>
@@ -285,10 +365,6 @@ export default function StationListPage() {
                                 const isNearest = Array.isArray(closestStationId) ? closestStationId.includes(String(station.id)) : false;
                                 const statusInfo = getStatusDisplay(station.status);
                                 const distance = station.distanceKm;
-                                // Màu trạng thái pin (slots)
-                                let slotColorClass = 'text-green-600';
-                                if ((station.availableSlots || 0) === 0) slotColorClass = 'text-red-600';
-                                else if ((station.availableSlots || 0) <= (station.totalSlots || 0) * 0.3) slotColorClass = 'text-yellow-600';
 
                                 return (
                                     <div
@@ -310,16 +386,15 @@ export default function StationListPage() {
                                             {isNearest && (
                                                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Gần bạn</span>
                                             )}
-                                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${slotColorClass} bg-slate-100`}>Còn trống: {station.availableSlots}/{station.totalSlots}</span>
                                         </div>
                                         <div className="flex gap-2">
                                             <Button
                                                 size="sm"
                                                 className="flex-1 rounded-full h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold"
-                                                disabled={station.status !== 'ACTIVE' || station.availableSlots === 0}
+                                                disabled={station.status !== 'ACTIVE'}
                                                 onClick={() => handleBookNow(station)}
                                             >
-                                                {station.status !== 'ACTIVE' ? 'Tạm đóng' : station.availableSlots === 0 ? 'Hết chỗ' : 'Đặt lịch ngay'}
+                                                {station.status !== 'ACTIVE' ? 'Tạm đóng' : 'Đặt lịch ngay'}
                                             </Button>
                                             {userLocation && station.latitude && station.longitude && (
                                                 <Button
@@ -477,12 +552,55 @@ export default function StationListPage() {
                 </div>
             </div>
 
+            {/* Alert Dialog khuyến khích chọn filter */}
+            <AlertDialog open={showFilterAlert} onOpenChange={setShowFilterAlert}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <Filter className="h-5 w-5 text-blue-600" />
+                            Khuyến khích chọn filter pin
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-3">
+                            <p>
+                                Bạn chưa chọn filter theo <strong>Model pin</strong> hoặc <strong>Dung lượng</strong>.
+                            </p>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                                <p className="font-semibold mb-2">💡 Lợi ích khi chọn filter:</p>
+                                <ul className="list-disc ml-5 space-y-1">
+                                    <li>Tìm được pin phù hợp với xe của bạn</li>
+                                    <li>Đảm bảo có pin khả dụng khi đến trạm</li>
+                                    <li>Tiết kiệm thời gian chờ đợi</li>
+                                    <li>Tự động chọn pin đúng model khi đặt lịch</li>
+                                </ul>
+                            </div>
+                            <p className="text-sm">
+                                Bạn có muốn quay lại để chọn filter phù hợp không?
+                            </p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={handleBackToFilter}>
+                            Quay lại chọn filter
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleContinueWithoutFilter}
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            Tiếp tục không chọn filter
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             {/* Booking Dialog */}
             <BookingDialog
                 open={isBookingDialogOpen}
                 onOpenChange={setIsBookingDialogOpen}
                 station={selectedStation}
+                filterModel={batteryModelFilter}
+                filterCapacity={batteryCapacityFilter}
             />
         </div>
     );
 }
+

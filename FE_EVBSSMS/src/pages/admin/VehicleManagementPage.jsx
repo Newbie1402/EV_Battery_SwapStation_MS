@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {adminApi} from "@/api/adminApi";
+import { adminApi, batteriesApi } from "@/api";
 import useCustomQuery from "@/hooks/useCustomQuery";
 import useCustomMutation from "@/hooks/useCustomMutation";
 import toast from "react-hot-toast";
@@ -67,12 +67,39 @@ export default function VehicleManagementPage() {
     // Fetch drivers for assignment
     const { data: driversData } = useCustomQuery(["drivers"], adminApi.getAllDrivers);
 
+    const createBatteryMutation = useCustomMutation(
+        (data) => batteriesApi.createBattery(data),
+        null,
+        {
+            onSuccess: () => {
+                toast.success("Đã khởi tạo pin cho xe mới!");
+            },
+            onError: (err) => {
+                console.error("Lỗi tạo pin:", err);
+                toast.error("Tạo xe thành công nhưng lỗi khi tạo pin!");
+            }
+        }
+    );
+
     // Create vehicle mutation
     const createMutation = useCustomMutation(
         (data) => adminApi.createVehicle(data),
         null,
         {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                const newVehicleId = response?.vehicleId || response?.data?.vehicleId;
+                if (newVehicleId && formData.batteryType && formData.batteryCapacity) {
+                    createBatteryMutation.mutate({
+                        model: formData.batteryType,
+                        capacity: parseFloat(formData.batteryCapacity),
+                        soh: 100,
+                        soc: 100,
+                        status: "IN_CAR",
+                        ownerType: "VEHICLE",
+                        referenceId: newVehicleId
+                    });
+                }
+
                 toast.success("Thêm phương tiện thành công!");
                 setIsCreateDialogOpen(false);
                 resetForm();
@@ -164,6 +191,12 @@ export default function VehicleManagementPage() {
     const handleCreate = () => {
         if (!formData.vin || !formData.licensePlate) {
             toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
+            return;
+        }
+
+        // 2. THÊM MỚI: Validate độ dài VIN (phải đủ 17 ký tự)
+        if (formData.vin.trim().length !== 17) {
+            toast.error("Số VIN phải bao gồm đúng 17 ký tự!");
             return;
         }
 

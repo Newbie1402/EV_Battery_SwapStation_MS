@@ -26,9 +26,12 @@ const DriverProfilePage = lazy(() => import("../pages/driver/DriverProfilePage")
 const PaymentPackagePage = lazy(() => import("../pages/driver/PaymentPackagePage"));
 const PaymentSuccessPage = lazy(() => import("../pages/driver/PaymentSuccessPage"));
 const MyPackagesPage = lazy(() => import("../pages/driver/MyPackagesPage"));
+const MyPaymentPage = lazy(() => import("../pages/driver/MyPaymentPage"));
 
 //Staff Pages
 const StaffDashboardPage = lazy(() => import("../pages/staff/StaffDashboard"));
+const StaffBatteryManagementPage = lazy(() => import("../pages/staff/StaffBatteryManagement"));
+const StaffBookingManagementPage = lazy(() => import("../pages/staff/StaffBookingManagementPage"));
 
 //Admin Pages
 const AdminDashboardPage = lazy(() => import("../pages/admin/AdminDashboard"));
@@ -74,6 +77,7 @@ export default function AppRoutes() {
                         <Route path="profile" element={<DriverProfilePage />} />
                         <Route path="payment-package/:packageId" element={<PaymentPackagePage />} />
                         <Route path="payment-success" element={<PaymentSuccessPage />} />
+                        <Route path="my-payment" element={<MyPaymentPage />} />
                     </Route>
 
                     {/* Staff Routes */}
@@ -85,6 +89,8 @@ export default function AppRoutes() {
                                 allowedRoles={["STAFF"]}/>}
                     >
                         <Route path="dashboard" element={<StaffDashboardPage />} />
+                        <Route path="batteries" element={<StaffBatteryManagementPage />} />
+                        <Route path="bookings" element={<StaffBookingManagementPage />} />
                     </Route>
 
                     {/* Admin Routes */}

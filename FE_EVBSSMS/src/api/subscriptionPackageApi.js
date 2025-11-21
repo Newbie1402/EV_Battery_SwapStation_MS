@@ -5,7 +5,7 @@ import { apiClient } from "@/api/apiClient.js";
  * Base URL: /api/subscriptions
  */
 
-const BASE_URL = "/subscriptions";
+const BASE_URL = "booking/api/subscriptions";
 
 /**
  * 1. Tạo đăng ký mới

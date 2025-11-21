@@ -135,9 +135,10 @@ export default function RegisterPage() {
             // Kiểm tra response structure
             const userData = response.data || response;
 
-            // Save to Zustand store
+            // Save to Zustand store - lưu cả userId và employeeId
             login({
                 userId: userData.user.id,
+                employeeId: userData.user.employeeId || null,
                 token: userData.accessToken,
                 refreshToken: userData.refreshToken,
                 role: userData.user.role,

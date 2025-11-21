@@ -5,7 +5,7 @@ import { apiClient } from "./apiClient";
  * Base URL: /api/package-plans
  */
 
-const BASE_URL = "/package-plans";
+const BASE_URL = "/booking/api/package-plans";
 
 /**
  * 1. Lấy tất cả package plans

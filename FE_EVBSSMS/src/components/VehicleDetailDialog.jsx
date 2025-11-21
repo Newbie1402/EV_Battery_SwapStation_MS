@@ -30,7 +30,7 @@ export default function VehicleDetailDialog({ open, onOpenChange, vehicleId }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Chi tiết phương tiện</DialogTitle>
           <DialogDescription>Thông tin đầy đủ về phương tiện</DialogDescription>

@@ -16,36 +16,56 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import useCustomQuery from "@/hooks/useCustomQuery";
 import { stationApi } from "@/api";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function StaffDashboard() {
-    const { stationId } = useAuthStore();
+    const { employeeId } = useAuthStore();
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Lấy thông tin chi tiết trạm mà staff đang quản lý
+    // Lấy thông tin trạm mà staff đang được phân công (dùng employeeId)
     const {
         data: station,
         isLoading,
         isError
     } = useCustomQuery(
-        ["station-detail", stationId],
-        () => stationApi.getStationById(stationId),
+        ["staff-station", employeeId],
+        () => stationApi.getStationByStaffCode(employeeId),
         {
-            enabled: !!stationId,
+            enabled: !!employeeId,
             onError: () => {
                 toast.error("Không thể tải thông tin trạm");
             }
         }
     );
 
-    // Hiển thị khi không có stationId
-    if (!stationId) {
+    const stationData = station?.data || station;
+
+    // Lưu stationCode & stationName vào localStorage khi có dữ liệu trạm (đặt trước các early return)
+    useEffect(() => {
+        if (stationData?.stationCode) {
+            const currentCode = localStorage.getItem("staffStationCode");
+            const currentName = localStorage.getItem("staffStationName");
+            const currentId = localStorage.getItem("staffStationId");
+            if (currentId !== String(stationData.id)) {
+                localStorage.setItem("staffStationId", String(stationData.id));
+            }
+            if (currentCode !== stationData.stationCode) {
+                localStorage.setItem("staffStationCode", stationData.stationCode);
+            }
+            if (currentName !== stationData.stationName) {
+                localStorage.setItem("staffStationName", stationData.stationName || "");
+            }
+        }
+    }, [stationData?.stationCode, stationData?.stationName, stationData?.id]);
+
+    // Hiển thị khi không có employeeId
+    if (!employeeId) {
         return (
             <div className="space-y-6">
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                        Bạn chưa được phân công quản lý trạm nào. Vui lòng liên hệ quản trị viên.
+                        Không xác định được mã nhân viên. Vui lòng đăng nhập lại.
                     </AlertDescription>
                 </Alert>
             </div>
@@ -68,20 +88,18 @@ export default function StaffDashboard() {
     }
 
     // Hiển thị khi có lỗi
-    if (isError) {
+    if (isError || !station) {
         return (
             <div className="space-y-6">
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                        Đã xảy ra lỗi khi tải thông tin trạm. Vui lòng thử lại sau.
+                        Bạn chưa được phân công quản lý trạm nào. Vui lòng liên hệ quản trị viên.
                     </AlertDescription>
                 </Alert>
             </div>
         );
     }
-
-    const stationData = station?.data || station;
 
     // Hàm xác định trạng thái hoạt động
     const getStationStatus = (status) => {
@@ -362,4 +380,3 @@ export default function StaffDashboard() {
         </div>
     );
 }
-

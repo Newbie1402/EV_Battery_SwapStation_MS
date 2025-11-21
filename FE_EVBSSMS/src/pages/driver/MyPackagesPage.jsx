@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Package,
@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
     AlertDialog,
@@ -36,7 +35,7 @@ import { formatCurrency } from "@/utils/format";
 
 export default function MyPackagesPage() {
     const navigate = useNavigate();
-    const { userId } = useAuthStore();
+    const { employeeId } = useAuthStore();
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [extendDialogOpen, setExtendDialogOpen] = useState(false);
     const [selectedSubscriptionId, setSelectedSubscriptionId] = useState(null);
@@ -48,16 +47,29 @@ export default function MyPackagesPage() {
 
     // Lấy thông tin subscription hiện tại (stats + packagePlan)
     const { data: currentStats, isLoading: statsLoading, refetch: refetchStats } = useCustomQuery(
-        ["subscriptionStats", userId],
-        () => subscriptionPackageApi.getSubscriptionByUserId(userId),
-        { enabled: !!userId }
+        ["subscriptionStats", employeeId],
+        () => subscriptionPackageApi.getSubscriptionByUserId(employeeId),
+        {
+            enabled: !!employeeId,
+            onSuccess(data) {
+                if(data?.packagePlanId) {
+                    setSelectedPackagePlanId(data.packagePlanId);
+                }
+            }
+        }
     );
+
+    // if(currentStats?.packagePlanId) {
+    //     setSelectedPackagePlanId(currentStats.packagePlanId);
+    //     console.log(currentStats.packagePlanId);
+    // }
+
 
     // Lấy lịch sử subscription (phân trang)
     const { data: history, isLoading: historyLoading, refetch: refetchHistory } = useCustomQuery(
-        ["subscriptionHistory", userId, historyPage],
-        () => subscriptionPackageApi.getSubscriptionHistoryByUserId(userId, historyPage, historySize),
-        { enabled: !!userId }
+        ["subscriptionHistory", employeeId, historyPage],
+        () => subscriptionPackageApi.getSubscriptionHistoryByUserId(employeeId, historyPage, historySize),
+        { enabled: !!employeeId }
     );
 
     // Mutation hủy gói
@@ -73,16 +85,6 @@ export default function MyPackagesPage() {
         }
     );
 
-    // Mutation toggle auto-extend
-    const toggleAutoExtendMutation = useCustomMutation(
-        ({ id, autoExtend }) => subscriptionPackageApi.toggleAutoExtend(id, autoExtend),
-        {
-            onSuccess: () => {
-                refetchStats();
-                refetchHistory();
-            },
-        }
-    );
 
     // Mutation extend subscription (gia hạn thủ công)
     const extendMutation = useCustomMutation(
@@ -107,9 +109,6 @@ export default function MyPackagesPage() {
         if (selectedSubscriptionId) cancelMutation.mutate(selectedSubscriptionId);
     }, [selectedSubscriptionId, cancelMutation]);
 
-    const handleToggleAutoExtend = useCallback((subscriptionId, currentAutoExtend) => {
-        toggleAutoExtendMutation.mutate({ id: subscriptionId, autoExtend: !currentAutoExtend });
-    }, [toggleAutoExtendMutation]);
 
     const handleExtendSubscription = useCallback((subscriptionId) => {
         setSelectedSubscriptionId(subscriptionId);
@@ -119,13 +118,13 @@ export default function MyPackagesPage() {
 
     const confirmExtend = useCallback(() => {
         if (!selectedSubscriptionId) return;
-        const packagePrice = currentStats?.packagePlan?.price || 0;
+        const packagePrice = currentStats?.packagePlanPrice || 0;
         const totalAmount = packagePrice * extendPeriods;
         toast((t) => (
             <div className="flex flex-col gap-2">
                 <p className="font-semibold">Xác nhận thanh toán</p>
                 <p className="text-sm">
-                    Bạn cần thanh toán {formatCurrency(totalAmount)} để gia hạn {extendPeriods} {currentStats?.packagePlan?.packageType === "YEARLY" ? "năm" : "tháng"}.
+                    Bạn cần thanh toán {formatCurrency(totalAmount)} để gia hạn {extendPeriods} {currentStats?.packagePlanType === "YEARLY" ? "năm" : "tháng"}.
                 </p>
                 <div className="flex gap-2 mt-2">
                     <Button
@@ -151,56 +150,6 @@ export default function MyPackagesPage() {
         ), { duration: 10000 });
     }, [selectedSubscriptionId, extendPeriods, currentStats, navigate]);
 
-    // Thông báo auto-extend trước hạn
-    useEffect(() => {
-        if (!currentStats || currentStats.status !== "ACTIVE" || !currentStats.autoExtend) return;
-        const daysRemaining = getDaysRemaining(currentStats.endDate);
-        if (daysRemaining <= 3 && daysRemaining > 0) {
-            const packagePrice = currentStats?.packagePlan?.price || 0;
-            toast((t) => (
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                        <p className="font-semibold">Tự động gia hạn sắp diễn ra</p>
-                    </div>
-                    <p className="text-sm">
-                        Gói của bạn còn {daysRemaining} ngày. Bạn cần thanh toán {formatCurrency(packagePrice)} để tự động gia hạn gói.
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                        <Button
-                            size="sm"
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                navigate(`/driver/payment-package`, {
-                                    state: {
-                                        subscriptionId: currentStats.subscriptionId,
-                                        extendPeriods: 1,
-                                        isExtend: true,
-                                        isAutoExtend: true,
-                                        packagePlanId: currentStats?.packagePlanId || currentStats?.packagePlan?.id,
-                                    }
-                                });
-                            }}
-                        >
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Thanh toán ngay
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                handleToggleAutoExtend(currentStats.subscriptionId, true);
-                            }}
-                        >
-                            Tắt tự động gia hạn
-                        </Button>
-                    </div>
-                </div>
-            ), { duration: 15000, id: 'auto-extend-warning' });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentStats]);
 
     // Helpers
     const formatDate = (dateString) => {
@@ -281,7 +230,7 @@ export default function MyPackagesPage() {
                                                         <Badge variant="destructive" className="bg-orange-500">Hết lượt đổi</Badge>
                                                     )}
                                                 </div>
-                                                <p className="text-3xl font-bold mt-1 text-slate-900">{formatCurrency(currentStats.packagePlan?.price)}{currentStats.packagePlan?.packageType === 'YEARLY' ? "/năm" : "/tháng"}</p>
+                                                <p className="text-3xl font-bold mt-1 text-slate-900">{formatCurrency(currentStats?.packagePlanPrice)}{currentStats?.packagePlanType === 'YEARLY' ? "/năm" : "/tháng"}</p>
                                                 <p className="text-slate-500 text-sm mt-2">Gia hạn vào {formatDate(currentStats.endDate)}</p>
                                             </div>
                                             <div className="flex gap-2">
@@ -354,19 +303,6 @@ export default function MyPackagesPage() {
                                                     </div>
                                                 </div>
                                             )}
-
-                                            {/* Auto-extend toggle */}
-                                            <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex-1">
-                                                        <Label htmlFor="auto-extend" className="text-sm font-medium text-slate-800 cursor-pointer">Tự động gia hạn</Label>
-                                                        <p className="text-xs text-slate-600 mt-1">
-                                                            {currentStats.autoExtend ? "Gói sẽ tự động gia hạn khi hết hạn (yêu cầu thanh toán trước)" : "Bật để tự động gia hạn gói khi sắp hết hạn"}
-                                                        </p>
-                                                    </div>
-                                                    <Switch id="auto-extend" checked={currentStats.autoExtend || false} onCheckedChange={() => handleToggleAutoExtend(currentStats.subscriptionId, currentStats.autoExtend)} disabled={toggleAutoExtendMutation.isPending} />
-                                                </div>
-                                            </div>
 
                                             {/* Warning nếu sắp hết hạn */}
                                             {getDaysRemaining(currentStats.endDate) <= 7 && getDaysRemaining(currentStats.endDate) > 0 && (
@@ -451,7 +387,7 @@ export default function MyPackagesPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center justify-between">
-                                                    <p className="text-sm font-bold text-slate-900">Gói {item.packagePlan.packageType === "MONTHLY" ? "tháng" : "năm"} - {formatCurrency(item.packagePlan?.price || currentStats?.packagePlan?.price || 0)}</p>
+                                                    <p className="text-sm font-bold text-slate-900">Gói {item.packagePlanType === "MONTHLY" ? "tháng" : "năm"} - {formatCurrency(item?.packagePlanPrice || currentStats?.packagePlanPrice || 0)}</p>
                                                 </div>
                                             </li>
                                         ))}
@@ -522,7 +458,7 @@ export default function MyPackagesPage() {
                                     <Label htmlFor="extend-periods" className="text-sm font-medium">Số chu kỳ gia hạn</Label>
                                     <select id="extend-periods" className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={extendPeriods} onChange={(e) => setExtendPeriods(Number(e.target.value))}>
                                         {[1, 2, 3, 6, 12].map((period) => (
-                                            <option key={period} value={period}>{period} {currentStats?.packagePlan?.packageType === "YEARLY" ? "năm" : "tháng"}</option>
+                                            <option key={period} value={period}>{period} {currentStats?.packagePlanType === "YEARLY" ? "năm" : "tháng"}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -531,7 +467,7 @@ export default function MyPackagesPage() {
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-slate-600">Giá gói:</span>
-                                            <span className="font-medium">{formatCurrency(currentStats.packagePlan.price)}</span>
+                                            <span className="font-medium">{formatCurrency(currentStats.packagePlanPrice)}</span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-slate-600">Số chu kỳ:</span>
@@ -540,7 +476,7 @@ export default function MyPackagesPage() {
                                         <Separator />
                                         <div className="flex justify-between items-center">
                                             <span className="font-semibold text-slate-800">Tổng thanh toán:</span>
-                                            <span className="text-lg font-bold text-blue-600">{formatCurrency(currentStats.packagePlan.price * extendPeriods)}</span>
+                                            <span className="text-lg font-bold text-blue-600">{formatCurrency(currentStats.packagePlanPrice * extendPeriods)}</span>
                                         </div>
                                     </div>
                                 )}

@@ -47,6 +47,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import BatteryDetailDialog from "@/components/BatteryDetailDialog";
 
 export default function BatteryManagementPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -135,7 +136,7 @@ export default function BatteryManagementPage() {
         "POST",
         {
             onSuccess: () => {
-                toast.success("Thêm pin vào trạm thành công!");
+                toast.success("Thêm pin vào trạm thành công! Pin đã chuyển sang trạng thái IN_USE.");
                 setIsAddToStationDialogOpen(false);
                 setAddToStationData({ stationCode: "", batteryCode: "" });
                 refetch();
@@ -440,6 +441,12 @@ export default function BatteryManagementPage() {
                                                 <Badge className={ownerInfo.className}>
                                                     {ownerInfo.label}
                                                 </Badge>
+                                                {battery.referenceId && battery.status === "IN_USE" && (
+                                                    <Badge className="bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                                        <MapPin className="w-3 h-3 mr-1" />
+                                                        Trạm: {battery.referenceId}
+                                                    </Badge>
+                                                )}
                                             </div>
                                             <div className="grid grid-cols-2 gap-2 text-sm text-slate-600">
                                                 <div className="flex items-center gap-1">
@@ -458,12 +465,6 @@ export default function BatteryManagementPage() {
                                                     <CheckCircle className="w-4 h-4" />
                                                     SOH: {battery.soh}%
                                                 </div>
-                                                {battery.referenceId && (
-                                                    <div className="flex items-center gap-1 text-slate-500 col-span-2">
-                                                        <MapPin className="w-4 h-4" />
-                                                        Ref: {battery.referenceId}
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
 
@@ -485,7 +486,7 @@ export default function BatteryManagementPage() {
                                                 <Edit className="w-4 h-4 mr-1" />
                                                 Sửa
                                             </Button>
-                                            {battery.ownerType === "STATION" && battery.status === "IN_STOCK" && (
+                                            {battery.ownerType === "STATION" && battery.status === "IN_STOCK" && !battery.referenceId && (
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
@@ -620,17 +621,6 @@ export default function BatteryManagementPage() {
                                 </Select>
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="referenceId">Reference ID</Label>
-                            <Input
-                                id="referenceId"
-                                value={formData.referenceId}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, referenceId: e.target.value })
-                                }
-                                placeholder="VD: STATION-001 hoặc VEHICLE-001"
-                            />
-                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -761,6 +751,7 @@ export default function BatteryManagementPage() {
                                 onChange={(e) =>
                                     setFormData({ ...formData, referenceId: e.target.value })
                                 }
+                                disabled={true}
                             />
                         </div>
                     </div>
@@ -780,65 +771,11 @@ export default function BatteryManagementPage() {
             </Dialog>
 
             {/* Detail Dialog */}
-            <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Chi tiết pin</DialogTitle>
-                        <DialogDescription>
-                            Thông tin chi tiết về pin
-                        </DialogDescription>
-                    </DialogHeader>
-                    {selectedBattery && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Mã pin</p>
-                                    <p className="font-semibold">{selectedBattery.batteryCode}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Model</p>
-                                    <p className="font-semibold">{selectedBattery.model}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Dung lượng</p>
-                                    <p className="font-semibold">{selectedBattery.capacity} kWh</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Trạng thái</p>
-                                    <Badge className={`${getStatusBadge(selectedBattery.status).className} text-white`}>
-                                        {getStatusBadge(selectedBattery.status).label}
-                                    </Badge>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">SOH (State of Health)</p>
-                                    <p className="font-semibold text-green-600">{selectedBattery.soh}%</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">SOC (State of Charge)</p>
-                                    <p className="font-semibold text-blue-600">{selectedBattery.soc}%</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 mb-1">Loại sở hữu</p>
-                                    <Badge className={getOwnerTypeBadge(selectedBattery.ownerType).className}>
-                                        {getOwnerTypeBadge(selectedBattery.ownerType).label}
-                                    </Badge>
-                                </div>
-                                {selectedBattery.referenceId && (
-                                    <div>
-                                        <p className="text-sm text-slate-500 mb-1">Reference ID</p>
-                                        <p className="font-semibold">{selectedBattery.referenceId}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-                            Đóng
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <BatteryDetailDialog
+                isOpen={isDetailDialogOpen}
+                onClose={() => setIsDetailDialogOpen(false)}
+                battery={selectedBattery}
+            />
 
             {/* Add to Station Dialog */}
             <Dialog open={isAddToStationDialogOpen} onOpenChange={setIsAddToStationDialogOpen}>
@@ -846,21 +783,30 @@ export default function BatteryManagementPage() {
                     <DialogHeader>
                         <DialogTitle>Gán pin vào trạm</DialogTitle>
                         <DialogDescription>
-                            Thêm pin vào trạm cụ thể
+                            Khi gán pin vào trạm, trạng thái pin sẽ tự động chuyển từ IN_STOCK → IN_USE
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                            <p className="font-semibold mb-1">📌 Lưu ý:</p>
+                            <ul className="list-disc ml-5 space-y-1">
+                                <li>Mỗi pin chỉ có thể gán vào một trạm duy nhất</li>
+                                <li>Trạng thái pin sẽ chuyển sang <strong>IN_USE</strong></li>
+                                <li>Mã trạm sẽ được lưu vào <strong>referenceId</strong></li>
+                            </ul>
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="batteryCode">Mã pin</Label>
                             <Input
                                 id="batteryCode"
                                 value={addToStationData.batteryCode}
                                 disabled
+                                className="bg-gray-50"
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="stationCode">
-                                Trạm <span className="text-red-500">*</span>
+                                Chọn trạm <span className="text-red-500">*</span>
                             </Label>
                             <Select
                                 value={addToStationData.stationCode}
@@ -872,7 +818,7 @@ export default function BatteryManagementPage() {
                                 }
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chọn trạm" />
+                                    <SelectValue placeholder="Chọn trạm để gán pin" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {stations.length === 0 ? (
@@ -902,7 +848,7 @@ export default function BatteryManagementPage() {
                             disabled={addToStationMutation.isLoading || !addToStationData.stationCode}
                             className="bg-[#135bec] hover:bg-[#135bec]/90"
                         >
-                            {addToStationMutation.isLoading ? "Đang thêm..." : "Thêm vào trạm"}
+                            {addToStationMutation.isLoading ? "Đang gán..." : "Gán vào trạm"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

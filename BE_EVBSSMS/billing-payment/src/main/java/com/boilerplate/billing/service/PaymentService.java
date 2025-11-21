@@ -172,6 +172,7 @@ public class PaymentService {
         payment.setDescription(request.getDescription());
         payment.setPaymentTime(request.getPaymentTime());
         payment.setStationId(request.getStationId());
+        payment.setPackageId(request.getPackageId());
 
         // 7. Lưu payment
         SingleSwapPayment saved = singleSwapPaymentRepository.save(payment);

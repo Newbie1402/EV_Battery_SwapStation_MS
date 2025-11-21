@@ -17,4 +17,5 @@ public class SingleSwapPayment extends BasePayment {
 
     private String stationId;
 
+    private Long packageId;
 }

@@ -1,6 +1,7 @@
 package com.boilerplate.billing.service;
 
 import com.boilerplate.billing.client.AuthUserClient;
+import com.boilerplate.billing.enums.PaymentStatus;
 import com.boilerplate.billing.model.DTO.PackagePaymentDTO;
 import com.boilerplate.billing.model.entity.PackagePayment;
 import com.boilerplate.billing.model.entity.SingleSwapPayment;
@@ -109,6 +110,22 @@ public class PaymentService {
         }
         packagePaymentRepository.deleteById(id);
         return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(), "Package payment deleted successfully", null));
+    }
+
+    public ResponseEntity<ResponseData<Void>> confirmCashSingglePayment(Long id){
+        SingleSwapPayment singleSwapPaymentRequest = singleSwapPaymentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+        singleSwapPaymentRequest.setStatus(PaymentStatus.SUCCESS);
+        singleSwapPaymentRepository.save(singleSwapPaymentRequest);
+        return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(), "Payment confirmed successfully", null));
+    }
+
+    public ResponseEntity<ResponseData<Void>> confirmCashPackeagePayment(Long id){
+        PackagePayment singleSwapPaymentRequest = packagePaymentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+        singleSwapPaymentRequest.setStatus(PaymentStatus.SUCCESS);
+        packagePaymentRepository.save(singleSwapPaymentRequest);
+        return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(), "Payment confirmed successfully", null));
     }
 
     //================= SINGLE SWAP PAYMENT CRUD ===================

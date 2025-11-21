@@ -1,5 +1,6 @@
 package com.boilerplate.billing.service;
 
+import com.boilerplate.billing.client.BookingClient;
 import com.boilerplate.billing.enums.PaymentStatus;
 import com.boilerplate.billing.enums.PaymentType;
 import com.boilerplate.billing.exception.BillingException;
@@ -43,6 +44,8 @@ public class VnpayService {
 
     @Value("${vnpay.returnUrl}")
     private String vnp_ReturnUrl;
+
+    private final BookingClient bookingClient;
 
     // ================= TẠO URL THANH TOÁN =================
     public ResponseData<String> createPaymentUrl(VNPAYRequest request, HttpServletRequest httpRequest) {
@@ -149,6 +152,7 @@ public class VnpayService {
                 payment.setStatus(PaymentStatus.SUCCESS);
                 payment.setPaymentTime(LocalDateTime.now());
                 savePaymentByType(type, payment);
+                bookingClient.updateBookingStatus(payment.getBookingId());
                 return new ResponseData<>(200, "Thanh toán thành công", null);
             } else {
                 payment.setStatus(PaymentStatus.FAILED);

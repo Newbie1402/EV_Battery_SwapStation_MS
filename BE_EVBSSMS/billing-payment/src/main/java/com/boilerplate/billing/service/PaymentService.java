@@ -1,6 +1,7 @@
 package com.boilerplate.billing.service;
 
 import com.boilerplate.billing.client.AuthUserClient;
+import com.boilerplate.billing.client.BookingClient;
 import com.boilerplate.billing.enums.PaymentStatus;
 import com.boilerplate.billing.model.DTO.PackagePaymentDTO;
 import com.boilerplate.billing.model.entity.PackagePayment;
@@ -36,6 +37,9 @@ public class PaymentService {
 
     @Autowired
     private DriverRepository driverRepository;
+
+    @Autowired
+    private BookingClient  bookingClient;
 
     //================= PACKAGE PAYMENT CRUD ===================
     public ResponseEntity<ResponseData<List<PackagePaymentDTO>>> getAllPackagePayments() {
@@ -95,6 +99,9 @@ public class PaymentService {
         payment.setBookingId(request.getBookingId());
         payment.setDescription(request.getDescription());
         payment.setPaymentTime(request.getPaymentTime());
+        payment.setPackageId(request.getPackageId());
+        payment.setStartDate(request.getStartDate());
+        payment.setEndDate(request.getEndDate());
         // 7. Lưu payment
 
         PackagePayment saved = packagePaymentRepository.save(payment);
@@ -117,6 +124,7 @@ public class PaymentService {
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
         singleSwapPaymentRequest.setStatus(PaymentStatus.SUCCESS);
         singleSwapPaymentRepository.save(singleSwapPaymentRequest);
+        bookingClient.updateBookingStatus(singleSwapPaymentRequest.getBookingId());
         return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(), "Payment confirmed successfully", null));
     }
 
@@ -124,6 +132,7 @@ public class PaymentService {
         PackagePayment singleSwapPaymentRequest = packagePaymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
         singleSwapPaymentRequest.setStatus(PaymentStatus.SUCCESS);
+        bookingClient.updateBookingStatus(singleSwapPaymentRequest.getBookingId());
         packagePaymentRepository.save(singleSwapPaymentRequest);
         return ResponseEntity.ok(new ResponseData<>(HttpStatus.OK.value(), "Payment confirmed successfully", null));
     }

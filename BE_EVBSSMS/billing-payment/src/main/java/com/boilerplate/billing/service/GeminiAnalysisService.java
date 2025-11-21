@@ -4,6 +4,7 @@ import com.boilerplate.billing.model.DTO.StationMonthlyReportDTO;
 import com.boilerplate.billing.repository.StationMonthlyReportRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,8 +20,11 @@ public class GeminiAnalysisService {
     private final ObjectMapper mapper = new ObjectMapper();
     private final StationMonthlyReportRepository monthlyReportRepository;
 
-    private final String GEMINI_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
+    @Value("${gemini.api.url}")
+    private String geminiApiUrl;
+
+    @Value("${gemini.api.key}")
+    private String geminiApiKey;
 
     /**
      * Lấy danh sách report rút gọn (DTO)
@@ -43,51 +47,40 @@ public class GeminiAnalysisService {
      */
     public String analyzeAllReports() {
         try {
-            // Lấy tất cả báo cáo
             List<StationMonthlyReportDTO> reports = getAllReports();
-
-            // Chuyển sang JSON để gửi AI
             String requestJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(reports);
 
-            // Prompt rõ ràng để AI phân tích
             String prompt =
                     "Dựa trên danh sách báo cáo trạm sạc dưới đây, hãy phân tích cho từng trạm:\n" +
                             "- So sánh tháng hiện tại và tháng trước (doanh thu, số giao dịch, doanh thu trung bình)\n" +
                             "- Dự đoán nhu cầu sử dụng trạm cho tháng tới\n" +
                             "- Đề xuất nâng cấp hạ tầng hoặc dịch vụ\n\n" +
                             "Yêu cầu:\n" +
-                            "1. Trả lời **dưới dạng danh sách liệt kê**, mỗi ý một dòng.\n" +
+                            "1. Trả lời dưới dạng danh sách liệt kê, mỗi ý một dòng, bắt đầu bằng ký tự '- '.\n" +
                             "2. Mỗi trạm bắt đầu bằng tên trạm và tháng.\n" +
-                            "3. Không viết đoạn văn dài dòng, chỉ liệt kê các ý chính.\n\n" +
+                            "3. Không dùng Markdown, không dùng dấu `*` hay dấu `_`.\n\n" +
                             "Dữ liệu JSON:\n" + requestJson;
 
 
-
-            // Payload đúng chuẩn Gemini
             Map<String, Object> payload = Map.of(
                     "contents", List.of(
-                            Map.of(
-                                    "parts", List.of(
-                                            Map.of("text", prompt)
-                                    )
-                            )
+                            Map.of("parts", List.of(Map.of("text", prompt)))
                     )
             );
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<String> entity =
-                    new HttpEntity<>(mapper.writeValueAsString(payload), headers);
+            HttpEntity<String> entity = new HttpEntity<>(mapper.writeValueAsString(payload), headers);
 
-            ResponseEntity<String> response =
-                    restTemplate.exchange(GEMINI_URL, HttpMethod.POST, entity, String.class);
+            // Ghép URL + key từ properties
+            String url = geminiApiUrl + "?key=" + geminiApiKey;
 
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
             return response.getBody();
 
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
     }
-
 }

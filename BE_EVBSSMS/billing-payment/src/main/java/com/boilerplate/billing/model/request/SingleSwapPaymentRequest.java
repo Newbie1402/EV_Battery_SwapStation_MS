@@ -25,4 +25,5 @@ public class SingleSwapPaymentRequest {
     private Long bookingId;
     private String stationId;
     private Long swapLogId;
+    private Long packageId;
 }

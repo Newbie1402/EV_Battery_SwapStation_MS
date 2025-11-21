@@ -28,7 +28,7 @@ public class Battery {
     @Enumerated(EnumType.STRING)
     private BatteryStatus status; // FULL, CHARGING, MAINTENANCE, DEFECTIVE, IN_USE
 
-
+    @Enumerated(EnumType.STRING)
     private OwnerType ownerType; // "STATION" hoặc "VERHICE"
     private String referenceId; // code của Station hoặc User tương ứng
 

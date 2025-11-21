@@ -298,5 +298,12 @@ public class BookingController {
                         .build()
         );
     }
+
+    @PutMapping("/confirmedIsPaid/{Id}")
+    public ResponseEntity<ResponseData<Void>> confirmBookingIsPaid(
+            @PathVariable Long Id){
+        return bookingService.confirmIsPaid(Id);
+    }
+
 }
 

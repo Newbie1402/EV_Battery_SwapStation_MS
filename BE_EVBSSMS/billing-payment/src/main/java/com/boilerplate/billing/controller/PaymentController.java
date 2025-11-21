@@ -62,4 +62,17 @@ public class PaymentController {
         return paymentService.deleteSingleSwapPayment(id);
     }
 
+    @PostMapping("/single/confirm/{id}")
+    public ResponseEntity<ResponseData<Void>> confirmSinglePayment(@PathVariable Long id) {
+        return paymentService.confirmCashSingglePayment(id);
+    }
+
+    /**
+     * Xác nhận thanh toán cho PackagePayment
+     */
+    @PostMapping("/package/confirm/{id}")
+    public ResponseEntity<ResponseData<Void>> confirmPackagePayment(@PathVariable Long id) {
+        return paymentService.confirmCashPackeagePayment(id);
+    }
+
 }

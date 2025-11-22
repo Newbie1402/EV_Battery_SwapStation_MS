@@ -13,5 +13,6 @@ export * from "./subscriptionPackageApi.js";
 export * from "./swapLogApi.js";
 export * from "./batteryTransferApi.js";
 export * from "./supportTicketApi.js";
+export * from "./aiReportApi.js";
 export { apiClient } from "./apiClient";
 export { default as axiosInstance } from "./axiosInstance";

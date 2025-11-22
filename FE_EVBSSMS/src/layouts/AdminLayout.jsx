@@ -1,12 +1,12 @@
 import { Outlet } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AIReportWidget from "@/components/AIReportWidget";
 import {
     LayoutDashboard,
     Users,
     Battery,
     MapPin,
-    Settings,
     BarChart3,
     Package,
     Car,
@@ -81,7 +81,7 @@ export default function AdminLayout() {
             </main>
 
             <Footer />
+            <AIReportWidget />
         </div>
     );
 }
-

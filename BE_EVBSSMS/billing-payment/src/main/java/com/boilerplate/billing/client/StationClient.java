@@ -5,6 +5,7 @@ import com.boilerplate.billing.client.url.AuthUserApiUrls;
 import com.boilerplate.billing.client.url.StationUrls;
 import com.boilerplate.billing.model.event.consumer.DTO.DriverDTO;
 import com.boilerplate.billing.model.event.consumer.DTO.StationDTO;
+import com.boilerplate.billing.model.event.consumer.DTO.StationSwapSummaryDTO;
 import com.boilerplate.billing.model.response.ResponseData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +52,30 @@ public class StationClient {
         }
         return objectMapper.convertValue(response.getBody().getData(), StationDTO.class);
     }
+
+    public List<StationSwapSummaryDTO> getAllSwapSummary() {
+        String url = String.format(StationUrls.GET_SWAP_REPORT);
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<ResponseData<List<StationSwapSummaryDTO>>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                createHttpEntity(),
+                new ParameterizedTypeReference<ResponseData<List<StationSwapSummaryDTO>>>() {}
+        );
+
+        if (response.getBody() == null || response.getBody().getData() == null) {
+            throw new RuntimeException("Không lấy được dữ liệu từ: " + url);
+        }
+
+        return response.getBody().getData();
+    }
+
 
     /**
      * Tạo HttpEntity với Authorization header

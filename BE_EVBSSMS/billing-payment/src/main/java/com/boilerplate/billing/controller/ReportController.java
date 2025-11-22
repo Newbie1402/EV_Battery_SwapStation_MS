@@ -36,21 +36,21 @@ public class ReportController {
      */
     @GetMapping("/analyze-all")
     public ResponseEntity<String> analyzeAllReports() {
-        String analysisResult = geminiAnalysisService.analyzeAllReports();
+        String analysisResult = geminiAnalysisService.analyzeAllSwapReports();
         return ResponseEntity.ok(analysisResult);
     }
 
     /**
      * Lấy tất cả báo cáo hiện có dạng DTO rút gọn
      */
-    @GetMapping("/all")
-    public ResponseData<List<StationMonthlyReportDTO>> getAllReports() {
-        List<StationMonthlyReportDTO> reports = geminiAnalysisService.getAllReports();
-        return ResponseData.<List<StationMonthlyReportDTO>>builder()
-                .statusCode(200)
-                .message("All station monthly reports")
-                .data(reports)
-                .build();
-    }
+//    @GetMapping("/all")
+//    public ResponseData<List<StationMonthlyReportDTO>> getAllReports() {
+//        List<StationMonthlyReportDTO> reports = geminiAnalysisService.getAllReports();
+//        return ResponseData.<List<StationMonthlyReportDTO>>builder()
+//                .statusCode(200)
+//                .message("All station monthly reports")
+//                .data(reports)
+//                .build();
+//    }
 
 }

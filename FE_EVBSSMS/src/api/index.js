@@ -9,6 +9,7 @@ export * from "./packagePlanApi";
 export * from "./paymentApi";
 export * from "./vnpayApi";
 export * from "./ratingApi.js";
-export * from "./subscriptionPackageApi.js"
+export * from "./subscriptionPackageApi.js";
+export * from "./swapLogApi.js";
 export { apiClient } from "./apiClient";
 export { default as axiosInstance } from "./axiosInstance";

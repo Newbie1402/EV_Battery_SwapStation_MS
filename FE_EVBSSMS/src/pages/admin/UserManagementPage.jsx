@@ -441,18 +441,32 @@ export default function UserManagementPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className={`transition-all duration-500 ${
+                    pendingRegistrationsData && pendingRegistrationsData.length > 0 
+                        ? 'ring-2 ring-orange-200 shadow-lg shadow-orange-100/50' 
+                        : ''
+                }`}>
                     <CardContent className="pt-3">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                                <UserX className="w-6 h-6 text-orange-600" />
+                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                                pendingRegistrationsData && pendingRegistrationsData.length > 0 
+                                    ? 'bg-orange-200 animate-pulse' 
+                                    : 'bg-orange-100'
+                            }`}>
+                                <UserX className={`w-6 h-6 transition-colors duration-300 ${
+                                    pendingRegistrationsData && pendingRegistrationsData.length > 0 
+                                        ? 'text-orange-700' 
+                                        : 'text-orange-600'
+                                }`} />
                             </div>
                             <div>
-                                <p className="text-sm text-slate-500">Chờ xác thực</p>
-                                <p className="text-2xl font-bold text-slate-900">
-                                    {[...(driversData || []), ...(staffData || [])].filter(
-                                        (u) => u.status === "PENDING_VERIFICATION"
-                                    ).length}
+                                <p className="text-sm text-slate-500">Chờ duyệt</p>
+                                <p className={`text-2xl font-bold transition-colors duration-300 ${
+                                    pendingRegistrationsData && pendingRegistrationsData.length > 0 
+                                        ? 'text-orange-700' 
+                                        : 'text-slate-900'
+                                }`}>
+                                    {pendingRegistrationsData?.length || 0}
                                 </p>
                             </div>
                         </div>
@@ -486,7 +500,27 @@ export default function UserManagementPage() {
                 <TabsList className="grid w-full max-w-md grid-cols-3">
                     <TabsTrigger value="drivers" className={"cursor-pointer"}>Tài xế</TabsTrigger>
                     <TabsTrigger value="staff" className={"cursor-pointer"}>Nhân viên</TabsTrigger>
-                    <TabsTrigger value="registrations" className={"cursor-pointer"}>Đăng ký chờ duyệt</TabsTrigger>
+                    <TabsTrigger value="registrations" className={`cursor-pointer relative transition-all duration-300 ${
+                        pendingRegistrationsData && pendingRegistrationsData.length > 0 
+                            ? 'shadow-lg shadow-orange-200/50 ring-2 ring-orange-100 bg-gradient-to-r from-orange-50 to-red-50' 
+                            : ''
+                    }`}>
+                        <span className={`transition-all duration-300 ${
+                            pendingRegistrationsData && pendingRegistrationsData.length > 0 
+                                ? 'text-orange-700 font-semibold' 
+                                : ''
+                        }`}>
+                            Đăng ký chờ duyệt
+                        </span>
+                        {pendingRegistrationsData && pendingRegistrationsData.length > 0 && (
+                            <Badge
+                                variant="destructive"
+                                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs p-0 animate-bounce transition-all duration-500 ease-in-out transform scale-110"
+                            >
+                                {pendingRegistrationsData.length}
+                            </Badge>
+                        )}
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="drivers">
@@ -497,7 +531,7 @@ export default function UserManagementPage() {
                     {renderUserTable(staffData, isLoadingStaff)}
                 </TabsContent>
 
-                <TabsContent value="registrations">
+                <TabsContent value="registrations" className="transition-all duration-500 ease-in-out">
                     <div className="space-y-4">
                         {/* Bộ lọc vai trò cho pending */}
                         <Tabs value={registrationRoleFilter} onValueChange={setRegistrationRoleFilter} className="w-full">
@@ -507,7 +541,13 @@ export default function UserManagementPage() {
                                 <TabsTrigger value="STAFF" className="cursor-pointer">Nhân viên</TabsTrigger>
                             </TabsList>
                         </Tabs>
-                        {renderPendingRegistrations()}
+                        <div className={`transition-all duration-700 ease-in-out ${
+                            pendingRegistrationsData && pendingRegistrationsData.length > 0 
+                                ? 'opacity-100 transform translate-y-0' 
+                                : 'opacity-70'
+                        }`}>
+                            {renderPendingRegistrations()}
+                        </div>
                     </div>
                 </TabsContent>
             </Tabs>

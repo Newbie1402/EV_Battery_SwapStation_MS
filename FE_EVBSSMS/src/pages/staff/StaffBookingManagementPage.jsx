@@ -16,6 +16,7 @@ import {
     DollarSign,
     Battery,
     FileText,
+    BadgeCheck,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -180,6 +181,29 @@ export default function StaffBookingManagementPage() {
         }
     );
 
+    // Mutation: Confirm cash payment
+    const confirmCashPaymentMutation = useCustomMutation(
+        (paymentId) => paymentApi.confirmCashPayment(paymentId),
+        "POST",
+        {
+            onSuccess: () => {
+                toast.success("Đã xác nhận thanh toán tiền mặt!");
+            },
+        }
+    );
+
+    // Mutation: Confirm booking payment (chuyển isPaid = true)
+    const confirmBookingPaymentMutation = useCustomMutation(
+        (bookingId) => bookingApi.confirmBookingPayment(bookingId),
+        "POST",
+        {
+            onSuccess: () => {
+                toast.success("Booking đã được đánh dấu đã thanh toán!");
+                refetchBookings(); // Refetch để cập nhật UI ngay lập tức
+            },
+        }
+    );
+
     // Mutation: Swap battery
     const swapBatteryMutation = useCustomMutation(
         (data) => batteriesApi.swapStationToVehicle(data),
@@ -193,7 +217,7 @@ export default function StaffBookingManagementPage() {
 
     // Mutation: Update battery
     const updateBatteryMutation = useCustomMutation(
-        ({ batteryCode, data }) => batteriesApi.updateBattery(batteryCode, data),
+        ({ batteryCode, data }) => batteriesApi.updateHealthBattery(batteryCode, data),
         undefined,
         {
             onSuccess: () => {
@@ -330,7 +354,10 @@ export default function StaffBookingManagementPage() {
             // 3. Nếu dùng gói → xác nhận thanh toán tiền mặt ngay (SUCCESS) và tăng lượt swap
             if (extra?.usePackage) {
                 try {
-                    await paymentApi.confirmCashPayment(paymentId);
+                    // Sử dụng mutations để auto refetch
+                    await confirmCashPaymentMutation.mutateAsync(paymentId);
+                    await confirmBookingPaymentMutation.mutateAsync(paymentDialog.booking.id);
+
                     // Gọi incrementSwaps để tăng usedSwaps trong subscription
                     if (paymentDialog.booking.packageId) {
                         await subscriptionPackageApi.incrementSwaps(paymentDialog.booking.packageId);
@@ -343,17 +370,32 @@ export default function StaffBookingManagementPage() {
                     toast.error("Không thể xác nhận hoặc trừ lượt swap gói");
                 }
             } else {
-                toast.success("Đã tạo hóa đơn thanh toán!");
+                // Không dùng gói → chỉ tạo hóa đơn, xác nhận thanh toán sẽ làm ở bảng
+                toast.success("Đã tạo hóa đơn! Vui lòng xác nhận thanh toán ở danh sách booking.");
             }
 
-            // 4. Đóng dialog và refetch
+            // 4. Đóng dialog
             setPaymentDialog({ open: false, booking: null, battery: null });
             setSubscriptionInfo(null);
-            refetchBookings();
         } catch {
             toast.error("Lỗi khi tạo thanh toán");
             setPaymentDialog({ open: false, booking: null, battery: null });
             setSubscriptionInfo(null);
+        }
+    };
+
+    // Handler: Xác nhận thanh toán tiền mặt
+    const handleConfirmCashPayment = async (paymentId, bookingId) => {
+        try {
+            // 1. Xác nhận thanh toán (chuyển status từ PENDING sang SUCCESS)
+            await confirmCashPaymentMutation.mutateAsync(paymentId);
+
+            // 2. Xác nhận booking đã thanh toán (chuyển isPaid sang true) - tự động refetch
+            await confirmBookingPaymentMutation.mutateAsync(bookingId);
+
+        } catch (error) {
+            console.error("Error confirming cash payment:", error);
+            toast.error("Lỗi khi xác nhận thanh toán!");
         }
     };
 
@@ -447,12 +489,16 @@ export default function StaffBookingManagementPage() {
                     </Button>
                 )}
 
-                {/* Đã có paymentId nhưng chưa thanh toán: hiển thị badge chờ */}
+                {/* Đã có paymentId nhưng chưa thanh toán: hiển thị nút xác nhận thanh toán CASH */}
                 {booking.bookingStatus === "CONFIRM" && booking.paymentId && !booking.isPaid && (
-                    <Badge className="bg-orange-100 text-orange-700 border-orange-300">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Chờ thanh toán
-                    </Badge>
+                    <Button
+                        size="sm"
+                        onClick={() => handleConfirmCashPayment(booking.paymentId, booking.id)}
+                        className="gap-2 bg-orange-600 hover:bg-orange-700"
+                    >
+                        <BadgeCheck className="h-4 w-4" />
+                        Xác nhận thanh toán
+                    </Button>
                 )}
 
                 {/* Đã thanh toán: hiển thị nút Đổi pin */}

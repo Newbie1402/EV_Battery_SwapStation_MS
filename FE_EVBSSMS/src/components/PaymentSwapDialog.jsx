@@ -16,6 +16,7 @@ import { Wallet, CreditCard } from "lucide-react";
 import { Receipt, AlertCircle, BadgeCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatCurrency } from "@/utils/format";
+import toast from "react-hot-toast";
 
 export default function PaymentSwapDialog({
     open,
@@ -27,7 +28,7 @@ export default function PaymentSwapDialog({
     onCreatePayment,
     isLoading,
 }) {
-    const [paymentMethod, setPaymentMethod] = useState("CASH");
+    const [paymentMethod, setPaymentMethod] = useState("");
     const [description, setDescription] = useState("");
 
     const isUsingPackage = !!subscription;
@@ -50,10 +51,16 @@ export default function PaymentSwapDialog({
     const handleSubmit = () => {
         if (!booking) return;
 
+        // Validation: nếu không dùng gói và chưa chọn payment method
+        if (!isUsingPackage && !paymentMethod) {
+            toast.error("Vui lòng chọn phương thức thanh toán!");
+            return;
+        }
+
         const payload = {
             customerId: booking.driverId,
             totalAmount: totalAmount,
-            method: "CASH",
+            method: isUsingPackage ? "CASH" : (paymentMethod || "CASH"),
             status: isUsingPackage ? "SUCCESS" : "PENDING",
             description: (description || defaultDescription),
             bookingId: booking.id,
@@ -72,7 +79,7 @@ export default function PaymentSwapDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="!max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Receipt className="h-5 w-5 text-primary" />

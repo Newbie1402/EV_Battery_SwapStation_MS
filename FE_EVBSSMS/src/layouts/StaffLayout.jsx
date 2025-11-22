@@ -29,16 +29,6 @@ export default function StaffLayout() {
             icon: History,
         },
         {
-            label: "Kiểm tra pin",
-            path: "/staff/battery-check",
-            icon: ClipboardCheck,
-        },
-        {
-            label: "Bảo trì",
-            path: "/staff/maintenance",
-            icon: Package,
-        },
-        {
             label: "Thông tin trạm",
             path: "/staff/station-info",
             icon: Building2,

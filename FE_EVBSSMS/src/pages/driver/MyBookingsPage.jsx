@@ -1,12 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     Calendar, Search, Eye, XCircle, CreditCard, Star,
     ChevronLeft, ChevronRight, Download
 } from "lucide-react";
-import { motion } from "framer-motion";
 import useCustomQuery from "@/hooks/useCustomQuery";
 import useCustomMutation from "@/hooks/useCustomMutation";
-import { bookingApi } from "@/api";
+import { bookingApi, ratingApi } from "@/api";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +35,7 @@ export default function MyBookingsPage() {
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [paymentDialog, setPaymentDialog] = useState({ open: false, booking: null });
     const [ratingDialog, setRatingDialog] = useState({ open: false, booking: null });
+    const [ratingStates, setRatingStates] = useState({}); // { bookingId: 'loading' | 'rated' | 'unrated' }
 
     const pageSize = 10;
 
@@ -46,6 +46,37 @@ export default function MyBookingsPage() {
     );
 
     const bookings = useMemo(() => data?.content || [], [data]);
+
+    // Kiểm tra rating status cho các booking SUCCESS
+    useEffect(() => {
+        if (!bookings.length) return;
+
+        const checkRatingsForBookings = async () => {
+            const successBookings = bookings.filter(b => b.bookingStatus === 'SUCCESS');
+
+            for (const booking of successBookings) {
+                if (ratingStates[booking.id]) continue; // Đã kiểm tra rồi
+
+                setRatingStates(prev => ({ ...prev, [booking.id]: 'loading' }));
+
+                try {
+                    const ratingResponse = await ratingApi.getRatingByBookingId(booking.id);
+                    const ratingData = ratingResponse?.data || ratingResponse;
+
+                    if (ratingData && ratingData.id) {
+                        setRatingStates(prev => ({ ...prev, [booking.id]: 'rated' }));
+                    } else {
+                        setRatingStates(prev => ({ ...prev, [booking.id]: 'unrated' }));
+                    }
+                } catch (error) {
+                    console.error(`Error checking rating for booking ${booking.id}:`, error);
+                    setRatingStates(prev => ({ ...prev, [booking.id]: 'unrated' }));
+                }
+            }
+        };
+
+        checkRatingsForBookings();
+    }, [bookings, ratingStates]);
 
     const formatDateTime = (dateString) => {
         try { return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi }); } catch { return dateString; }
@@ -120,20 +151,56 @@ export default function MyBookingsPage() {
         setRatingDialog({ open: true, booking });
     };
     const closeRatingDialog = () => { setRatingDialog({ open: false, booking: null }); };
-    const handleRatingSubmitted = () => {
-        // Có thể refetch hoặc invalidate query nếu cần
+    const handleRatingSubmitted = (bookingId) => {
+        // Cập nhật rating state sau khi submit thành công
+        setRatingStates(prev => ({ ...prev, [bookingId]: 'rated' }));
         refetch();
     };
 
-    const fadeVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 },
+    // Function để render rating button với hiệu ứng
+    const renderRatingButton = (booking) => {
+        const ratingState = ratingStates[booking.id];
+        const hasRating = ratingState === 'rated';
+        const isLoading = ratingState === 'loading';
+
+        return (
+            <Button
+                size="sm"
+                onClick={(e) => openRatingDialog(e, booking)}
+                disabled={isLoading}
+                className={`h-8 px-3 text-xs cursor-pointer gap-1 transition-all duration-500 ease-in-out transform ${
+                    hasRating 
+                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-200/50 scale-105' 
+                        : isLoading
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        : 'bg-yellow-500 hover:bg-yellow-600 text-white animate-pulse shadow-lg shadow-yellow-200/50'
+                }`}
+            >
+                {isLoading ? (
+                    <>
+                        <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Kiểm tra...</span>
+                    </>
+                ) : hasRating ? (
+                    <>
+                        <Star className="w-3 h-3 fill-current" />
+                        <span>Đã đánh giá</span>
+                    </>
+                ) : (
+                    <>
+                        <Star className="w-3 h-3" />
+                        <span>Đánh giá</span>
+                    </>
+                )}
+            </Button>
+        );
     };
 
     return (
         <div className="w-full bg-slate-50 text-slate-900 min-h-full">
-            <div className="px-4 md:px-10 lg:px-20 xl:px-40 py-8 max-w-7xl mx-auto">
-                <motion.div initial="hidden" animate="visible" variants={fadeVariants} transition={{ duration: 0.5 }}>
+            <div className="container mx-auto px-4 max-w-7xl pt-8">
+                {/* Simple fade in effect */}
+                <div className="transition-all duration-500 ease-in-out opacity-100">
 
                     {/* Page Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -272,15 +339,7 @@ export default function MyBookingsPage() {
                                                         </Button>
                                                     )}
 
-                                                    {b.bookingStatus === 'SUCCESS' && (
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={(e) => openRatingDialog(e, b)}
-                                                            className="h-8 px-3 bg-yellow-500 hover:bg-yellow-600 text-white text-xs cursor-pointer gap-1"
-                                                        >
-                                                            <Star className="w-3 h-3" />
-                                                        </Button>
-                                                    )}
+                                                    {b.bookingStatus === 'SUCCESS' && renderRatingButton(b)}
 
                                                     {b.bookingStatus === 'PENDING' && (
                                                         <Button
@@ -327,7 +386,7 @@ export default function MyBookingsPage() {
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </div>
             </div>
 
             {/* Detail Dialog */}

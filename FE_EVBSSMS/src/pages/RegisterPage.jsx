@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Zap, Phone, Calendar, MapPin, CreditCard, Car, ArrowRight, Loader2 } from "lucide-react";
-import { useAuthStore } from "@/store/authStore";
+import { Zap, Phone, Calendar, MapPin, CreditCard, ArrowRight, Loader2 } from "lucide-react";
 import { authApi } from "@/api/authApi";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,6 @@ export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isDriver, setIsDriver] = useState(true); // Default role is DRIVER
 
-    const { login } = useAuthStore();
     const navigate = useNavigate();
 
     const handleGoogleSuccess = async (credentialResponse) => {
@@ -136,16 +134,16 @@ export default function RegisterPage() {
             const userData = response.data || response;
 
             // Save to Zustand store - lưu cả userId và employeeId
-            login({
-                userId: userData.user.id,
-                employeeId: userData.user.employeeId || null,
-                token: userData.accessToken,
-                refreshToken: userData.refreshToken,
-                role: userData.user.role,
-                stationId: userData.user.stationId || null,
-                status: userData.user.status,
-                user: userData.user,
-            });
+            // login({
+            //     userId: userData.user.id,
+            //     employeeId: userData.user.employeeId || null,
+            //     token: userData.accessToken,
+            //     refreshToken: userData.refreshToken,
+            //     role: userData.user.role,
+            //     stationId: userData.user.stationId || null,
+            //     status: userData.user.status,
+            //     user: userData.user,
+            // });
 
             toast.success(`Đăng ký thành công! Chào mừng ${userData.user.fullName}! Vui lòng chờ admin phê duyệt.`);
             toast.success("Sau khi được duyệt, kiểm tra email để nhận token xác nhận đăng ký.");

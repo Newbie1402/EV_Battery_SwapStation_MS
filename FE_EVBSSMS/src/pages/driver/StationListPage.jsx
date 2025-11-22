@@ -117,29 +117,31 @@ export default function StationListPage() {
         // Chỉ hiển thị trạm ACTIVE
         const matchStatus = String(station.status) === String(STATION_STATUS.ACTIVE);
 
+        // Lọc theo battery hold: chỉ hiển thị station có ít nhất 1 battery hold = false
+        const batteries = station.batteries || [];
+        const hasNonHoldBattery = batteries.some(battery => battery.hold === false);
+
         // Kiểm tra batteries theo model và capacity
         let matchBattery;
         if (batteryModelFilter !== 'ALL' || batteryCapacityFilter !== 'ALL') {
-            const batteries = station.batteries || [];
             // Lọc batteries có SOC = 100, SOH = 100 và status = IN_USE
             const qualifiedBatteries = batteries.filter(b =>
                 b.soc === 100 &&
                 b.soh === 100 &&
-                b.status === 'IN_USE'
+                b.status === 'IN_USE' &&
+                b.hold === false
             );
-
             matchBattery = qualifiedBatteries.some(battery => {
                 const modelMatch = batteryModelFilter === 'ALL' || battery.model === batteryModelFilter;
                 const capacityMatch = batteryCapacityFilter === 'ALL' || String(battery.capacity) === String(batteryCapacityFilter);
                 return modelMatch && capacityMatch;
             });
         } else {
-            // Nếu không filter, chỉ kiểm tra có ít nhất 1 battery đạt chuẩn (IN_USE)
-            const batteries = station.batteries || [];
-            matchBattery = batteries.some(b => b.soc === 100 && b.soh === 100 && b.status === 'IN_USE');
+            // Nếu không filter, chỉ kiểm tra có ít nhất 1 battery đạt chuẩn (IN_USE, hold = false)
+            matchBattery = batteries.some(b => b.soc === 100 && b.soh === 100 && b.status === 'IN_USE' && b.hold === false);
         }
 
-        return matchSearch && matchStatus && matchBattery;
+        return matchSearch && matchStatus && hasNonHoldBattery && matchBattery;
     });
 
     // Giới hạn số phần tử cho danh sách bên trái
@@ -603,4 +605,3 @@ export default function StationListPage() {
         </div>
     );
 }
-

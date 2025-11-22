@@ -32,11 +32,15 @@ const MyPaymentPage = lazy(() => import("../pages/driver/MyPaymentPage"));
 const StaffDashboardPage = lazy(() => import("../pages/staff/StaffDashboard"));
 const StaffBatteryManagementPage = lazy(() => import("../pages/staff/StaffBatteryManagement"));
 const StaffBookingManagementPage = lazy(() => import("../pages/staff/StaffBookingManagementPage"));
+const StaffStationInfoPage = lazy(() => import("../pages/staff/StaffStationInfoPage"));
+const StaffSwapHistoryPage = lazy(() => import("../pages/staff/StaffSwapHistoryPage"));
+const StaffRatingManagementPage = lazy(() => import("../pages/staff/StaffRatingManagementPage"));
 
 //Admin Pages
 const AdminDashboardPage = lazy(() => import("../pages/admin/AdminDashboard"));
 const AdminStationManagementPage = lazy(() => import("../pages/admin/StationManagementPage"));
 const AdminPackagePlanManagementPage = lazy(() => import("../pages/admin/PackagePlanManagementPage"));
+const AdminPackageSubscriptionsPage = lazy(() => import("../pages/admin/PackageSubscriptionsPage"));
 const AdminUserManagementPage = lazy(() => import("../pages/admin/UserManagementPage"));
 const AdminVehicleManagementPage = lazy(() => import("../pages/admin/VehicleManagementPage"));
 const AdminBatteryManagementPage = lazy(() => import("../pages/admin/BatteryManagementPage"));
@@ -91,6 +95,9 @@ export default function AppRoutes() {
                         <Route path="dashboard" element={<StaffDashboardPage />} />
                         <Route path="batteries" element={<StaffBatteryManagementPage />} />
                         <Route path="bookings" element={<StaffBookingManagementPage />} />
+                        <Route path="station-info" element={<StaffStationInfoPage />} />
+                        <Route path="history" element={<StaffSwapHistoryPage />} />
+                        <Route path="ratings" element={<StaffRatingManagementPage />} />
                     </Route>
 
                     {/* Admin Routes */}
@@ -106,6 +113,7 @@ export default function AppRoutes() {
                         <Route path="vehicles" element={<AdminVehicleManagementPage />} />
                         <Route path="stations" element={<AdminStationManagementPage />} />
                         <Route path="packages" element={<AdminPackagePlanManagementPage />} />
+                        <Route path="packages/:packageId/subscriptions" element={<AdminPackageSubscriptionsPage />} />
                         <Route path="batteries" element={<AdminBatteryManagementPage />} />
                     </Route>
 

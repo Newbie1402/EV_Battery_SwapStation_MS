@@ -162,7 +162,7 @@ export default function BookingDialog({ open, onOpenChange, station, filterModel
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="!max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="!max-w-5xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Đặt lịch đổi pin</DialogTitle>
                     <DialogDescription>

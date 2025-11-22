@@ -63,10 +63,10 @@ export default function BookingPaymentDialog({ open, onOpenChange, booking, onPa
                     toast.error("Không nhận được URL thanh toán");
                 }
             } else if (paymentDetail.method === "CASH") {
-                toast.info("Vui lòng thanh toán trực tiếp tại trạm");
+                toast.success("Vui lòng thanh toán trực tiếp tại trạm");
                 onOpenChange(false);
             } else {
-                toast.info("Phương thức thanh toán không hỗ trợ online");
+                toast.error("Phương thức thanh toán không hỗ trợ online");
                 onOpenChange(false);
             }
         } catch (error) {
@@ -113,7 +113,7 @@ export default function BookingPaymentDialog({ open, onOpenChange, booking, onPa
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="!max-w-5xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Receipt className="h-5 w-5 text-primary" />

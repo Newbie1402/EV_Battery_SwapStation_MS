@@ -1,14 +1,15 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2, Package, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { subscriptionPackageApi, packagePlanApi, paymentApi, vnpayApi } from "@/api";
+import { subscriptionPackageApi, packagePlanApi, paymentApi, vnpayApi, bookingApi } from "@/api";
 import { useAuthStore } from "@/store/authStore";
 import { formatCurrency } from "@/utils/format";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 
 export default function PaymentSuccessPage() {
     const navigate = useNavigate();
@@ -19,6 +20,9 @@ export default function PaymentSuccessPage() {
     const [status, setStatus] = useState("processing"); // processing, success, error
     const [packageInfo, setPackageInfo] = useState(null);
     const [errorMessage, setErrorMessage] = useState("");
+
+    // Ref để đảm bảo chỉ chạy một lần duy nhất
+    const hasProcessed = useRef(false);
 
     // Lấy params từ URL (được VNPAY redirect về)
     // Format: ?type=SINGLE&vnp_ResponseCode=00&vnp_TxnRef=9&vnp_Amount=...
@@ -45,12 +49,38 @@ export default function PaymentSuccessPage() {
 
     useEffect(() => {
         const handlePaymentSuccess = async () => {
+            // Kiểm tra nếu đã xử lý rồi thì bỏ qua
+            if (hasProcessed.current) {
+                console.log("Payment already processed, skipping...");
+                return;
+            }
+
             // Kiểm tra params
             if (!paymentId) {
                 setStatus("error");
                 setErrorMessage("Thiếu thông tin thanh toán!");
                 setIsProcessing(false);
                 toast.error("Thiếu thông tin thanh toán!");
+                return;
+            }
+
+            // Kiểm tra xem payment này đã được xử lý chưa (từ localStorage)
+            const processedPaymentKey = `processed_payment_${paymentId}`;
+            const alreadyProcessed = localStorage.getItem(processedPaymentKey);
+
+            if (alreadyProcessed) {
+                console.log("Payment already processed (from localStorage), showing success...");
+                hasProcessed.current = true;
+                setStatus("success");
+                setIsProcessing(false);
+
+                // Load lại thông tin package từ localStorage nếu có
+                try {
+                    const savedInfo = JSON.parse(alreadyProcessed);
+                    setPackageInfo(savedInfo);
+                } catch (e) {
+                    console.error("Error parsing saved package info:", e);
+                }
                 return;
             }
 
@@ -64,11 +94,17 @@ export default function PaymentSuccessPage() {
                 return;
             }
 
+            // Đánh dấu đã bắt đầu xử lý
+            hasProcessed.current = true;
+
             try {
                 // Bước 1: Gọi vnpayCallback với tất cả query params
                 console.log("Calling vnpayCallback with params:", vnpayParams);
                 await vnpayApi.vnpayCallback(vnpayParams);
                 console.log("vnpayCallback success");
+
+                // Biến để lưu thông tin package
+                let processedPackageInfo = null;
 
                 // Bước 2: Xử lý theo type
                 if (type === "SINGLE") {
@@ -77,13 +113,20 @@ export default function PaymentSuccessPage() {
 
                     // Lấy thông tin payment swap
                     const paymentData = await paymentApi.getPaymentSwapById(paymentId);
-                    setPackageInfo({
+
+                    // Gọi confirmBookingPayment để cập nhật isPaid = true cho booking
+                    if (paymentData.bookingId) {
+                        await bookingApi.confirmBookingPayment(paymentData.bookingId);
+                        console.log("Booking payment confirmed for booking:", paymentData.bookingId);
+                    }
+
+                    processedPackageInfo = {
                         name: `Thanh toán đổi pin - Booking #${paymentData.bookingId}`,
                         packageType: "SWAP",
                         totalAmount: paymentData.totalAmount
-                    });
+                    };
 
-                    toast.success("Thanh toán đổi pin thành công!");
+                    setPackageInfo(processedPackageInfo);
                     setStatus("success");
 
                 } else {
@@ -117,6 +160,7 @@ export default function PaymentSuccessPage() {
 
                     // Lấy thông tin gói
                     const packageData = await packagePlanApi.getPackagePlanById(packageId);
+                    processedPackageInfo = packageData;
                     setPackageInfo(packageData);
 
                     // Xử lý theo trường hợp
@@ -149,6 +193,10 @@ export default function PaymentSuccessPage() {
                     setStatus("success");
                 }
 
+                // Lưu thông tin vào localStorage để tránh xử lý lại
+                const processedPaymentKey = `processed_payment_${paymentId}`;
+                localStorage.setItem(processedPaymentKey, JSON.stringify(processedPackageInfo));
+
             } catch (error) {
                 console.error("Payment processing error:", error);
                 setStatus("error");
@@ -157,6 +205,9 @@ export default function PaymentSuccessPage() {
 
                 // Xóa extendInfo nếu có lỗi
                 localStorage.removeItem('extendInfo');
+
+                // Reset hasProcessed để cho phép retry khi refresh trang
+                hasProcessed.current = false;
             } finally {
                 setIsProcessing(false);
             }
@@ -164,6 +215,13 @@ export default function PaymentSuccessPage() {
 
         handlePaymentSuccess();
     }, [paymentId, vnp_ResponseCode, employeeId, type, vnpayParams]);
+
+    // Toast thành công chỉ hiện một lần khi status chuyển sang success và type = SINGLE
+    useEffect(() => {
+        if (status === "success" && type === "SINGLE") {
+            toast.success("Thanh toán đổi pin thành công! Bạn có thể đến trạm để thực hiện đổi pin.");
+        }
+    }, [status, type]);
 
     // Render processing state
     if (isProcessing) {
@@ -191,9 +249,14 @@ export default function PaymentSuccessPage() {
                 <div className="container mx-auto px-4 max-w-2xl">
                     <Card className="border-green-200">
                         <CardHeader className="text-center pb-4">
-                            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                            <motion.div
+                                initial={{ scale: 0.7, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"
+                            >
                                 <CheckCircle className="h-10 w-10 text-green-600" />
-                            </div>
+                            </motion.div>
                             <CardTitle className="text-2xl text-green-700">
                                 Thanh toán thành công!
                             </CardTitle>
@@ -291,12 +354,12 @@ export default function PaymentSuccessPage() {
                                     Về trang chủ
                                 </Button>
                                 <Button
-                                    onClick={() => navigate("/driver/packages")}
+                                    onClick={() => navigate(type === "SINGLE" ? "/driver/bookings" : "/driver/packages")}
                                     variant="outline"
                                     className="flex-1"
                                 >
                                     <Package className="mr-2 h-4 w-4" />
-                                    Xem gói của tôi
+                                    {type === "SINGLE" ? "Xem lịch đặt" : "Xem gói của tôi"}
                                 </Button>
                             </div>
                         </CardContent>

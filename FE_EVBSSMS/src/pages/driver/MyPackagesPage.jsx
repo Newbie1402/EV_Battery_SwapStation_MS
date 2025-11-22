@@ -194,7 +194,7 @@ export default function MyPackagesPage() {
     // Render
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 py-8">
-            <div className="container mx-auto px-4 max-w-6xl">
+            <div className="container mx-auto px-4 max-w-7xl">
                 {/* Header */}
                 <div className="flex flex-wrap justify-between gap-4 px-1 sm:px-2">
                     <div className="flex min-w-72 flex-col gap-2 mb-4">

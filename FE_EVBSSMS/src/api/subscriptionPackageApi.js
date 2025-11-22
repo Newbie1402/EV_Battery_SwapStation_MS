@@ -161,6 +161,17 @@ export const extendSubscription = async (id, periods = 1) => {
     return res?.data || res;
 };
 
+/**
+ * 13. Lấy danh các subscription cua theo PackagePlanID
+ * GET /api/subscriptions/package-plan/{packagePlanId}
+ * @param {number} packagePlanId - ID gói
+ * @returns {Promise<Array>} Danh sách UserPackageSubscriptionResponse[]
+ */
+export const getSubscriptionsByPackagePlanId = async (packagePlanId) => {
+    const res = await apiClient.get(`${BASE_URL}/package-plan/${packagePlanId}`);
+    return res?.data || res || [];
+}
+
 // Backward compatibility exports
 export const subscriptionUserPackage = createSubscription;
 export const getSubscriptionByUserId = getSubscriptionStats;
@@ -182,6 +193,7 @@ export const subscriptionPackageApi = {
     updateSubscriptionStatus,
     toggleAutoExtend,
     extendSubscription,
+    getSubscriptionsByPackagePlanId,
     // Backward compatibility
     subscriptionUserPackage,
     getSubscriptionByUserId,

@@ -152,6 +152,16 @@ export const deleteBattery = async (id) => {
     return await apiClient.delete(`${BASE_URL}/delete/${id}`);
 };
 
+/**
+ * Update health battery
+ * PATCH /station/api/batteries/update-health/{batteryCode}
+ * @param {string} batteryCode
+ * @request soc, soh
+ */
+export const updateHealthBattery = async (batteryCode, data) => {
+    return await apiClient.patch(`${BASE_URL}/update-health/${batteryCode}`, data);
+}
+
 // Export all battery API
 export const batteriesApi = {
     // Get operations
@@ -169,6 +179,7 @@ export const batteriesApi = {
     addBatteryToStation,
     updateBattery,
     deleteBattery,
+    updateHealthBattery,
 
     // Constants
     BATTERY_STATUS,

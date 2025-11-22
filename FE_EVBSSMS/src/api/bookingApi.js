@@ -145,6 +145,15 @@ export const deleteBooking = async (id) => {
     return await apiClient.delete(`${BASE_URL}/${id}`);
 };
 
+/**
+ * Xac nhan isPaid cho booking
+ * @param {number} id - Booking ID
+ * @returns {Promise<Object>}
+ */
+export const confirmBookingPayment = async (id) => {
+    return await apiClient.put(`${BASE_URL}/confirmedIsPaid/${id}`, {});
+}
+
 // Export all booking API
 export const bookingApi = {
     getAllBookings,
@@ -159,5 +168,6 @@ export const bookingApi = {
     cancelBooking,
     updateBooking,
     deleteBooking,
+    confirmBookingPayment,
 };
 

@@ -6,6 +6,8 @@ import com.boilerplate.auth.enums.TicketStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -46,5 +48,10 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, Lo
      * Kiểm tra ticket ID đã tồn tại chưa
      */
     boolean existsByTicketId(String ticketId);
-}
 
+    /**
+     * Tìm tickets theo employee ID của user (creator)
+     */
+    @Query("SELECT t FROM SupportTicket t JOIN t.user u WHERE u.employeeId = :employeeId ORDER BY t.createdAt DESC")
+    List<SupportTicket> findByEmployeeId(@Param("employeeId") String employeeId);
+}

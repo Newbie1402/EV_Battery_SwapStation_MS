@@ -217,4 +217,12 @@ public class SupportTicketController {
         List<SupportTicketDetailResponse> tickets = supportTicketService.getAllTickets();
         return ResponseEntity.ok(new ResponseData<>(200, "Lấy tất cả ticket thành công", tickets));
     }
+
+    @GetMapping("/employee/{employeeId}")
+    @Operation(summary = "Lấy tất cả ticket theo employeeId", description = "Trả về danh sách support ticket do user (employeeId) tạo. Sắp xếp mới nhất trước.")
+    @PreAuthorize("hasAnyRole('STAFF','ADMIN', 'DRIVER')")
+    public ResponseEntity<ResponseData<List<SupportTicketDetailResponse>>> getTicketsByEmployeeId(@PathVariable String employeeId) {
+        List<SupportTicketDetailResponse> tickets = supportTicketService.getTicketsByEmployeeId(employeeId);
+        return ResponseEntity.ok(new ResponseData<>(200, "Lấy danh sách ticket theo employeeId thành công", tickets));
+    }
 }

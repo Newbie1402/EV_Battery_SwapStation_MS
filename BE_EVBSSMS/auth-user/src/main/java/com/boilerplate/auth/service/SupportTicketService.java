@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service xử lý Support Ticket: lưu DB và gửi event qua Kafka
@@ -329,5 +330,15 @@ public class SupportTicketService {
                 .toList();
     }
 
-
+    public List<SupportTicketDetailResponse> getTicketsByEmployeeId(String employeeId) {
+        if (employeeId == null || employeeId.isBlank()) {
+            log.warn("employeeId rỗng - trả về danh sách trống");
+            return List.of();
+        }
+        List<SupportTicket> tickets = supportTicketRepository.findByEmployeeId(employeeId);
+        log.info("Tìm thấy {} tickets cho employeeId={}", tickets.size(), employeeId);
+        return tickets.stream()
+                .map(this::convertToDetailResponse)
+                .collect(Collectors.toList());
+    }
 }

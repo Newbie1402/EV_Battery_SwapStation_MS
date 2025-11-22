@@ -6,6 +6,7 @@ import com.boilerplate.station.model.entity.Station;
 import lombok.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
@@ -41,11 +42,13 @@ public class StationDTO {
                 .status(station.getStatus())
                 .staffCode(station.getStaffs())
                 .batteries(
-                        station.getBatteries()
-                                .stream()
-                                .map(BatteryDTO::fromEntity) // gọi fromEntity cho từng Battery
-                                .collect(Collectors.toList())
+                        Optional.ofNullable(station.getBatteries())
+                                .map(list -> list.stream()
+                                        .map(BatteryDTO::fromEntity)
+                                        .collect(Collectors.toList()))
+                                .orElse(null)
                 )
+
                 .build();
     }
 }

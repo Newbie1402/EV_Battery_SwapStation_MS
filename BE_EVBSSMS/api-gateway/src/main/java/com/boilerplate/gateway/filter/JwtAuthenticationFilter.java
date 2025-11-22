@@ -108,7 +108,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 "/swagger-ui",
                 "/v3/api-docs",
                 "/webjars",
-                "/actuator/health"
+                "/actuator/health",
+                "/verification/confirm"
         );
 
         return publicPaths.stream().anyMatch(path::contains);

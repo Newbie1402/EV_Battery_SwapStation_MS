@@ -396,4 +396,41 @@ public class BatteryService {
         );
     }
 
+    public ResponseEntity<ResponseData<BatteryDTO>> updateBatteryHealth(String batteryCode, UpdateBatteryHealthRequest request) {
+        // Validate: ít nhất một trong hai trường phải có
+        if (request == null || (request.getSoh() == null && request.getSoc() == null)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Yêu cầu không có dữ liệu cập nhật", null));
+        }
+
+        Optional<Battery> opt = batteryRepository.findByBatteryCode(batteryCode);
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseData<>(HttpStatus.NOT_FOUND.value(), "Battery không tồn tại", null));
+        }
+        Battery battery = opt.get();
+
+        if (request.getSoh() != null) {
+            double soh = request.getSoh();
+            if (soh < 0 || soh > 100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Giá trị soh phải nằm trong khoảng 0..100", null));
+            }
+            battery.setSoh(soh);
+        }
+        if (request.getSoc() != null) {
+            double soc = request.getSoc();
+            if (soc < 0 || soc > 100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "Giá trị soc phải nằm trong khoảng 0..100", null));
+            }
+            battery.setSoc(soc);
+        }
+
+        Battery saved = batteryRepository.save(battery);
+        return ResponseEntity.ok(
+                new ResponseData<>(HttpStatus.OK.value(), "Cập nhật soh/soc thành công", BatteryDTO.fromEntity(saved))
+        );
+    }
+
 }

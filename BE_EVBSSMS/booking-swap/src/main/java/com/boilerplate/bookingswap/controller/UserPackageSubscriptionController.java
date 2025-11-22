@@ -193,4 +193,23 @@ public class UserPackageSubscriptionController {
                         .build()
         );
     }
+
+    /**
+     * Lấy danh sách đăng ký theo packagePlanId
+     */
+    @GetMapping("/package-plan/{packagePlanId}")
+    public ResponseEntity<ResponseData<List<UserPackageSubscriptionResponse>>> getSubscriptionsByPackagePlanId(
+            @PathVariable Long packagePlanId) {
+        log.info("REST request to get subscriptions by packagePlanId: {}", packagePlanId);
+
+        List<UserPackageSubscriptionResponse> response = subscriptionService.getSubscriptionsByPackagePlanId(packagePlanId);
+
+        return ResponseEntity.ok(
+                ResponseData.<List<UserPackageSubscriptionResponse>>builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Lấy danh sách đăng ký theo gói thuê thành công")
+                        .data(response)
+                        .build()
+        );
+    }
 }

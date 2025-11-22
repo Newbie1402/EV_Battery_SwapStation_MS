@@ -210,6 +210,22 @@ public class UserPackageSubscriptionService {
 
         log.info("Đã cập nhật {} đăng ký hết hạn", expiredSubscriptions.size());
     }
+
+    /**
+     * Lấy danh sách đăng ký theo packagePlanId
+     */
+    public List<UserPackageSubscriptionResponse> getSubscriptionsByPackagePlanId(Long packagePlanId) {
+        log.debug("Lấy danh sách đăng ký theo packagePlanId: {}", packagePlanId);
+
+        // Kiểm tra packagePlan có tồn tại không
+        if (!packagePlanRepository.existsById(packagePlanId)) {
+            throw new NotFoundException("Không tìm thấy gói thuê pin với ID: " + packagePlanId);
+        }
+
+        List<UserPackageSubscription> subscriptions = subscriptionRepository.findByPackagePlanId(packagePlanId);
+
+        return subscriptions.stream()
+                .map(subscriptionMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
 }
-
-

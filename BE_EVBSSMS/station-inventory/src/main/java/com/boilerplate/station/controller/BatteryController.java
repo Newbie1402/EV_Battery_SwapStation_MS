@@ -1,10 +1,10 @@
 package com.boilerplate.station.controller;
 
 import com.boilerplate.station.model.DTO.BatteryDTO;
-import com.boilerplate.station.model.DTO.BatterySwapLogDTO;
 import com.boilerplate.station.model.createRequest.AddBatteryRequest;
 import com.boilerplate.station.model.createRequest.BatteryCodeRequest;
 import com.boilerplate.station.model.createRequest.BatteryRequest;
+import com.boilerplate.station.model.createRequest.UpdateBatteryHealthRequest;
 import com.boilerplate.station.model.event.Consumer.BatteryHoldEvent;
 import com.boilerplate.station.model.event.Consumer.BatterySwapEvent;
 import com.boilerplate.station.model.event.Consumer.BatterySwapStation;
@@ -13,6 +13,7 @@ import com.boilerplate.station.service.BatteryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -110,5 +111,17 @@ public class BatteryController {
     @PostMapping("/add-battery")
     public ResponseEntity<ResponseData<BatteryDTO>> addBattery(@RequestBody AddBatteryRequest request) {
         return batteryService.addBattery(request);
+    }
+
+    @Operation(
+            summary = "Cập nhật chỉ số soh/soc cho pin",
+            description = "Chỉ cập nhật hai trường soh và/hoặc soc theo batteryCode; các trường khác giữ nguyên."
+    )
+    @PatchMapping("/update-health/{batteryCode}")
+    public ResponseEntity<ResponseData<BatteryDTO>> updateBatteryHealth(
+            @PathVariable String batteryCode,
+            @RequestBody @Validated UpdateBatteryHealthRequest request
+    ) {
+        return batteryService.updateBatteryHealth(batteryCode, request);
     }
 }

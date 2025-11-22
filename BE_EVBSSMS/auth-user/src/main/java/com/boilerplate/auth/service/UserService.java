@@ -210,4 +210,5 @@ public class UserService {
                 .updatedAt(vehicle.getUpdatedAt())
                 .build();
     }
+    
 }

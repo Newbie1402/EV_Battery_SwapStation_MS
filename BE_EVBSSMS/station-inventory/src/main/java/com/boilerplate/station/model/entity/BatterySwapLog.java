@@ -26,7 +26,7 @@ public class BatterySwapLog {
     private Battery verhicleBattery;
 
     @ManyToOne
-    @JoinColumn(name = "old_battery_id")
+    @JoinColumn(name = "battery_id")
     private Battery stationBattery;
 
     @ManyToOne

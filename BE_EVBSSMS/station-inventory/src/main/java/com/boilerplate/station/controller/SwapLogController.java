@@ -3,14 +3,19 @@ package com.boilerplate.station.controller;
 import com.boilerplate.station.model.DTO.BatteryReturnLogDTO;
 import com.boilerplate.station.model.DTO.BatterySwapLogDTO;
 import com.boilerplate.station.model.createRequest.BatteryReturnLogRequest;
+import com.boilerplate.station.model.event.Producer.StationSwapSummaryDTO;
 import com.boilerplate.station.model.response.ResponseData;
 import com.boilerplate.station.service.BatteryService;
+import com.boilerplate.station.service.StationService;
+import com.boilerplate.station.service.StationSwapSummaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -20,6 +25,9 @@ public class SwapLogController {
 
     @Autowired
     private BatteryService batteryService;
+
+    @Autowired
+    private StationSwapSummaryService stationSwapSummaryService;
 
 
     // ========================= GET BY STATION ID =========================
@@ -58,4 +66,19 @@ public class SwapLogController {
                                                                        @RequestBody BatteryReturnLogRequest request) {
         return batteryService.updateLog(id, request);
     }
+
+    @GetMapping("/getallsumary")
+    public ResponseEntity<ResponseData<List<StationSwapSummaryDTO>>> getAllSwapSummary() {
+        // Lấy tất cả tổng hợp swap theo trạm, ngày và khung giờ
+        List<StationSwapSummaryDTO> summaries = stationSwapSummaryService.getAllSwapSummary();
+
+        return ResponseEntity.ok(
+                ResponseData.<List<StationSwapSummaryDTO>>builder()
+                        .statusCode(200)
+                        .message("Lấy tất cả tổng hợp swap thành công")
+                        .data(summaries)
+                        .build()
+        );
+    }
+
 }

@@ -11,5 +11,7 @@ export * from "./vnpayApi";
 export * from "./ratingApi.js";
 export * from "./subscriptionPackageApi.js";
 export * from "./swapLogApi.js";
+export * from "./batteryTransferApi.js";
+export * from "./supportTicketApi.js";
 export { apiClient } from "./apiClient";
 export { default as axiosInstance } from "./axiosInstance";

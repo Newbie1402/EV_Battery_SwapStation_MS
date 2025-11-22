@@ -22,7 +22,7 @@ export const getAllPayments = async () => {
  */
 export const getAllPaymentPackages = async () => {
     const res = await apiClient.get(`${BASE_URL}/package`);
-    return res?.data || [] || res;
+    return res || [];
 }
 
 /**
@@ -41,7 +41,7 @@ export const getPaymentPackageById = async (id) => {
  */
 export const getAllPaymentSwap = async () => {
     const res = await apiClient.get(`${BASE_URL}/swap`);
-    return res?.data || [] || res;
+    return res || [];
 }
 
 /**

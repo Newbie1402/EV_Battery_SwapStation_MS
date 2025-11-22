@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <!-- Background rounded square -->
+  <rect x="4" y="4" width="56" height="56" rx="10" fill="#135bec" />
+  <!-- Zap/Lightning icon (white) -->
+  <path d="M34.5 8L17 36h12l-2 20 17.5-28h-12L34.5 8z" fill="#ffffff"/>
+</svg>
+

@@ -17,17 +17,17 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-// import { Badge } from "@/components/ui/badge"; // removed unused
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { adminApi } from "@/api/adminApi";
 import { getBatteryByCode } from "@/api/batteriesApi";
 import { stationApi } from "@/api/stationApi";
-import { Trash2, User as UserIcon } from "lucide-react";
-import {Avatar} from "@/components/ui/avatar.jsx";
+import { Trash2, User as UserIcon, ArrowLeftRight } from "lucide-react";
 
 export default function StationDetailDialog({ isOpen, onClose, station, onStaffRemoved }) {
+    const navigate = useNavigate();
     const [staffDetails, setStaffDetails] = useState([]);
     const [batteryDetails, setBatteryDetails] = useState([]);
     const [loadingStaff, setLoadingStaff] = useState(false);
@@ -287,8 +287,18 @@ export default function StationDetailDialog({ isOpen, onClose, station, onStaffR
                     <div className="p-6"><Skeleton className="h-40 w-full" /></div>
                 )}
 
-                <div className="flex items-center justify-end border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-background-dark">
-                    <Button onClick={onClose} className="bg-[#135bec] hover:bg-[#135bec]/90">Đóng</Button>
+                <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-background-dark">
+                    <Button
+                        onClick={() => {
+                            navigate(`/admin/stations/${station.id}/battery-dispatch`);
+                            onClose();
+                        }}
+                        className="bg-green-600 hover:bg-green-700 cursor-pointer gap-2"
+                    >
+                        <ArrowLeftRight className="w-4 h-4" />
+                        Điều phối pin
+                    </Button>
+                    <Button onClick={onClose} className="bg-[#135bec] hover:bg-[#135bec]/90 cursor-pointer">Đóng</Button>
                 </div>
             </DialogContent>
 

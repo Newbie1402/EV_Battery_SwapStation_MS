@@ -27,6 +27,7 @@ const PaymentPackagePage = lazy(() => import("../pages/driver/PaymentPackagePage
 const PaymentSuccessPage = lazy(() => import("../pages/driver/PaymentSuccessPage"));
 const MyPackagesPage = lazy(() => import("../pages/driver/MyPackagesPage"));
 const MyPaymentPage = lazy(() => import("../pages/driver/MyPaymentPage"));
+const DriverSupportTicketPage = lazy(() => import("../pages/driver/DriverSupportTicketPage.jsx"));
 
 //Staff Pages
 const StaffDashboardPage = lazy(() => import("../pages/staff/StaffDashboard"));
@@ -35,6 +36,7 @@ const StaffBookingManagementPage = lazy(() => import("../pages/staff/StaffBookin
 const StaffStationInfoPage = lazy(() => import("../pages/staff/StaffStationInfoPage"));
 const StaffSwapHistoryPage = lazy(() => import("../pages/staff/StaffSwapHistoryPage"));
 const StaffRatingManagementPage = lazy(() => import("../pages/staff/StaffRatingManagementPage"));
+const StaffSupportPage = lazy(() => import("../pages/staff/StaffSupportBatteryTransferPage"));
 
 //Admin Pages
 const AdminDashboardPage = lazy(() => import("../pages/admin/AdminDashboard"));
@@ -44,6 +46,10 @@ const AdminPackageSubscriptionsPage = lazy(() => import("../pages/admin/PackageS
 const AdminUserManagementPage = lazy(() => import("../pages/admin/UserManagementPage"));
 const AdminVehicleManagementPage = lazy(() => import("../pages/admin/VehicleManagementPage"));
 const AdminBatteryManagementPage = lazy(() => import("../pages/admin/BatteryManagementPage"));
+const AdminBatteryDispatchPage = lazy(() => import("../pages/admin/BatteryDispatchPage"));
+const AdminReportStaticsPage = lazy(() => import("../pages/admin/ReportStaticsPage.jsx"));
+const AdminBatteryTransferRequestsPage = lazy(() => import("../pages/admin/BatteryTransferRequestsPage"));
+const AdminSupportTicketPage = lazy(() => import("../pages/admin/SupportTicketPage"));
 
 export default function AppRoutes() {
     return (
@@ -82,6 +88,7 @@ export default function AppRoutes() {
                         <Route path="payment-package/:packageId" element={<PaymentPackagePage />} />
                         <Route path="payment-success" element={<PaymentSuccessPage />} />
                         <Route path="my-payment" element={<MyPaymentPage />} />
+                        <Route path="support" element={<DriverSupportTicketPage />} />
                     </Route>
 
                     {/* Staff Routes */}
@@ -98,6 +105,7 @@ export default function AppRoutes() {
                         <Route path="station-info" element={<StaffStationInfoPage />} />
                         <Route path="history" element={<StaffSwapHistoryPage />} />
                         <Route path="ratings" element={<StaffRatingManagementPage />} />
+                        <Route path="support" element={<StaffSupportPage />} />
                     </Route>
 
                     {/* Admin Routes */}
@@ -112,9 +120,13 @@ export default function AppRoutes() {
                         <Route path="users" element={<AdminUserManagementPage />} />
                         <Route path="vehicles" element={<AdminVehicleManagementPage />} />
                         <Route path="stations" element={<AdminStationManagementPage />} />
+                        <Route path="stations/:stationId/battery-dispatch" element={<AdminBatteryDispatchPage />} />
                         <Route path="packages" element={<AdminPackagePlanManagementPage />} />
                         <Route path="packages/:packageId/subscriptions" element={<AdminPackageSubscriptionsPage />} />
                         <Route path="batteries" element={<AdminBatteryManagementPage />} />
+                        <Route path="reports" element={<AdminReportStaticsPage />} />
+                        <Route path="battery-transfers" element={<AdminBatteryTransferRequestsPage />} />
+                        <Route path="support-tickets" element={<AdminSupportTicketPage />} />
                     </Route>
 
                     {/* 404 Not Found */}

@@ -1,7 +1,19 @@
 import { Outlet } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { LayoutDashboard, Users, Battery, MapPin, Settings, BarChart3, Package, Car, Layers } from "lucide-react";
+import {
+    LayoutDashboard,
+    Users,
+    Battery,
+    MapPin,
+    Settings,
+    BarChart3,
+    Package,
+    Car,
+    Layers,
+    Ticket,
+    BatteryCharging
+} from "lucide-react";
 
 export default function AdminLayout() {
     const adminMenuItems = [
@@ -47,9 +59,14 @@ export default function AdminLayout() {
             icon: BarChart3,
         },
         {
-            label: "Cài đặt",
-            path: "/admin/settings",
-            icon: Settings,
+            label: "Yêu cầu chuyển pin",
+            path: "/admin/battery-transfers",
+            icon: BatteryCharging,
+        },
+        {
+            label: "Hỗ trợ",
+            path: "/admin/support-tickets",
+            icon: Ticket,
         },
     ];
 

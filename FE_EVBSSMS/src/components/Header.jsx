@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Zap, Menu, X, LogOut, User, Settings, ChevronDown } from "lucide-react";
+import {Zap, Menu, X, LogOut, User, Settings, ChevronDown, TicketCheck, LayoutDashboard} from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { userApi } from "@/api/userApi";
 import { authApi } from "@/api/authApi";
@@ -193,18 +193,48 @@ export default function Header({ menuItems = [], role = "" }) {
                                                 </span>
                                             </div>
                                         </DropdownMenuLabel>
+                                        {role === 'DRIVER' && (
+                                            <DropdownMenuLabel className="pt-0">
+                                                <span className="inline-block text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+                                                    Tài xế
+                                                </span>
+                                            </DropdownMenuLabel>
+                                        )}
                                         <DropdownMenuSeparator />
+                                        {role === 'DRIVER' && [
+                                            <DropdownMenuItem
+                                                className="cursor-pointer"
+                                                onClick={() => navigate(`/driver/profile`)}
+                                            >
+                                                <User className="w-4 h-4 mr-2" />
+                                                Thông tin cá nhân
+                                            </DropdownMenuItem>,
+                                            <DropdownMenuItem
+                                                className="cursor-pointer"
+                                                onClick={() => navigate(`/driver/support`)}
+                                                >
+                                                <TicketCheck className="w-4 h-4 mr-2" />
+                                                Hỗ trợ
+                                            </DropdownMenuItem>
+                                        ]}
+                                        {role === 'ADMIN' && [
                                         <DropdownMenuItem
                                             className="cursor-pointer"
-                                            onClick={() => navigate(`/${role.toLowerCase()}/profile`)}
+                                            onClick={() => navigate(`/admin/dashboard`)}
                                         >
-                                            <User className="w-4 h-4 mr-2" />
-                                            Thông tin cá nhân
+                                            <LayoutDashboard className="w-4 h-4 mr-2" />
+                                            Trang quản trị
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="cursor-pointer">
-                                            <Settings className="w-4 h-4 mr-2" />
-                                            Cài đặt
-                                        </DropdownMenuItem>
+                                    ]}
+                                        {role === 'STAFF' && [
+                                            <DropdownMenuItem
+                                                className="cursor-pointer"
+                                                onClick={() => navigate(`/staff/dashboard`)}
+                                            >
+                                                <LayoutDashboard className="w-4 h-4 mr-2" />
+                                                Trang quản trị
+                                            </DropdownMenuItem>
+                                        ]}
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
                                             onClick={handleLogout}

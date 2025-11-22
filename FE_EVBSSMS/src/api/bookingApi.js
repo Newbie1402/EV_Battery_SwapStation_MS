@@ -14,7 +14,7 @@ const BASE_URL = "booking/api/bookings";
  * @returns {Promise<Object>}
  */
 export const getAllBookings = async (page = 0, size = 10) => {
-    return await apiClient.get(`${BASE_URL}?page=${page}&size=${size}`);
+    return await apiClient.get(`${BASE_URL}/getall?page=${page}&size=${size}`);
 };
 
 /**

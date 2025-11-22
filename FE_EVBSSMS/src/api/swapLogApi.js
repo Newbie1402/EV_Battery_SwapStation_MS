@@ -31,7 +31,18 @@ export const getSwapLogByStationId = async (StationId) => {
     return res?.data || res;
 };
 
+/**
+ * GET /api/swaplog/verhicle-station/getall
+ * Lấy tất cả bản ghi đổi pin
+ * @returns {Promise<Object>} Response với data là array của SwapLogResponse
+ */
+export const getAllSwapLogs = async () => {
+    const res = await apiClient.get(`${BASE_URL}/verhicle-station/getall`);
+    return res?.data || res;
+}
+
 export const swapLogApi = {
     createSwapLog,
     getSwapLogByStationId,
+    getAllSwapLogs,
 };

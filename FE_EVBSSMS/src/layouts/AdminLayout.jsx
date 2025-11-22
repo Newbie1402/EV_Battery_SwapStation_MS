@@ -1,7 +1,19 @@
 import { Outlet } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { LayoutDashboard, Users, Battery, MapPin, Settings, BarChart3, Package } from "lucide-react";
+import AIReportWidget from "@/components/AIReportWidget";
+import {
+    LayoutDashboard,
+    Users,
+    Battery,
+    MapPin,
+    BarChart3,
+    Package,
+    Car,
+    Layers,
+    Ticket,
+    BatteryCharging
+} from "lucide-react";
 
 export default function AdminLayout() {
     const adminMenuItems = [
@@ -11,34 +23,50 @@ export default function AdminLayout() {
             icon: LayoutDashboard,
         },
         {
-            label: "Người dùng",
-            path: "/admin/users",
-            icon: Users,
-        },
-        {
-            label: "Trạm đổi pin",
-            path: "/admin/stations",
-            icon: MapPin,
-        },
-        {
-            label: "Gói dịch vụ",
-            path: "/admin/packages",
-            icon: Package,
-        },
-        {
-            label: "Quản lý pin",
-            path: "/admin/batteries",
-            icon: Battery,
-        },
-        {
-            label: "Đơn hàng",
-            path: "/admin/orders",
-            icon: Package,
+            label: "Quản lý",
+            icon: Layers,
+            submenu: [
+                {
+                    label: "Người dùng",
+                    path: "/admin/users",
+                    icon: Users,
+                },
+                {
+                    label: "Phương tiện",
+                    path: "/admin/vehicles",
+                    icon: Car,
+                },
+                {
+                    label: "Trạm đổi pin",
+                    path: "/admin/stations",
+                    icon: MapPin,
+                },
+                {
+                    label: "Gói dịch vụ",
+                    path: "/admin/packages",
+                    icon: Package,
+                },
+                {
+                    label: "Quản lý pin",
+                    path: "/admin/batteries",
+                    icon: Battery,
+                },
+            ],
         },
         {
             label: "Báo cáo",
             path: "/admin/reports",
             icon: BarChart3,
+        },
+        {
+            label: "Yêu cầu chuyển pin",
+            path: "/admin/battery-transfers",
+            icon: BatteryCharging,
+        },
+        {
+            label: "Hỗ trợ",
+            path: "/admin/support-tickets",
+            icon: Ticket,
         },
     ];
 
@@ -53,7 +81,7 @@ export default function AdminLayout() {
             </main>
 
             <Footer />
+            <AIReportWidget />
         </div>
     );
 }
-

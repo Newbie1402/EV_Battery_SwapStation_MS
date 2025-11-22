@@ -2,14 +2,14 @@ import { apiClient } from "./apiClient";
 
 /**
  * Package Plan API
- * Base URL: /api/v1/package-plans
+ * Base URL: /api/package-plans
  */
 
-const BASE_URL = "/v1/package-plans";
+const BASE_URL = "/booking/api/package-plans";
 
 /**
  * 1. Lấy tất cả package plans
- * GET /api/v1/package-plans
+ * GET /api/package-plans
  * @returns {Promise<Array>} Danh sách tất cả package plans
  */
 export const getAllPackagePlans = async (page = 0, size = 10) => {
@@ -19,7 +19,7 @@ export const getAllPackagePlans = async (page = 0, size = 10) => {
 
 /**
  * 2. Lấy package plan theo ID
- * GET /api/v1/package-plans/{id}
+ * GET /api/package-plans/{id}
  * @param {number} id - Package Plan ID
  * @returns {Promise<Object>} Package plan object
  */
@@ -29,7 +29,7 @@ export const getPackagePlanById = async (id) => {
 
 /**
  * 3. Tạo package plan mới (Admin only)
- * POST /api/v1/package-plans
+ * POST /api/package-plans
  * @param {Object} data - Package plan data
  * @param {string} data.name - Tên gói (required)
  * @param {string} data.description - Mô tả gói
@@ -44,7 +44,7 @@ export const createPackagePlan = async (data) => {
 
 /**
  * 4. Cập nhật package plan (Admin only)
- * PATCH /api/v1/package-plans/{id}
+ * PATCH /api/package-plans/{id}
  * @param {number} id - Package Plan ID
  * @param {Object} data - Package plan data cần cập nhật
  * @param {string} data.packageName - Tên gói
@@ -61,7 +61,7 @@ export const updatePackagePlan = async (id, data) => {
 
 /**
  * 5. Xóa package plan (Admin only)
- * DELETE /api/v1/package-plans/{id}
+ * DELETE /api/package-plans/{id}
  * Lưu ý: Đây là soft delete, status sẽ chuyển sang INACTIVE thay vì xóa cứng
  * @param {number} id - Package Plan ID
  * @returns {Promise<Object>} Response message
@@ -72,7 +72,7 @@ export const deletePackagePlan = async (id) => {
 
 /**
  * 6. Kích hoạt package plan (Admin only)
- * PATCH /api/v1/package-plans/{id}/activate
+ * PATCH /api/package-plans/{id}/activate
  * Chuyển status từ INACTIVE sang ACTIVE
  * @param {number} id - Package Plan ID
  * @returns {Promise<Object>} Response message

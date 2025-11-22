@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { Home, MapPin, Calendar, Clock } from "lucide-react";
+import { Home, MapPin, Calendar, Package, User, Receipt } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,7 +8,9 @@ const driverMenuItems = [
     { label: "Trang chủ", path: "/driver/dashboard", icon: Home },
     { label: "Trạm đổi pin", path: "/driver/stations", icon: MapPin },
     { label: "Lịch của tôi", path: "/driver/bookings", icon: Calendar },
-    { label: "Lịch sử", path: "/driver/history", icon: Clock },
+    { label: "Gói của tôi", path: "/driver/packages", icon: Package },
+    { label: "Lịch sử thanh toán", path: "/driver/my-payment", icon: Receipt },
+    { label: "Hồ sơ", path: "/driver/profile", icon: User },
 ];
 
 export default function DriverLayout() {

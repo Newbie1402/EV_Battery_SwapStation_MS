@@ -5,7 +5,7 @@ import { apiClient } from "./apiClient";
  * Base URL: /api/payments
  */
 
-const BASE_URL = "/payments";
+const BASE_URL = "billing/api/payments";
 
 /**
  * Lấy tất cả payments
@@ -22,7 +22,7 @@ export const getAllPayments = async () => {
  */
 export const getAllPaymentPackages = async () => {
     const res = await apiClient.get(`${BASE_URL}/package`);
-    return res?.data || [] || res;
+    return res || [];
 }
 
 /**
@@ -35,6 +35,25 @@ export const getPaymentPackageById = async (id) => {
     const res = await apiClient.get(`${BASE_URL}/package/${id}`);
     return res || null;
 };
+/** Lấy tất cả payment swap
+ * GET /api/payments/swap
+ * @returns {Promise<Array>} Danh sách tất cả payment swap
+ */
+export const getAllPaymentSwap = async () => {
+    const res = await apiClient.get(`${BASE_URL}/swap`);
+    return res || [];
+}
+
+/**
+ * Lấy chi tiết payment swap theo ID
+ * GET /api/payments/swap/{id}
+ * @param {number} id - Payment swap ID
+ * @returns {Promise<Object>} Payment swap object
+ */
+export const getPaymentSwapById = async (id) => {
+    const res = await apiClient.get(`${BASE_URL}/swap/${id}`);
+    return res || null;
+};
 /**
  * Tạo payment package mới
  * POST /api/payments/package
@@ -45,15 +64,38 @@ export const createPaymentPackage = async (data) => {
     const res = await apiClient.post(`${BASE_URL}/package`, data);
     return res?.data?.data || res.data || null || res;
 };
-
-/** Tạo VNPAY
- * POST /api/payments/vnpay/create_qr
- * request body: { amount, orderInfo, returnUrl, ipAddress }
+/**
+ * Tạo payment swap mới
+ * POST /api/payments/swap
+ * request body: {
+ * customerId, totalAmount, method ( CASH, VNPAY), status (PENDING, SUCCESS, FAILED, REFUNDED), transactionId, description, paymentTime, bookingId, swapLogId}
  */
-export const createVnpay = async (data) => {
-    const res = await apiClient.post(`${BASE_URL}/vnpay/create_qr`, data);
-    return res?.data || res || null;
-}
+export const createSwapPackage = async (data) => {
+    const res = await apiClient.post(`${BASE_URL}/swap`, data);
+    return res?.data?.data || res.data || null || res;
+};
+
+/**
+ * Xác nhận payment với method CASH
+ * POST /api/payments/single/confirm/{paymentId}
+ * @param {number} paymentId - Payment ID
+ * @returns {Promise<Object>}
+ */
+export const confirmCashPayment = async (paymentId) => {
+    const res = await apiClient.post(`${BASE_URL}/single/confirm/${paymentId}`, {});
+    return res || null;
+};
+
+/**
+ * Lấy tất cả thanh toán của customer
+ * GET /api/payments/customer/{customerId}
+ * @param {string} customerId - Customer ID
+ * @returns {Promise<Array>} Danh sách tất cả payments của customer
+ */
+export const getPaymentsByCustomer = async (customerId) => {
+    const res = await apiClient.get(`${BASE_URL}/customer/${customerId}`);
+    return res || [];
+};
 
 export const paymentStatus = {
     PENDING: 'PENDING',
@@ -65,7 +107,6 @@ export const paymentStatus = {
 export const paymentMethod = {
     CASH: 'CASH',
     VNPAY: 'VNPAY',
-    MOMO: 'MOMO',
     BANK_TRANSFER: 'BANK_TRANSFER',
     CREDIT_CARD: 'CREDIT_CARD',
 };
@@ -79,8 +120,13 @@ export const packageStatus = {
 export const paymentApi = {
     getAllPayments,
     getAllPaymentPackages,
+    getAllPaymentSwap,
     getPaymentPackageById,
+    getPaymentSwapById,
     createPaymentPackage,
+    createSwapPackage,
+    confirmCashPayment,
+    getPaymentsByCustomer,
     paymentStatus,
     paymentMethod,
     packageStatus,

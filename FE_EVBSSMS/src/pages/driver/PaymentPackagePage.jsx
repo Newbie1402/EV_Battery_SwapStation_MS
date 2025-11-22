@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
     CreditCard,
     Wallet,
@@ -7,7 +7,8 @@ import {
     CheckCircle2,
     Package,
     Clock,
-    Shield
+    Shield,
+    RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,11 +24,20 @@ import { formatCurrency } from "@/utils/format";
 import toast from "react-hot-toast";
 
 export default function PaymentPackagePage() {
-    const { packageId } = useParams();
+    const { packageId: packageIdParam } = useParams();
     const navigate = useNavigate();
-    const { userId } = useAuthStore();
+    const location = useLocation();
+    const { employeeId } = useAuthStore();
     const [paymentMethod, setPaymentMethod] = useState("VNPAY");
     const [isProcessing, setIsProcessing] = useState(false);
+
+    // Lấy thông tin gia hạn từ location state (nếu có)
+    const { subscriptionId, extendPeriods, isExtend, isAutoExtend, packagePlanId } = location.state || {};
+    const periods = extendPeriods || 1;
+
+    // Sử dụng packageId từ state (nếu là extend) hoặc từ params (nếu là đăng ký mới)
+    const packageId = packagePlanId || packageIdParam;
+    console.log("PaymentPackagePage packageId:", packageId);
 
     // Lấy thông tin gói từ API
     const { data: packageData, isLoading, error } = useCustomQuery(
@@ -56,13 +66,18 @@ export default function PaymentPackagePage() {
         setIsProcessing(true);
 
         try {
+            // Tính tổng tiền (có thể nhân với số chu kỳ nếu là gia hạn)
+            const totalAmount = packageData.price * periods;
+
             // Bước 1: Tạo payment
             const paymentData = {
-                customerId: userId,
-                totalAmount: packageData.price,
+                customerId: employeeId,
+                totalAmount: totalAmount,
                 method: paymentMethod,
                 status: "PENDING",
-                description: `Thanh toán gói ${packageData.name}`,
+                description: isExtend
+                    ? `Gia hạn gói ${packageData.name} - ${periods} ${packageData.packageType === "YEARLY" ? "năm" : "tháng"}`
+                    : `Thanh toán gói ${packageData.name}`,
                 packageId: packageId
             };
 
@@ -70,6 +85,16 @@ export default function PaymentPackagePage() {
 
             if (!paymentResponse || !paymentResponse.id) {
                 throw new Error("Không thể tạo thanh toán");
+            }
+
+            // Lưu thông tin gia hạn vào localStorage để xử lý sau khi thanh toán thành công
+            if (isExtend && subscriptionId) {
+                localStorage.setItem('extendInfo', JSON.stringify({
+                    subscriptionId,
+                    extendPeriods: periods,
+                    paymentId: paymentResponse.id,
+                    isAutoExtend: isAutoExtend || false
+                }));
             }
 
             // Bước 2: Nếu chọn VNPAY, redirect đến trang thanh toán VNPAY
@@ -140,15 +165,28 @@ export default function PaymentPackagePage() {
                 <div className="mb-6">
                     <Button
                         variant="ghost"
-                        onClick={() => navigate("/pricing")}
+                        onClick={() => navigate(isExtend ? "/driver/my-packages" : "/pricing")}
                         className="mb-4"
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Quay lại
                     </Button>
-                    <h1 className="text-3xl font-bold text-slate-800">
-                        Thanh toán gói dịch vụ
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-slate-800">
+                            {isExtend ? "Gia hạn gói dịch vụ" : "Thanh toán gói dịch vụ"}
+                        </h1>
+                        {isExtend && (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                                <RefreshCw className="mr-1 h-3 w-3" />
+                                Gia hạn
+                            </Badge>
+                        )}
+                        {isAutoExtend && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700">
+                                Tự động
+                            </Badge>
+                        )}
+                    </div>
                     <p className="text-slate-600 mt-2">
                         Xác nhận thông tin và chọn phương thức thanh toán
                     </p>
@@ -273,11 +311,23 @@ export default function PaymentPackagePage() {
                                             Gói {packageData.packageType === "MONTHLY" ? "Tháng" : "Năm"}
                                         </span>
                                     </div>
+                                    {isExtend && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-600">Số chu kỳ:</span>
+                                            <span className="font-medium text-blue-600">× {periods}</span>
+                                        </div>
+                                    )}
                                     <Separator />
                                     <div className="flex justify-between text-sm">
                                         <span className="text-slate-600">Giá gói:</span>
                                         <span className="font-medium">{formatCurrency(packageData.price)}</span>
                                     </div>
+                                    {isExtend && periods > 1 && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-600">× {periods} chu kỳ:</span>
+                                            <span className="font-medium">{formatCurrency(packageData.price * periods)}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-sm">
                                         <span className="text-slate-600">Phí xử lý:</span>
                                         <span className="font-medium text-green-600">Miễn phí</span>
@@ -289,9 +339,17 @@ export default function PaymentPackagePage() {
                                 <div className="flex justify-between items-center">
                                     <span className="font-semibold text-slate-800">Tổng cộng:</span>
                                     <span className="text-2xl font-bold text-blue-600">
-                                        {formatCurrency(packageData.price)}
+                                        {formatCurrency(packageData.price * periods)}
                                     </span>
                                 </div>
+
+                                {isExtend && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                        <p className="text-xs text-blue-800">
+                                            <strong>Lưu ý:</strong> Sau khi thanh toán thành công, gói của bạn sẽ được gia hạn thêm {periods} {packageData.packageType === "YEARLY" ? "năm" : "tháng"} và số lượt đổi pin sẽ được reset về 0.
+                                        </p>
+                                    </div>
+                                )}
 
                                 <Button
                                     onClick={handlePayment}

@@ -1,86 +1,104 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { MapPin, Plus, Search, Edit, Trash2, Phone, Battery, CheckCircle, XCircle, AlertCircle, List, Map as MapIcon } from "lucide-react";
+import { useState } from "react";
+import { stationApi, STATION_STATUS } from "@/api";
 import useCustomQuery from "@/hooks/useCustomQuery";
 import useCustomMutation from "@/hooks/useCustomMutation";
-import { stationApi } from "@/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "react-hot-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import StationMapView from "@/pages/admin/StationMapView.jsx";
+import {
+    MapPin,
+    Plus,
+    Edit,
+    Trash2,
+    Map,
+    List,
+    Search,
+    Building2,
+    AlertCircle,
+    CheckCircle,
+    XCircle,
+    Battery,
+    Phone,
+    Eye,
+    Users,
+    UserPlus
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import StationMapView from "./StationMapView";
+import StationDetailDialog from "@/components/StationDetailDialog";
 
 export default function StationManagementPage() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [viewMode, setViewMode] = useState("list"); // "list" or "map"
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
     const [selectedStation, setSelectedStation] = useState(null);
+    const [stationToDelete, setStationToDelete] = useState(null);
     const [formData, setFormData] = useState({
         stationName: "",
         address: "",
         phoneNumber: "",
-        latitude: "",
-        longitude: "",
         totalSlots: "",
         availableSlots: "",
         status: "ACTIVE",
     });
+    const [addStaffData, setAddStaffData] = useState({ stationId: null, staffCode: "" });
 
-    useEffect(() => {
-        if (isEditDialogOpen) {
-            setTimeout(() => {
-                const map = window.__leaflet_map__;
-                if (map) map.invalidateSize();
-            }, 200);
-        }
-    }, [isEditDialogOpen]);
-
-    const fadeVariants = {
-        hidden: { opacity: 0, y: 40 },
-        visible: { opacity: 1, y: 0 },
-    };
-
-    // Fetch danh sách stations
+    // Fetch stations
     const { data: stationsWrapper, isLoading, refetch } = useCustomQuery(
-        ["admin-all-stations"],
+        ["stations"],
         () => stationApi.getAllStations()
     );
 
     const stationsData = stationsWrapper?.data || stationsWrapper || [];
     const stations = Array.isArray(stationsData) ? stationsData : [];
 
-    // Filter stations
-    const filteredStations = stations.filter(station =>
-        station.stationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        station.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        station.stationCode?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Create mutation
+    // Create station mutation
     const createMutation = useCustomMutation(
         (data) => stationApi.createStation(data),
         "POST",
         {
             onSuccess: () => {
-                toast.success("Tạo trạm thành công!");
+                toast.success("Thêm trạm thành công!");
                 setIsCreateDialogOpen(false);
                 resetForm();
                 refetch();
             },
-            onError: () => {
-                toast.error("Không thể tạo trạm. Vui lòng thử lại.");
-            },
         }
     );
 
-    // Update mutation
+    // Update station mutation
     const updateMutation = useCustomMutation(
         ({ id, data }) => stationApi.updateStation(id, data),
         "PUT",
@@ -88,29 +106,34 @@ export default function StationManagementPage() {
             onSuccess: () => {
                 toast.success("Cập nhật trạm thành công!");
                 setIsEditDialogOpen(false);
-                setSelectedStation(null);
                 resetForm();
                 refetch();
-            },
-            onError: () => {
-                toast.error("Không thể cập nhật trạm. Vui lòng thử lại.");
             },
         }
     );
 
-    // Delete mutation
+    // Delete station mutation
     const deleteMutation = useCustomMutation(
         (id) => stationApi.deleteStation(id),
         "DELETE",
         {
             onSuccess: () => {
                 toast.success("Xóa trạm thành công!");
-                setIsDeleteDialogOpen(false);
-                setSelectedStation(null);
                 refetch();
             },
-            onError: () => {
-                toast.error("Không thể xóa trạm. Vui lòng thử lại.");
+        }
+    );
+
+    // Add staff to station
+    const addStaffMutation = useCustomMutation(
+        ({ stationId, staffCode }) => stationApi.addStaffToStation(stationId, { staffCode }),
+        "POST",
+        {
+            onSuccess: () => {
+                toast.success("Thêm nhân viên vào trạm thành công!");
+                setIsAddStaffDialogOpen(false);
+                setAddStaffData({ stationId: null, staffCode: "" });
+                refetch();
             },
         }
     );
@@ -120,12 +143,11 @@ export default function StationManagementPage() {
             stationName: "",
             address: "",
             phoneNumber: "",
-            latitude: "",
-            longitude: "",
             totalSlots: "",
             availableSlots: "",
             status: "ACTIVE",
         });
+        setSelectedStation(null);
     };
 
     const handleCreate = () => {
@@ -134,18 +156,14 @@ export default function StationManagementPage() {
             return;
         }
 
-        const payload = {
+        createMutation.mutate({
             stationName: formData.stationName,
             address: formData.address,
             phoneNumber: formData.phoneNumber,
-            latitude: parseFloat(formData.latitude) || 0,
-            longitude: parseFloat(formData.longitude) || 0,
-            totalSlots: parseInt(formData.totalSlots) || 0,
-            availableSlots: parseInt(formData.availableSlots) || 0,
+            totalSlots: formData.totalSlots ? parseInt(formData.totalSlots) : 0,
+            availableSlots: formData.availableSlots ? parseInt(formData.availableSlots) : 0,
             status: formData.status,
-        };
-
-        createMutation.mutate(payload);
+        });
     };
 
     const handleEdit = (station) => {
@@ -154,8 +172,6 @@ export default function StationManagementPage() {
             stationName: station.stationName || "",
             address: station.address || "",
             phoneNumber: station.phoneNumber || "",
-            latitude: station.latitude?.toString() || "",
-            longitude: station.longitude?.toString() || "",
             totalSlots: station.totalSlots?.toString() || "",
             availableSlots: station.availableSlots?.toString() || "",
             status: station.status || "ACTIVE",
@@ -169,289 +185,397 @@ export default function StationManagementPage() {
             return;
         }
 
-        const payload = {
-            stationName: formData.stationName,
-            address: formData.address,
-            phoneNumber: formData.phoneNumber,
-            latitude: parseFloat(formData.latitude) || 0,
-            longitude: parseFloat(formData.longitude) || 0,
-            totalSlots: parseInt(formData.totalSlots) || 0,
-            availableSlots: parseInt(formData.availableSlots) || 0,
-            status: formData.status,
-        };
-
-        updateMutation.mutate({ id: selectedStation.id, data: payload });
+        updateMutation.mutate({
+            id: selectedStation.id,
+            data: {
+                stationName: formData.stationName,
+                address: formData.address,
+                phoneNumber: formData.phoneNumber,
+                totalSlots: formData.totalSlots ? parseInt(formData.totalSlots) : 0,
+                availableSlots: formData.availableSlots ? parseInt(formData.availableSlots) : 0,
+                status: formData.status,
+            },
+        });
     };
 
     const handleDelete = (station) => {
-        setSelectedStation(station);
+        setStationToDelete(station);
         setIsDeleteDialogOpen(true);
     };
 
     const confirmDelete = () => {
-        if (selectedStation) {
-            deleteMutation.mutate(selectedStation.id);
+        if (stationToDelete) {
+            deleteMutation.mutate(stationToDelete.id);
+            setIsDeleteDialogOpen(false);
+            setStationToDelete(null);
         }
+    };
+
+    const handleViewDetail = (station) => {
+        setSelectedStation(station);
+        setIsDetailDialogOpen(true);
+    };
+
+    const handleOpenAddStaff = (station) => {
+        setAddStaffData({ stationId: station.id, staffCode: "" });
+        setIsAddStaffDialogOpen(true);
+    };
+
+    const confirmAddStaff = () => {
+        if (!addStaffData.stationId || !addStaffData.staffCode) {
+            toast.error("Vui lòng nhập mã nhân viên!");
+            return;
+        }
+        addStaffMutation.mutate({
+            stationId: addStaffData.stationId,
+            staffCode: addStaffData.staffCode,
+        });
     };
 
     const getStatusBadge = (status) => {
         const statusMap = {
             ACTIVE: {
                 label: "Hoạt động",
-                color: "bg-green-100 text-green-700",
+                className: "bg-green-500",
                 icon: CheckCircle
             },
             OFFLINE: {
-                label: "Ngừng hoạt động",
-                color: "bg-red-100 text-red-700",
+                label: "Tạm đóng",
+                className: "bg-gray-500",
                 icon: XCircle
             },
             MAINTENANCE: {
                 label: "Bảo trì",
-                color: "bg-yellow-100 text-yellow-700",
+                className: "bg-yellow-500",
                 icon: AlertCircle
             },
         };
         return statusMap[status] || {
             label: status,
-            color: "bg-gray-100 text-gray-700",
+            className: "bg-gray-500",
             icon: AlertCircle
         };
     };
 
-    const handleFormChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+    const filterStations = (stations) => {
+        if (!searchQuery) return stations;
+        return stations.filter(
+            (station) =>
+                station.stationName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                station.stationCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                station.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                station.phoneNumber?.includes(searchQuery)
+        );
     };
 
+    const filteredStations = filterStations(stations);
+    const activeStations = stations.filter((s) => s.status === STATION_STATUS.ACTIVE).length;
+    const maintenanceStations = stations.filter((s) => s.status === STATION_STATUS.MAINTENANCE).length;
+    const totalSlots = stations.reduce((sum, s) => sum + (s.totalSlots || 0), 0);
+
     return (
-        <div className="w-full min-h-screen bg-white text-gray-900">
-            <div className="py-8 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                    {/* Header */}
-                    <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        variants={fadeVariants}
-                        transition={{ duration: 0.8 }}
-                        className="mb-8"
-                    >
-                        <div className="flex items-center justify-between mb-6">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Quản lý trạm đổi pin</h1>
+                    <p className="text-slate-600">Quản lý các trạm đổi pin trong hệ thống</p>
+                </div>
+                <Button
+                    onClick={() => setIsCreateDialogOpen(true)}
+                    className="bg-[#135bec] hover:bg-[#135bec]/90 gap-2 cursor-pointer"
+                >
+                    <Plus className="w-4 h-4" />
+                    Thêm trạm mới
+                </Button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card>
+                    <CardContent className="pt-3">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <Building2 className="w-6 h-6 text-blue-600" />
+                            </div>
                             <div>
-                                <h1 className="text-4xl md:text-5xl font-extrabold mb-3 leading-tight">
-                                    <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
-                                        Quản lý trạm đổi pin
-                                    </span>
-                                </h1>
-                                <p className="text-lg text-gray-600">
-                                    Tổng số: <span className="font-semibold text-gray-800">{stations.length} trạm</span>
+                                <p className="text-sm text-slate-500">Tổng số trạm</p>
+                                <p className="text-2xl font-bold text-slate-900">
+                                    {stations.length || 0}
                                 </p>
                             </div>
-                            <Button
-                                onClick={() => {
-                                    resetForm();
-                                    setIsCreateDialogOpen(true);
-                                }}
-                                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white"
-                            >
-                                <Plus className="w-5 h-5 mr-2" />
-                                Thêm trạm mới
-                            </Button>
                         </div>
+                    </CardContent>
+                </Card>
 
-                        {/* Search Bar */}
-                        <div className="flex gap-3">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <Input
-                                    placeholder="Tìm kiếm theo tên trạm, địa chỉ hoặc mã trạm..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 py-6 text-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
-                                />
+                <Card>
+                    <CardContent className="pt-3">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                                <CheckCircle className="w-6 h-6 text-green-600" />
                             </div>
-
-                            {/* View Mode Toggle */}
-                            <div className="flex gap-2">
-                                <Button
-                                    variant={viewMode === "list" ? "default" : "outline"}
-                                    size="lg"
-                                    onClick={() => setViewMode("list")}
-                                    className={viewMode === "list" ? "bg-gradient-to-r from-emerald-600 to-cyan-600" : ""}
-                                >
-                                    <List className="w-5 h-5 mr-2" />
-                                    Danh sách
-                                </Button>
-                                <Button
-                                    variant={viewMode === "map" ? "default" : "outline"}
-                                    size="lg"
-                                    onClick={() => setViewMode("map")}
-                                    className={viewMode === "map" ? "bg-gradient-to-r from-emerald-600 to-cyan-600" : ""}
-                                >
-                                    <MapIcon className="w-5 h-5 mr-2" />
-                                    Bản đồ
-                                </Button>
+                            <div>
+                                <p className="text-sm text-slate-500">Đang hoạt động</p>
+                                <p className="text-2xl font-bold text-slate-900">{activeStations}</p>
                             </div>
                         </div>
-                    </motion.div>
+                    </CardContent>
+                </Card>
 
-                    {/* Map View */}
-                    {viewMode === "map" ? (
-                        <StationMapView onEditStation={handleEdit} />
-                    ) : (
-                        <>
-                    {/* Stations Grid */}
+                <Card>
+                    <CardContent className="pt-3">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-yellow-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500">Bảo trì</p>
+                                <p className="text-2xl font-bold text-slate-900">{maintenanceStations}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="pt-3">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
+                                <Battery className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500">Tổng slots</p>
+                                <p className="text-2xl font-bold text-slate-900">{totalSlots}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Search */}
+            <Card>
+                <CardContent className="pt-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <Input
+                            placeholder="Tìm kiếm theo tên, mã, địa chỉ, số điện thoại..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Tabs */}
+            <Tabs defaultValue="list" className="w-full">
+                <TabsList className="grid w-full max-w-md grid-cols-2">
+                    <TabsTrigger value="list" className="gap-2">
+                        <List className="w-4 h-4" />
+                        Danh sách
+                    </TabsTrigger>
+                    <TabsTrigger value="map" className="gap-2">
+                        <Map className="w-4 h-4" />
+                        Bản đồ
+                    </TabsTrigger>
+                </TabsList>
+
+                {/* List View */}
+                <TabsContent value="list" className="mt-6">
                     {isLoading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[...Array(6)].map((_, idx) => (
-                                <Card key={idx} className="border border-gray-200">
-                                    <CardHeader className="space-y-2">
-                                        <div className="h-6 bg-gray-200 rounded animate-pulse" />
-                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3" />
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-2">
-                                            <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                                            <div className="h-4 bg-gray-200 rounded animate-pulse w-5/6" />
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                        <div className="space-y-4">
+                            {[1, 2, 3].map((i) => (
+                                <Skeleton key={i} className="h-32 w-full" />
                             ))}
                         </div>
                     ) : filteredStations.length === 0 ? (
-                        <Card className="border border-gray-200">
-                            <CardContent className="p-12 text-center">
-                                <MapPin className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                                <p className="text-gray-500 text-lg">
-                                    {searchQuery ? "Không tìm thấy trạm nào" : "Chưa có trạm nào"}
-                                </p>
+                        <Card>
+                            <CardContent className="pt-12 pb-12 text-center">
+                                <Building2 className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                                <p className="text-slate-500">Không tìm thấy trạm nào</p>
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredStations.map((station, idx) => {
+                        <div className="space-y-4">
+                            {filteredStations.map((station) => {
                                 const statusInfo = getStatusBadge(station.status);
                                 const StatusIcon = statusInfo.icon;
 
                                 return (
-                                    <motion.div
-                                        key={station.id}
-                                        initial="hidden"
-                                        animate="visible"
-                                        variants={fadeVariants}
-                                        transition={{ duration: 0.6, delay: idx * 0.05 }}
-                                    >
-                                        <Card className="border border-gray-200 hover:shadow-xl transition-all">
-                                            <CardHeader>
-                                                <div className="flex items-start justify-between mb-2">
-                                                    <div className="flex-1">
-                                                        <CardTitle className="text-xl mb-1 text-black">
+                                    <Card key={station.id} className="hover:shadow-lg transition">
+                                        <CardContent className="p-6">
+                                            <div className="flex items-start gap-4">
+                                                {/* Icon */}
+                                                <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${statusInfo.className === 'bg-green-500' ? 'bg-green-100' : statusInfo.className === 'bg-yellow-500' ? 'bg-yellow-100' : 'bg-gray-100'}`}>
+                                                    <Building2 className={`w-8 h-8 ${statusInfo.className === 'bg-green-500' ? 'text-green-600' : statusInfo.className === 'bg-yellow-500' ? 'text-yellow-600' : 'text-gray-600'}`} />
+                                                </div>
+
+                                                {/* Station Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h3 className="text-lg font-semibold text-slate-900">
                                                             {station.stationName}
-                                                        </CardTitle>
-                                                        <CardDescription className="text-sm text-gray-500">
-                                                            Mã: {station.stationCode}
-                                                        </CardDescription>
+                                                        </h3>
+                                                        <Badge className={`${statusInfo.className} text-white`}>
+                                                            <StatusIcon className="w-3 h-3 mr-1" />
+                                                            {statusInfo.label}
+                                                        </Badge>
                                                     </div>
-                                                    <Badge className={`font-medium ${statusInfo.color} flex items-center gap-1`}>
-                                                        <StatusIcon className="w-3 h-3" />
-                                                        {statusInfo.label}
-                                                    </Badge>
+                                                    <div className="grid grid-cols-2 gap-2 text-sm text-slate-600">
+                                                        <div className="flex items-center gap-1">
+                                                            <MapPin className="w-4 h-4" />
+                                                            {station.address}
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Phone className="w-4 h-4" />
+                                                            {station.phoneNumber || "Chưa có"}
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Battery className="w-4 h-4" />
+                                                            Slots: {station.availableSlots}/{station.totalSlots}
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-slate-500">
+                                                            Mã: {station.stationCode || "N/A"}
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Battery className="w-4 h-4" />
+                                                            Pin: {station.batteries?.length ?? 0}
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <Users className="w-4 h-4" />
+                                                            Nhân viên: {station.staffCode?.length ?? 0}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3">
-                                                <div className="flex items-start gap-2 text-sm text-gray-600">
-                                                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                                    <span>{station.address}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <Phone className="w-4 h-4" />
-                                                    <span>{station.phoneNumber || "Chưa có"}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <Battery className="w-4 h-4" />
-                                                    <span>
-                                                        {station.availableSlots}/{station.totalSlots} slots khả dụng
-                                                    </span>
-                                                </div>
-                                            </CardContent>
-                                            <CardContent className="pt-0">
+
+                                                {/* Actions */}
                                                 <div className="flex gap-2">
                                                     <Button
+                                                        size="sm"
                                                         variant="outline"
-                                                        className="flex-1"
+                                                        onClick={() => handleViewDetail(station)}
+                                                    >
+                                                        <Eye className="w-4 h-4 mr-1" />
+                                                        Chi tiết
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
                                                         onClick={() => handleEdit(station)}
                                                     >
-                                                        <Edit className="w-4 h-4 mr-2" />
+                                                        <Edit className="w-4 h-4 mr-1" />
                                                         Sửa
                                                     </Button>
                                                     <Button
-                                                        variant="destructive"
-                                                        className="flex-1"
-                                                        onClick={() => handleDelete(station)}
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                                                        onClick={() => handleOpenAddStaff(station)}
                                                     >
-                                                        <Trash2 className="w-4 h-4 mr-2" />
-                                                        Xóa
+                                                        <UserPlus className="w-4 h-4 mr-1" />
+                                                        Thêm nhân viên
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={() => handleDelete(station)}
+                                                        className={"cursor-pointer"}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
                                                     </Button>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 );
                             })}
                         </div>
                     )}
-                    </>
-                    )}
-                </div>
-            </div>
+                </TabsContent>
+
+                {/* Map View */}
+                <TabsContent value="map" className="mt-6">
+                    <StationMapView onEditStation={handleEdit} />
+                </TabsContent>
+            </Tabs>
 
             {/* Create Dialog */}
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[600px] bg-white">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-black">Thêm trạm mới</DialogTitle>
+                        <DialogTitle>Thêm trạm mới</DialogTitle>
                         <DialogDescription>
-                            Điền thông tin chi tiết cho trạm đổi pin mới
+                            Điền thông tin để thêm trạm đổi pin mới
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="stationName">
+                                Tên trạm <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="stationName"
+                                value={formData.stationName}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, stationName: e.target.value })
+                                }
+                                placeholder="VD: Trạm đổi pin Quận 1"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="address">
+                                Địa chỉ <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="address"
+                                value={formData.address}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, address: e.target.value })
+                                }
+                                placeholder="Nhập địa chỉ trạm"
+                            />
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="stationName">Tên trạm *</Label>
-                                <Input
-                                    id="stationName"
-                                    value={formData.stationName}
-                                    onChange={(e) => handleFormChange("stationName", e.target.value)}
-                                    placeholder="Trạm Hương Lộ 2"
-                                />
-                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phoneNumber">Số điện thoại</Label>
                                 <Input
                                     id="phoneNumber"
                                     value={formData.phoneNumber}
-                                    onChange={(e) => handleFormChange("phoneNumber", e.target.value)}
-                                    placeholder="0938859436"
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, phoneNumber: e.target.value })
+                                    }
+                                    placeholder="VD: 0901234567"
                                 />
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="address">Địa chỉ *</Label>
-                            <Input
-                                id="address"
-                                value={formData.address}
-                                onChange={(e) => handleFormChange("address", e.target.value)}
-                                placeholder="Thalexim Petro, Quận Bình Tân"
-                            />
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="totalSlots">Tổng slots</Label>
+                                <Label htmlFor="status">Trạng thái</Label>
+                                <Select
+                                    value={formData.status}
+                                    onValueChange={(value) =>
+                                        setFormData({ ...formData, status: value })
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                                        <SelectItem value="OFFLINE">Tạm đóng</SelectItem>
+                                        <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="totalSlots">Tổng số slots</Label>
                                 <Input
                                     id="totalSlots"
                                     type="number"
                                     value={formData.totalSlots}
-                                    onChange={(e) => handleFormChange("totalSlots", e.target.value)}
-                                    placeholder="10"
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, totalSlots: e.target.value })
+                                    }
+                                    placeholder="VD: 10"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -460,22 +584,11 @@ export default function StationManagementPage() {
                                     id="availableSlots"
                                     type="number"
                                     value={formData.availableSlots}
-                                    onChange={(e) => handleFormChange("availableSlots", e.target.value)}
-                                    placeholder="10"
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, availableSlots: e.target.value })
+                                    }
+                                    placeholder="VD: 10"
                                 />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="status">Trạng thái</Label>
-                                <Select value={formData.status} onValueChange={(value) => handleFormChange("status", value)}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-                                        <SelectItem value="OFFLINE">Ngừng hoạt động</SelectItem>
-                                        <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
-                                    </SelectContent>
-                                </Select>
                             </div>
                         </div>
                     </div>
@@ -485,10 +598,10 @@ export default function StationManagementPage() {
                         </Button>
                         <Button
                             onClick={handleCreate}
-                            disabled={createMutation.isPending}
-                            className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700"
+                            disabled={createMutation.isLoading}
+                            className="bg-[#135bec] hover:bg-[#135bec]/90"
                         >
-                            {createMutation.isPending ? "Đang tạo..." : "Tạo trạm"}
+                            {createMutation.isLoading ? "Đang tạo..." : "Tạo trạm"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -496,48 +609,78 @@ export default function StationManagementPage() {
 
             {/* Edit Dialog */}
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="sm:max-w-[600px] bg-white">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-black">Chỉnh sửa trạm</DialogTitle>
+                        <DialogTitle>Chỉnh sửa trạm</DialogTitle>
                         <DialogDescription>
-                            Cập nhật thông tin cho trạm: {selectedStation?.stationName}
+                            Cập nhật thông tin trạm đổi pin
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-stationName">
+                                Tên trạm <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="edit-stationName"
+                                value={formData.stationName}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, stationName: e.target.value })
+                                }
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-address">
+                                Địa chỉ <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="edit-address"
+                                value={formData.address}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, address: e.target.value })
+                                }
+                            />
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-stationName">Tên trạm *</Label>
-                                <Input
-                                    id="edit-stationName"
-                                    value={formData.stationName}
-                                    onChange={(e) => handleFormChange("stationName", e.target.value)}
-                                />
-                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="edit-phoneNumber">Số điện thoại</Label>
                                 <Input
                                     id="edit-phoneNumber"
                                     value={formData.phoneNumber}
-                                    onChange={(e) => handleFormChange("phoneNumber", e.target.value)}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, phoneNumber: e.target.value })
+                                    }
                                 />
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-address">Địa chỉ *</Label>
-                            <Input
-                                id="edit-address"
-                                value={formData.address}
-                                onChange={(e) => handleFormChange("address", e.target.value)}
-                            />
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="edit-totalSlots">Tổng slots</Label>
+                                <Label htmlFor="edit-status">Trạng thái</Label>
+                                <Select
+                                    value={formData.status}
+                                    onValueChange={(value) =>
+                                        setFormData({ ...formData, status: value })
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                                        <SelectItem value="OFFLINE">Tạm đóng</SelectItem>
+                                        <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-totalSlots">Tổng số slots</Label>
                                 <Input
                                     id="edit-totalSlots"
                                     type="number"
                                     value={formData.totalSlots}
-                                    onChange={(e) => handleFormChange("totalSlots", e.target.value)}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, totalSlots: e.target.value })
+                                    }
                                 />
                             </div>
                             <div className="space-y-2">
@@ -546,21 +689,10 @@ export default function StationManagementPage() {
                                     id="edit-availableSlots"
                                     type="number"
                                     value={formData.availableSlots}
-                                    onChange={(e) => handleFormChange("availableSlots", e.target.value)}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, availableSlots: e.target.value })
+                                    }
                                 />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-status">Trạng thái</Label>
-                                <Select value={formData.status} onValueChange={(value) => handleFormChange("status", value)}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-                                        <SelectItem value="OFFLINE">Ngừng hoạt động</SelectItem>
-                                        <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
-                                    </SelectContent>
-                                </Select>
                             </div>
                         </div>
                     </div>
@@ -570,10 +702,59 @@ export default function StationManagementPage() {
                         </Button>
                         <Button
                             onClick={handleUpdate}
-                            disabled={updateMutation.isPending}
-                            className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700"
+                            disabled={updateMutation.isLoading}
+                            className="bg-[#135bec] hover:bg-[#135bec]/90"
                         >
-                            {updateMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
+                            {updateMutation.isLoading ? "Đang cập nhật..." : "Cập nhật"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Detail Dialog */}
+            <StationDetailDialog
+                isOpen={isDetailDialogOpen}
+                onClose={() => setIsDetailDialogOpen(false)}
+                station={selectedStation}
+                onStaffRemoved={() => refetch()}
+            />
+
+            {/* Add Staff Dialog */}
+            <Dialog open={isAddStaffDialogOpen} onOpenChange={setIsAddStaffDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Thêm nhân viên vào trạm</DialogTitle>
+                        <DialogDescription>
+                            Nhập mã nhân viên để gán vào trạm
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Trạm</Label>
+                            <Input value={stations.find(s => s.id === addStaffData.stationId)?.stationName || ""} disabled />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="staffCode">
+                                Mã nhân viên <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="staffCode"
+                                value={addStaffData.staffCode}
+                                onChange={(e) => setAddStaffData({ ...addStaffData, staffCode: e.target.value })}
+                                placeholder="Nhập mã nhân viên"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddStaffDialogOpen(false)}>
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={confirmAddStaff}
+                            disabled={addStaffMutation.isLoading}
+                            className="bg-[#135bec] hover:bg-[#135bec]/90"
+                        >
+                            {addStaffMutation.isLoading ? "Đang thêm..." : "Thêm nhân viên"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -581,22 +762,26 @@ export default function StationManagementPage() {
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <AlertDialogContent className="bg-white">
+                <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận xóa trạm</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa trạm <strong>{selectedStation?.stationName}</strong>?
-                            Hành động này không thể hoàn tác.
+                            Bạn có chắc chắn muốn xóa trạm <strong>{stationToDelete?.stationName}</strong> không?
+                            <br />
+                            <span className="text-red-600 font-medium">
+                                Hành động này không thể hoàn tác!
+                            </span>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => setStationToDelete(null)}>
+                            Hủy
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
-                            disabled={deleteMutation.isPending}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            {deleteMutation.isPending ? "Đang xóa..." : "Xóa trạm"}
+                            Xóa trạm
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -604,3 +789,4 @@ export default function StationManagementPage() {
         </div>
     );
 }
+

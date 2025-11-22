@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Package, Plus, Search, Edit, Trash2, DollarSign, Calendar, Zap, CheckCircle, XCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Package, Plus, Search, Edit, Trash2, DollarSign, Calendar, Zap, CheckCircle, XCircle, Users } from "lucide-react";
 import useCustomQuery from "@/hooks/useCustomQuery";
 import useCustomMutation from "@/hooks/useCustomMutation";
 import { packagePlanApi } from "@/api";
@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { formatCurrency } from "@/utils/format";
 
 export default function PackagePlanManagementPage() {
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -29,11 +30,6 @@ export default function PackagePlanManagementPage() {
         maxSwapPerMonth: "",
         packageType: "MONTHLY",
     });
-
-    const fadeVariants = {
-        hidden: { opacity: 0, y: 40 },
-        visible: { opacity: 1, y: 0 },
-    };
 
     // Fetch danh sách package plans
     const { data: plansWrapper, isLoading, refetch } = useCustomQuery(
@@ -222,17 +218,11 @@ export default function PackagePlanManagementPage() {
             <div className="py-8 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
-                    <motion.div
-                        initial="hidden"
-                        animate="visible"
-                        variants={fadeVariants}
-                        transition={{ duration: 0.8 }}
-                        className="mb-8"
-                    >
+                    <div className="mb-8">
                         <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h1 className="text-4xl md:text-5xl font-extrabold mb-3 leading-tight">
-                                    <span className="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                                    <span className="text-[#135bec]">
                                         Quản lý gói dịch vụ
                                     </span>
                                 </h1>
@@ -249,7 +239,7 @@ export default function PackagePlanManagementPage() {
                                     resetForm();
                                     setIsCreateDialogOpen(true);
                                 }}
-                                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white"
+                                className="bg-[#135bec] hover:bg-[#135bec]/90 text-white cursor-pointer"
                             >
                                 <Plus className="w-5 h-5 mr-2" />
                                 Thêm gói mới
@@ -263,10 +253,10 @@ export default function PackagePlanManagementPage() {
                                 placeholder="Tìm kiếm theo tên gói hoặc mô tả..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 py-6 text-lg border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                                className="pl-10 py-6 text-lg border-gray-300 focus:border-[#135bec] focus:ring-[#135bec]"
                             />
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Plans Grid */}
                     {isLoading ? (
@@ -297,19 +287,13 @@ export default function PackagePlanManagementPage() {
                         </Card>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredPlans.map((plan, idx) => {
+                            {filteredPlans.map((plan) => {
                                 const statusInfo = getStatusBadge(plan.status);
                                 const StatusIcon = statusInfo.icon;
                                 const isInactive = plan.status === "INACTIVE";
 
                                 return (
-                                    <motion.div
-                                        key={plan.id}
-                                        initial="hidden"
-                                        animate="visible"
-                                        variants={fadeVariants}
-                                        transition={{ duration: 0.6, delay: idx * 0.05 }}
-                                    >
+                                    <div key={plan.id}>
                                         <Card className={`border hover:shadow-xl transition-all h-full flex flex-col ${
                                             isInactive 
                                                 ? "border-gray-300 bg-gray-50 opacity-75" 
@@ -322,7 +306,7 @@ export default function PackagePlanManagementPage() {
                                                             isInactive ? "text-gray-500" : "text-black"
                                                         }`}>
                                                             <Package className={`w-6 h-6 ${
-                                                                isInactive ? "text-gray-400" : "text-emerald-600"
+                                                                isInactive ? "text-gray-400" : "text-[#135bec]"
                                                             }`} />
                                                             {plan.name}
                                                             {isInactive && (
@@ -384,11 +368,19 @@ export default function PackagePlanManagementPage() {
                                                     </div>
                                                 </div>
                                             </CardContent>
-                                            <CardContent className="pt-0">
+                                            <CardContent className="pt-0 space-y-2">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 cursor-pointer"
+                                                    onClick={() => navigate(`/admin/packages/${plan.id}/subscriptions`)}
+                                                >
+                                                    <Users className="w-4 h-4 mr-2" />
+                                                    Xem người dùng đăng ký
+                                                </Button>
                                                 <div className="flex gap-2">
                                                     <Button
                                                         variant="outline"
-                                                        className="flex-1"
+                                                        className="flex-1 cursor-pointer"
                                                         onClick={() => handleEdit(plan)}
                                                         disabled={isInactive}
                                                     >
@@ -397,7 +389,7 @@ export default function PackagePlanManagementPage() {
                                                     </Button>
                                                     {isInactive ? (
                                                         <Button
-                                                            className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white cursor-pointer"
                                                             onClick={() => handleActivate(plan)}
                                                             disabled={activateMutation.isPending}
                                                         >
@@ -407,7 +399,7 @@ export default function PackagePlanManagementPage() {
                                                     ) : (
                                                         <Button
                                                             variant="destructive"
-                                                            className="flex-1"
+                                                            className="flex-1 cursor-pointer"
                                                             onClick={() => handleDelete(plan)}
                                                         >
                                                             <Trash2 className="w-4 h-4 mr-2" />
@@ -417,7 +409,7 @@ export default function PackagePlanManagementPage() {
                                                 </div>
                                             </CardContent>
                                         </Card>
-                                    </motion.div>
+                                    </div>
                                 );
                             })}
                         </div>
@@ -496,7 +488,7 @@ export default function PackagePlanManagementPage() {
                         <Button
                             onClick={handleCreate}
                             disabled={createMutation.isPending}
-                            className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700"
+                            className="bg-[#135bec] hover:bg-[#135bec]/90 cursor-pointer"
                         >
                             {createMutation.isPending ? "Đang tạo..." : "Tạo gói"}
                         </Button>
@@ -571,7 +563,7 @@ export default function PackagePlanManagementPage() {
                         <Button
                             onClick={handleUpdate}
                             disabled={updateMutation.isPending}
-                            className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700"
+                            className="bg-[#135bec] hover:bg-[#135bec]/90 cursor-pointer"
                         >
                             {updateMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
                         </Button>
@@ -594,7 +586,7 @@ export default function PackagePlanManagementPage() {
                         <AlertDialogAction
                             onClick={confirmDelete}
                             disabled={deleteMutation.isPending}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-red-600 hover:bg-red-700 cursor-pointer"
                         >
                             {deleteMutation.isPending ? "Đang vô hiệu hóa..." : "vô hiệu hóa gói"}
                         </AlertDialogAction>

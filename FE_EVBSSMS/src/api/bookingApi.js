@@ -2,10 +2,10 @@ import { apiClient } from "./apiClient";
 
 /**
  * Booking API
- * Base URL: /api/v1/bookings
+ * Base URL: /api/bookings
  */
 
-const BASE_URL = "/v1/bookings";
+const BASE_URL = "booking/api/bookings";
 
 /**
  * 1. Lấy tất cả bookings với phân trang
@@ -14,7 +14,7 @@ const BASE_URL = "/v1/bookings";
  * @returns {Promise<Object>}
  */
 export const getAllBookings = async (page = 0, size = 10) => {
-    return await apiClient.get(`${BASE_URL}?page=${page}&size=${size}`);
+    return await apiClient.get(`${BASE_URL}/getall?page=${page}&size=${size}`);
 };
 
 /**
@@ -46,22 +46,6 @@ export const getBookingsByDriver = async (driverId, page = 0, size = 10) => {
  */
 export const getBookingsByStation = async (stationId, page = 0, size = 10) => {
     return await apiClient.get(`${BASE_URL}/station/${stationId}?page=${page}&size=${size}`);
-};
-
-/**
- * 5. Lấy danh sách bookings quá hạn (Admin)
- * @returns {Promise<Array>}
- */
-export const getOverdueBookings = async () => {
-    return await apiClient.get(`${BASE_URL}/overdue`);
-};
-
-/**
- * 6. Lấy danh sách bookings sắp tới (Admin)
- * @returns {Promise<Array>}
- */
-export const getUpcomingBookings = async () => {
-    return await apiClient.get(`${BASE_URL}/upcoming`);
 };
 
 /**
@@ -108,7 +92,7 @@ export const getBookingStatistics = async (date) => {
  * @returns {Promise<Object>}
  */
 export const createBooking = async (data) => {
-    return await apiClient.post(BASE_URL, data);
+    return await apiClient.post(`${BASE_URL}/create`, data);
 };
 
 /**
@@ -123,10 +107,11 @@ export const confirmBooking = async (id) => {
 /**
  * 11. Hoàn thành booking
  * @param {number} id - Booking ID
+ * @param {number} paymentId - Payment ID
  * @returns {Promise<Object>}
  */
-export const completeBooking = async (id) => {
-    return await apiClient.post(`${BASE_URL}/${id}/complete`, {});
+export const completeBooking = async (id, paymentId) => {
+    return await apiClient.post(`${BASE_URL}/${id}/complete`, {paymentId});
 };
 
 /**
@@ -160,14 +145,21 @@ export const deleteBooking = async (id) => {
     return await apiClient.delete(`${BASE_URL}/${id}`);
 };
 
+/**
+ * Xac nhan isPaid cho booking
+ * @param {number} id - Booking ID
+ * @returns {Promise<Object>}
+ */
+export const confirmBookingPayment = async (id) => {
+    return await apiClient.put(`${BASE_URL}/confirmedIsPaid/${id}`, {});
+}
+
 // Export all booking API
 export const bookingApi = {
     getAllBookings,
     getBookingById,
     getBookingsByDriver,
     getBookingsByStation,
-    getOverdueBookings,
-    getUpcomingBookings,
     searchBookings,
     getBookingStatistics,
     createBooking,
@@ -176,5 +168,6 @@ export const bookingApi = {
     cancelBooking,
     updateBooking,
     deleteBooking,
+    confirmBookingPayment,
 };
 

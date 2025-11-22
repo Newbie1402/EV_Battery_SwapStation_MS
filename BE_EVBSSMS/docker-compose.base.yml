@@ -98,7 +98,7 @@ services:
     volumes:
       - nifi-data:/opt/nifi/nifi-current/conf
       - nifi-data:/opt/nifi/nifi-current/logs
-      - ./driver:/opt/nifi/nifi-current/driver
+      - ./nifi/driver:/opt/nifi/nifi-current/driver
     networks: [ evnet ]
     depends_on:
       - kafka

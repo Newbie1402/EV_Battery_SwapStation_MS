@@ -1,6 +1,5 @@
 package com.boilerplate.station.repository;
 
-import com.boilerplate.station.model.DTO.StationSwapTimeSlotDTO;
 import com.boilerplate.station.model.entity.BatterySwapLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

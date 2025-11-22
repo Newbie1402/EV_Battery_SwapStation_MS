@@ -207,4 +207,14 @@ public class SupportTicketController {
         var ticketDetail = supportTicketService.getTicketDetailById(ticketId);
         return ResponseEntity.ok(new ResponseData<>(200, "Lấy thông tin ticket thành công", ticketDetail));
     }
+
+
+
+    @GetMapping
+    @Operation(summary = "Lấy tất cả ticket", description = "API lấy danh sách tất cả ticket. Có thể dùng filter, paging nếu cần")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<ResponseData<List<SupportTicketDetailResponse>>> getAllTickets() {
+        List<SupportTicketDetailResponse> tickets = supportTicketService.getAllTickets();
+        return ResponseEntity.ok(new ResponseData<>(200, "Lấy tất cả ticket thành công", tickets));
+    }
 }

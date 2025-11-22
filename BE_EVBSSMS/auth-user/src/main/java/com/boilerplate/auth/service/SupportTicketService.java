@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -279,4 +280,54 @@ public class SupportTicketService {
             .updatedAt(ticket.getUpdatedAt())
             .build();
     }
+
+
+    private SupportTicketDetailResponse.VehicleInfo mapVehicle(Vehicle vehicle) {
+        if (vehicle == null) return null;
+        return SupportTicketDetailResponse.VehicleInfo.builder()
+                .id(vehicle.getId())
+                .vehicleId(vehicle.getVehicleId())
+                .vin(vehicle.getVin())
+                .licensePlate(vehicle.getLicensePlate())
+                .model(vehicle.getModel())
+                .build();
+    }
+
+    private SupportTicketDetailResponse.UserInfo mapUser(User user) {
+        if (user == null) return null;
+        return SupportTicketDetailResponse.UserInfo.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .employeeId(user.getEmployeeId())
+                .phone(user.getPhone())
+                .build();
+    }
+
+    public List<SupportTicketDetailResponse> getAllTickets() {
+        return supportTicketRepository.findAll()
+                .stream()
+                .map(ticket -> SupportTicketDetailResponse.builder()
+                        .id(ticket.getId())
+                        .ticketId(ticket.getTicketId())
+                        .user(mapUser(ticket.getUser()))
+                        .vehicle(mapVehicle(ticket.getVehicle()))
+                        .location(ticket.getLocation())
+                        .ticketType(ticket.getTicketType())
+                        .priority(ticket.getPriority())
+                        .status(ticket.getStatus())
+                        .title(ticket.getTitle())
+                        .description(ticket.getDescription())
+                        .attachments(ticket.getAttachments())
+                        .incidentTime(ticket.getIncidentTime())
+                        .resolvedAt(ticket.getResolvedAt())
+                        .resolvedBy(ticket.getResolvedBy())
+                        .resolutionNotes(ticket.getResolutionNotes())
+                        .createdAt(ticket.getCreatedAt())
+                        .updatedAt(ticket.getUpdatedAt())
+                        .build())
+                .toList();
+    }
+
+
 }
